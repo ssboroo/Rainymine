@@ -153,3 +153,15 @@ class SixTableSchemaTests(unittest.TestCase):
             path=Path(directory)/'structure.csv';path.write_text('hole_id,depth,alpha,beta,feature_type\nA,10,45,20,FAULT\n')
             rows,report=mapped_import(path,'structure',{k:k for k in SCHEMAS['structure']})
             self.assertEqual(rows_to_values('structure',rows)[0].feature_type,'FAULT')
+
+class NullableGridTests(unittest.TestCase):
+    def test_nullable_geotech_and_structure_csv_grid_admission(self):
+        from rainymine.data_tools import parse_cell,mapped_import,rows_to_values,SCHEMAS
+        self.assertEqual(parse_cell('structure','feature_type',' FAULT '),'FAULT')
+        self.assertIsNone(parse_cell('geotech','ucs_mpa',''))
+        with self.assertRaises(ValueError):parse_cell('geotech','from_m','')
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'geotech.csv';path.write_text('hole_id,from_m,to_m,rqd_pct,tcr_pct,ucs_mpa,jrc\nA,0,10,80,90,,\n')
+            rows,report=mapped_import(path,'geotech',{k:k for k in SCHEMAS['geotech']})
+            self.assertEqual(report['rejected'],0)
+            self.assertIsNone(rows_to_values('geotech',rows)[0].ucs_mpa)

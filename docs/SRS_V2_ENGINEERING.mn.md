@@ -28,7 +28,7 @@
 
 - `Structure`: hole_id, depth, alpha, beta, feature_type. Depth нь collar-д багтана, alpha 0…90, beta 0…<360.
 - `Geotech`: hole_id, from_m, to_m, rqd_pct, tcr_pct, ucs_mpa, jrc. Тоон хэмжилт байхгүй бол persisted model-д None; бодит хэмжилт гэж 0 зохиохгүй. RQD/TCR 0…100, RQD≤TCR, UCS≥0, JRC 0…20; давхардсан интервал reject.
-- CSV mapping-д дээрх бүх нэрлэсэн багана шаардана. Дутуу хэмжилттэй Geotech typed Python API нь None дэмжинэ; CSV blank mapping хараахан optional биш.
+- CSV mapping-д дээрх бүх нэрлэсэн багана шаардана. Geotech-ийн RQD/TCR/UCS/JRC нүд хоосон бол None; CSV болон editable grid ижил parse_cell дүрэм хэрэглэнэ. Collar санг солиход бүх 5 child хүснэгтийг цэвэрлэхийг ил тод асууна.
 - `.rmine` шинэ бичилт format v3. v1/v2 нь structure/geotech=[] default-тай уншигдана; хуучин EXE нь v3 файлыг уншихгүй тул эх файлаа overwrite хийхээс өмнө хувилбартай backup хадгална.
 - Multi-element assay, Sample_ID relational uniqueness, нүүрсний бүх шинжилгээ, full contractor/status/instrument schema, database FK cascade нь бүрэн болоогүй.
 

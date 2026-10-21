@@ -16,7 +16,7 @@ from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from .ui import Window
 from .scene import Scene
 from .core import Project,Lithology,finite,write_records,atomic_write
-from .data_tools import History,SCHEMAS,save_mapping_profile,mapping_profile,csv_preview,mapped_import,rows_to_values,transform_project,qaqc_assays,evaluate_controls
+from .data_tools import History,SCHEMAS,save_mapping_profile,mapping_profile,csv_preview,mapped_import,rows_to_values,parse_cell,transform_project,qaqc_assays,evaluate_controls
 from .geometry import read_obj,write_obj,read_dxf,write_dxf,mesh_report,constrained_tin,validate_polygon
 from .estimation import estimate_model,sample_support,cross_validate,experimental_variogram,fit_variogram,tonnage_grade
 from .planning import pit_benches,underground_drive,schedule,tasks_from_blocks,haul_route,haul_capacity,optimize_schedule,economic_tasks
@@ -60,7 +60,7 @@ class GridDialog(QDialog):
         super().__init__(parent);self.setWindowTitle(title);self.resize(980,520);self.columns=columns
         layout=QVBoxLayout(self);self.table=QTableWidget(len(rows),len(columns));self.table.setHorizontalHeaderLabels(columns);self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         for i,row in enumerate(rows):
-            for j,k in enumerate(columns):self.table.setItem(i,j,QTableWidgetItem(str(row.get(k,''))))
+            for j,k in enumerate(columns):self.table.setItem(i,j,QTableWidgetItem('' if row.get(k) is None else str(row.get(k,''))))
         layout.addWidget(self.table);buttons=QHBoxLayout()
         for label,fn in [('Мөр нэмэх',lambda:self.table.insertRow(self.table.rowCount())),('Сонгосон мөр устгах',self.remove)]:
             b=QPushButton(label);b.clicked.connect(fn);buttons.addWidget(b)
@@ -221,9 +221,9 @@ class Workbench(Window):
             if report['rejected']:
                 self.show_rows('Импортын алдаа — импорт хийгдээгүй',report['issues']);return
             p=deepcopy(self.project);setattr(p,kind,rows_to_values(kind,rows))
-            if kind=='collars' and (p.surveys or p.assays or p.lithology):
-                if QMessageBox.question(self,'Амсрын сан солих','Survey, сорьц, литологийн санг цэвэрлэж амсрыг солих уу?')!=QMessageBox.StandardButton.Yes:return
-                p.surveys=[];p.assays=[];p.lithology=[]
+            if kind=='collars' and (p.surveys or p.assays or p.lithology or p.structure or p.geotech):
+                if QMessageBox.question(self,'Амсрын сан солих','Survey, сорьц, литологи, бүтэц, геотехникийн санг цэвэрлэж амсрыг солих уу?')!=QMessageBox.StandardButton.Yes:return
+                p.surveys=[];p.assays=[];p.lithology=[];p.structure=[];p.geotech=[]
             if profile_name.text().strip():
                 p=save_mapping_profile(p,profile_name.text(),kind,report['mapping'])
             p.workspace.setdefault('imports',[]).append(report);self.commit(p)
@@ -238,7 +238,7 @@ class Workbench(Window):
         def save():
             def run():
                 parsed=[]
-                for row in dlg.rows():parsed.append({k:(v if k in ('hole_id','rock') else float(v)) for k,v in row.items()})
+                for row in dlg.rows():parsed.append({k:parse_cell(kind,k,v) for k,v in row.items()})
                 p=deepcopy(self.project);setattr(p,kind,rows_to_values(kind,parsed));self.commit(p);dlg.accept()
             self.guard(run)
         dlg.box.accepted.connect(save);dlg.exec()
