@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "source_points": 1000000,
+  "preview_limit": 100000,
+  "physical_gpu_fps_measured": false,
+  "cache": "warm immediately-after-write; no cold-cache run",
+  "fixture_parquet_write_seconds": 0.3673094639998453,
+  "parquet_scan_seconds": 0.03403821300025811,
+  "parquet_displayed": 70588,
+  "parquet_matching": 705880,
+  "parquet_bytes": 4548250,
+  "vtk_buffer_build_seconds": 0.2676264500000798,
+  "vtk_point_type": "float",
+  "las_scan_seconds": 0.04834327100024893,
+  "las_displayed": 100000,
+  "las_bytes": 34000388,
+  "process_peak_rss_mib": 393.50390625
+}

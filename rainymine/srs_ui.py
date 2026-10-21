@@ -22,7 +22,9 @@ class SrsTools:
                                ('Morton Parquet экспорт…',self.parquet_export),
                                ('Parquet блок импорт…',self.parquet_import),
                                ('Блокийн гадаад гадарга…',self.exposed_faces_view)]:
-            self.action(menu,title,callback)
+            action=self.action(menu,title,callback);action.setProperty("toolCategory","Шинжилгээ / SRS")
+            from .icons import semantic_icon,icon
+            action.setIcon(semantic_icon(title,icon("gear")))
 
     def desurvey_export(self):
         settings=self.params('Замнал экспорт — 3D үндсэн замнал minimum curvature хэвээр',

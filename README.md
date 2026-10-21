@@ -1,5 +1,7 @@
 # RAINYMINE 2026 · 0.9.0
 
+[Мэргэжлийн өргөтгөл, форматын дэмжлэг ба хэмжсэн гүйцэтгэл](docs/PROFESSIONAL_WORKFLOWS.mn.md) — шинэ «Мэргэжлийн хэрэгсэл» цэс: CSG/gizmo, LAS/LAZ, GeoTIFF, SHP, Surpac ASCII, constrained RBF, IK/multipass, ramp/tunnel/ring, хязгаартай stope болон blend MILP.
+
 **RAINY STUDIO · Лиценз ба дэмжлэг: 90220101**
 
 ![RAINYMINE брэндбүүк](assets/brandbook-2026.jpg)

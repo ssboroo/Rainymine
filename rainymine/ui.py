@@ -340,6 +340,8 @@ def main(app=None,splash=None):
                 window.vtk.SetEventPosition(round(screen[0]),round(screen[1]));window.on_click(None,None)
                 assert window.picked_info.text()!='3D дээр цооног эсвэл блок дарж сонгоно.'
                 meshes=verify(window.project)
+                from .packaged_checks import verify_professional_ui
+                verify_professional_ui(window)
                 window.project.workspace.setdefault('meshes',[]).extend(meshes)
                 window.refresh()
                 assert window.scene.sources['mesh_0'].GetNumberOfCells()>0

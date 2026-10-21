@@ -1,5 +1,7 @@
 # SRS v2.0 — инженерийн хэрэгжилт, нарийвчлал, үлдэгдэл
 
+**Шинэ өргөтгөл:** [Мэргэжлийн ажлын урсгал ба шинэчлэгдсэн хязгаар](PROFESSIONAL_WORKFLOWS.mn.md). Доорх суурь мэдээллийн CSG, LAS/LAZ, SHP, GeoTIFF, STR, IK, gizmo, implicit-ийн дутуу тэмдэглэгээг шинэ баримттай хамт уншина.
+
 2026-10-22. Хэрэглэгчийн `download.pdf` (Mining Software Platform SRS v2.0)-д тулгасан нэмэлт.
 Энэ баримт нь хэмжээгүй GPU/SLA үзүүлэлтийг биелсэн гэж батлахгүй.
 Өмнөх шаардлагын матриц: [SRS traceability](SRS_TRACEABILITY.mn.md).

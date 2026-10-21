@@ -40,6 +40,32 @@ def verify_licensing():
 
 def verify(project):
     verify_licensing()
+    from .cad import boolean_mesh
+    from .mine_design import spiral_ramp,drill_ring
+    from .formats import las_preview,read_dem
+    from .large_view import preview_polydata
+    import manifold3d as md
+    import numpy as np
+    def solid(position):
+        output=md.Manifold.cube([2,2,2]).translate(position).to_mesh64()
+        return {'name':'Smoke cube','vertices':np.asarray(output.vert_properties)[:,:3].tolist(),'faces':np.asarray(output.tri_verts).tolist()}
+    union,report=boolean_mesh(solid([500000,5300000,1400]),solid([500001,5300000,1400]),'union')
+    assert abs(report['volume_m3']-12)<1e-8
+    ramp,line,ramp_info=spiral_ramp([500000,5300000],1400,1405,50,10,10)
+    assert abs(line['points'][-1][2]-1405)<1e-8
+    assert len(drill_ring([0,0,0],90,0,-60,60,5,20))==5
+    with TemporaryDirectory() as folder:
+        import laspy
+        import rasterio
+        from rasterio.transform import from_origin
+        header=laspy.LasHeader(point_format=3,version='1.2');header.offsets=[500000,5300000,1400];header.scales=[.001]*3
+        cloud=laspy.LasData(header);cloud.x=np.arange(8)+500000.;cloud.y=np.zeros(8)+5300000.;cloud.z=np.zeros(8)+1400.
+        path=Path(folder)/'Монгол.laz';cloud.write(path);preview=las_preview(path,maximum=8)
+        poly,origin=preview_polydata(preview);assert poly.GetNumberOfPoints()==8
+        image=Path(folder)/'Монгол.tif'
+        with rasterio.open(image,'w',driver='GTiff',width=3,height=3,count=1,dtype='float32',crs='EPSG:32648',transform=from_origin(500000,5300030,10,10)) as dataset:
+            dataset.write(np.arange(9,dtype=np.float32).reshape(3,3),1)
+        terrain,terrain_info=read_dem(image);assert len(terrain['faces'])==8
     from .engineering import rtc_buffer,morton_codes,oriented_core,density_composites
     from .block_store import write_block_parquet,read_block_model,scan_block_batches
     from .validation import validate_tables
@@ -125,3 +151,32 @@ def verify(project):
             assert answer('Rainymine ашиглаад хайрын шүлэг бич',engine)==(OUT_OF_SCOPE,None)
         finally:engine.stop()
     return [implicit,envelope]
+
+
+def verify_professional_ui(window):
+    """Real native renderer/box-widget checks, including frozen and installed EXEs."""
+    import vtk
+    import numpy as np
+    from PySide6.QtWidgets import QApplication
+    from .large_view import LargePreviewFactory
+    payload={'kind':'blocks','xyz':np.array([[500000.,5300000.,1400.],[500020.,5300000.,1400.]]),
+             'sizes':np.array([[10.,10.,10.],[10.,10.,10.]]),'grade':np.array([1.,2.]),
+             'source_index':np.array([100,200],dtype=np.int64),'source_points':2,'matched_before_sampling':2,
+             'stride':1,'grid_angles':[35.,-10.,15.]}
+    dialog=LargePreviewFactory.show(window,payload,'Smoke native GPU instancing')
+    QApplication.processEvents();poly,origin,renderer,mapper,actor,widget,data=dialog.pipeline
+    assert isinstance(mapper,vtk.vtkGlyph3DMapper) and mapper.GetUseSelectionIds()
+    widget.GetRenderWindow().Render()
+    capture=vtk.vtkWindowToImageFilter();capture.SetInput(widget.GetRenderWindow());capture.ReadFrontBufferOff();capture.Update()
+    assert capture.GetOutput().GetNumberOfPoints()>0
+    dialog.close();QApplication.processEvents();assert not window._preview_dialogs
+    previous=window.active_layer
+    key=next((key for key in window.scene.actors if key.startswith('mesh_')),None)
+    if key:
+        window.active_layer=key;window.start_gizmo();QApplication.processEvents()
+        box,representation,controls,mesh_actor=window._gizmo
+        transform=vtk.vtkTransform();transform.Translate(3.,0.,0.);representation.SetTransform(transform);box.InvokeEvent('InteractionEvent')
+        assert mesh_actor.GetUserTransform() is not None
+        assert abs(mesh_actor.GetUserTransform().GetPosition()[0]-3)<1e-7
+        controls.close();QApplication.processEvents();assert window._gizmo is None
+    window.active_layer=previous

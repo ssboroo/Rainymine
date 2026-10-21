@@ -1,3 +1,12 @@
+# Professional workflows
+
+- Manifold CSG, mesh repair, transform gizmo and coordinate snap query.
+- Surpac ASCII, SHP, GeoTIFF, streamed LAS/LAZ and conditional external ODA conversion.
+- Signed/lithology/fault-zone RBF, IK, multipass, covariance-family fitting.
+- Ramp/tunnel/ring geometry, bounded box-stope and joint blend scheduling MILP.
+- Background tasks, bounded instanced external previews, reproducible 1M/10M CPU scan benchmarks.
+- Exact support limits: docs/PROFESSIONAL_WORKFLOWS.mn.md; no Micromine parity or GPU FPS claim.
+
 # SRS v2 engineering — 2026-10-22
 
 - RTC block-only origin fix, stable curvature series and upward holes.
