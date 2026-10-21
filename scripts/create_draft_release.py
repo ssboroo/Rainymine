@@ -45,6 +45,14 @@ def main():
     parser.add_argument('--dist', type=Path, required=True)
     args = parser.parse_args()
     manifest, names = verified_assets(args.dist, os.environ['GITHUB_SHA'], os.environ['GITHUB_RUN_ID'])
+    # Never let a superseded branch build publish stale release assets.
+    branch = os.environ.get('GITHUB_REF_NAME', '')
+    if branch:
+        import urllib.parse
+        current = subprocess.check_output(['gh', 'api', 'repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/ref/heads/' + urllib.parse.quote(branch, safe='/'), '--jq', '.object.sha'], text=True).strip()
+        if current != manifest['source_commit']:
+            print('Superseded build; verified artifacts retained, draft upload skipped.')
+            return
     tag = manifest['tag']
     existing = subprocess.run(['gh', 'release', 'view', tag, '--json', 'isDraft,isPrerelease,targetCommitish'], capture_output=True, text=True)
     if existing.returncode == 0:
