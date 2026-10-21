@@ -315,9 +315,9 @@ class Workbench(Window):
         meshes=self.project.workspace.get('meshes',[]);i=self.choose('Mesh топологи',[m['name'] for m in meshes])
         if i is not None:self.guard(lambda:self.show_rows('Mesh — self-intersection хараахан шалгахгүй',[mesh_report(meshes[i])]))
     def estimator_params(self):
-        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
+        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging','nearest','simple_kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'IDW power':2,'Nugget':0,'Partial sill':1,'Known mean (SK)':0,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
         if not result:return None
-        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'known_mean':float(result['Known mean (SK)']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
     def block_dialog(self):
         def run():
             parameters=self.estimator_params()
