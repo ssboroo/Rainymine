@@ -71,6 +71,15 @@ class PresentationWorkbench(AdvancedWorkbench):
         self.opacity_value=QLabel('100%');self.opacity_value.setObjectName('opacityValue')
         self.opacity.valueChanged.connect(lambda n:self.opacity_value.setText(f'{n}%'))
         self.layer_dock.widget().layout().insertWidget(2,self.opacity_value)
+        layer_layout=self.layer_dock.widget().layout();self.layer_properties=QWidget();properties_layout=QVBoxLayout(self.layer_properties);properties_layout.setContentsMargins(0,4,0,0)
+        while layer_layout.count()>1:
+            item=layer_layout.takeAt(1)
+            if item.widget():properties_layout.addWidget(item.widget())
+            elif item.layout():properties_layout.addLayout(item.layout())
+        properties_layout.removeWidget(self.picked_info)
+        properties_button=QToolButton();properties_button.setText('Харагдац тохируулах');properties_button.setIcon(icon('gear'));properties_button.setCheckable(True)
+        properties_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon);properties_button.toggled.connect(self.layer_properties.setVisible)
+        layer_layout.addWidget(properties_button);layer_layout.addWidget(self.layer_properties);self.layer_properties.hide();layer_layout.addWidget(self.picked_info)
         self.measure_label.setObjectName('muted');self.table.verticalHeader().setDefaultSectionSize(31)
         self.table.horizontalHeader().setMinimumSectionSize(80);self.table.setShowGrid(False)
         self.table.setAccessibleName('Цооногийн координат ба замналын хүснэгт')
@@ -135,7 +144,8 @@ class PresentationWorkbench(AdvancedWorkbench):
             text=QLabel(description);text.setWordWrap(True);text.setObjectName('muted');layout.addWidget(text)
         layout.addStretch();note=QLabel('Оффлайн заавар • Дээрх товчнууд хэрэгслийг нээнэ.');note.setWordWrap(True);note.setObjectName('muted');layout.addWidget(note)
         ask=QPushButton('Тусламж / үйлдэл хайх…');ask.setIcon(icon('search'));ask.clicked.connect(self.command_palette);layout.addWidget(ask)
-        tabs.addTab(help_page,'Тусламж');project_page=QWidget();project_layout=QVBoxLayout(project_page)
+        guide_scroll=QScrollArea();guide_scroll.setWidgetResizable(True);guide_scroll.setWidget(help_page)
+        tabs.addTab(guide_scroll,'Тусламж');project_page=QWidget();project_layout=QVBoxLayout(project_page)
         self.project_summary=QLabel();self.project_summary.setWordWrap(True);self.project_summary.setTextFormat(Qt.TextFormat.PlainText);project_layout.addWidget(self.project_summary);project_layout.addStretch();tabs.addTab(project_page,'Төсөл')
         # Preserve the real local support engine merged on main while presenting
         # it inside the user's requested right-hand assistant panel.
@@ -221,6 +231,7 @@ class PresentationWorkbench(AdvancedWorkbench):
             b=blocks[row];self.picked_info.setText(f"Блок #{row}\nX {b['x']:,.2f}  Y {b['y']:,.2f}\nZ {b['z']:,.2f}\nАгуулга: {b.get('grade')} {self.project.grade_unit}\nVariance: {b.get('variance')}\n{b.get('status','')}")
 
     def refresh_layers(self):
+        scroll=self.layer_list.verticalScrollBar().value() if hasattr(self,'layer_list') else 0
         super().refresh_layers()
         previous=self.layer_list.blockSignals(True)
         items=[self.layer_list.takeTopLevelItem(0) for _ in range(self.layer_list.topLevelItemCount())]
@@ -239,6 +250,7 @@ class PresentationWorkbench(AdvancedWorkbench):
             item.setToolTip(0,item.text(0));item.setTextAlignment(1,Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignVCenter)
         self.layer_list.expandAll()
         if items:self.layer_list.setCurrentItem(next((item for item in items if item.data(0,Qt.ItemDataRole.UserRole)==self.active_layer),items[0]))
+        self.layer_list.verticalScrollBar().setValue(scroll)
         self.layer_list.blockSignals(previous)
 
     def layer_selected(self,item,*args):

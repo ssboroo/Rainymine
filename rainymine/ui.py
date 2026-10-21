@@ -285,6 +285,10 @@ def main(app=None,splash=None):
     if splash:splash.set_stage('Төслийн өгөгдөл болон ажлын орчныг бэлтгэж байна…')
     from .presentation import PresentationWorkbench
     window=PresentationWorkbench();window.show()
+    if args.screenshot:
+        # Explicit post-show size gives review screenshots a useful desktop
+        # canvas even on a small CI monitor. Normal startup follows the screen.
+        window.resize(1440,900);QApplication.processEvents()
     if splash:
         splash.set_stage('3D ажлын орчин бэлэн боллоо')
         if args.smoke:
@@ -322,6 +326,7 @@ def main(app=None,splash=None):
                 window.scene.set_section((90,0,100));window.scene.set_section(None)
                 window.ribbon.setCurrentIndex(3)
                 window.toggle_view()
+                window.update_labels()
                 window.scene.view('iso')
                 window.vtk.GetRenderWindow().Render()
                 if capture is not None:
