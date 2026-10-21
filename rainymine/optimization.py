@@ -45,6 +45,9 @@ def economic_pit(model,density,price_per_grade_tonne,recovery,mining_cost,proces
     finite(density,price_per_grade_tonne,recovery,mining_cost,processing_cost,slope)
     if density<=0 or price_per_grade_tonne<0 or not 0<=recovery<=1 or min(mining_cost,processing_cost)<0 or not 15<=slope<=80:
         raise ValueError('Эдийн засаг / налуугийн тохиргоо буруу.')
+    from .spatial import model_basis
+    if model.get('subblock_levels',0) or not np.allclose(model_basis(model),np.eye(3),atol=1e-10):
+        raise ValueError('Pit optimizer нь world-axis parent grid шаарддаг; rotated/sub-block дэмжихгүй.')
     blocks=model['blocks']
     if not 1<=len(blocks)<=5000:raise ValueError('Pit optimizer 5000 хүртэл блок дэмжинэ.')
     size=np.asarray([blocks[0][a] for a in ('dx','dy','dz')],dtype=float)

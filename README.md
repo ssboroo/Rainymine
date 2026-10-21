@@ -1,4 +1,4 @@
-# RAINYMINE 0.4 — шинэ боломжууд
+# RAINYMINE 0.5.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
 
@@ -10,7 +10,6 @@
 - **STL:** ASCII/binary triangle import, double-precision ASCII export. STL-д CRS/нэгжийн metadata байхгүй; project metre гэж хэрэглэгч шалгана. Binary STL эх координат float32 нарийвчлалтай.
 - **Geobank SQL:** Windows ODBC + integrated authentication; site-specific canonical views ба snapshot transaction. [Тохиргоо](GEOBANK_SQL.md). Интернэт шаардлагагүй; SQL сервер тухайн сүлжээнд хүртээмжтэй байна. Бодит байгууллагын серверийн acceptance тест хүлээгдэж байгаа.
 
-# RAINYMINE 0.4.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэл, API key шаардахгүй. Суулгасан EXE нь Python шаардахгүй. Эх кодын dependency таталт болон Windows build-д интернэт хэрэгтэй.
 
@@ -20,10 +19,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.4.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.5.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх амжилттай 0.1.0 artifact нь шинэ 0.4.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь шинэ 0.5.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 
@@ -57,9 +56,9 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 | CRS | PROJ/pyproj, оффлайн, explicit source/target, XY axis order, метрийн projected target, local bearing rotation | Z босоо datum ба measured-depth scale хөрвүүлэхгүй; geometry/block model үүсгэхийн өмнө хөрвүүлнэ; геодезийн хяналтын бодит цэг хэрэгтэй |
 | Өрөмдлөг / QAQC | Minimum curvature, assay/lithology интервал, missing-support coverage, standard Z-score, blank threshold, duplicate RPD | Хяналтын хязгаарыг лаборатори/геологич сонгоно; зөвшөөрөлгүй outlier устгахгүй; лабораторийн бүрэн batch certification биш |
 | Геометр | XYZ TIN, breakline constrained TIN ба edge verification, string/polygon vertex editor, OBJ triangles, DXF LINE/POLYLINE/3DFACE, topology/volume report | Mesh self-intersection, robust Boolean solids, fault-aware modelling, full DXF entity coverage дутуу |
-| Блок / үнэлгээ | Axis-aligned parent blocks, XY polygon extrusion domain, isotropic IDW / spherical ordinary kriging, ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Point estimate at block centre; block kriging, rotated/sub-block model, directional variogram, top-cuts/domain-by-lithology, independent benchmark дутуу |
+| Блок / үнэлгээ | Rotated parent blocks, XY polygon domain, IDW / isotropic эсвэл geometric-anisotropic spherical ordinary kriging, midpoint block discretization, top cut, per-hole limits, rotated ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Centre-sampled adaptive sub-block ба planar fault barrier нэмсэн; fault displacement/implicit geology, composite-support regularization, domain-by-lithology, nested variogram structures, independent real-deposit benchmark дутуу; discrete block support нь approximation |
 | Тайлан | Density t/m³, cutoff scenarios, volume/tonnes/mean grade, missing volume, kriging variance атрибут | **UNCLASSIFIED**; variance нь нөөцийн ангилал биш. Density fields, geologist review, uncertainty sensitivity / reporting-code certification дутуу |
-| Төлөвлөлт | Circular bench/berm/slope prototype, straight underground drive mesh, capacity/precedence reconciliation ба greedy schedule | Ramp, geotechnics, ventilation/support, slope-sector precedence, haulage/stockpile, economic/global optimization дутуу |
+| Төлөвлөлт | Circular bench/berm/slope prototype, straight underground drive mesh, capacity/precedence reconciliation ба greedy schedule | Polyline замын gradient/fleet cycle ба optional-task economic MILP нэмсэн. Engineered ramps, curvature, geotechnics, ventilation/support, slope-sector precedence, stockpile/dispatch, global pit optimization дутуу |
 | Түгээлт | Native Windows EXE, portable ZIP, Inno Setup, CPU renderer, source/packaged/installed smoke checks | Signed installer, бодит Windows төхөөрөмж/GPU matrix хараахан байхгүй |
 
 Дэлгэрэнгүй бүтээгдэхүүний чиглэл: [ROADMAP.md](ROADMAP.md). Дээрх хязгааруудыг хэрэгжсэн мэтээр нэрлэхгүй.
@@ -122,12 +121,14 @@ X зүүн, Y хойд, Z дээш; ажиллах координат метр. 
 
 - Minimum curvature: `Δr=L/2·(u+v)·RF`, `RF=2tan(θ/2)/θ`, θ→0 үед RF=1. Partial station position нь spherical tangent interpolation-той.
 - Composite нь 0-ээс anchored bins; `Σ(overlap·grade)/Σ(overlap)`, coverage нь support/bin length. Missing support 0 агуулга болж хувирахгүй.
-- IDW нь сонгосон эллипсоид дотор nearest support, physical metre distance-аар жинлэнэ. Ordinary kriging нь spherical semivariogram + unbiasedness constraint бүхий linear system. Singular системийг unestimated гэж ил гаргана. Negative kriging grades-ийг чимээгүй clamp хийхгүй.
-- Variogram isotropic; олон pair дээр deterministic seed 2026 ашиглаж 250000 хүртэл pair авна. Spherical fit exploratory бөгөөд геологийн model сонголтыг орлохгүй.
+- IDW нь сонгосон эллипсоид дотор nearest support, physical metre distance-аар жинлэнэ. Search azimuth/dip/roll нь локал X/Y/Z хайлтын радиусуудыг эргүүлнэ; default 90/0/0 нь хуучин дэлхийн XYZ тэнхлэгтэй ижил. Dip дээш эерэг; roll нь локал X-ийг тойрон Y-ийг Z рүү эргүүлнэ. Search эргэлт нь neighbor selection-д үйлчилнэ; IDW нь physical distance хэрэглэнэ. Covariance = Anisotropic үед тусдаа variogram angles ба 3 range ашиглаж `h = norm((delta @ basis) / ranges)` тооцно. Isotropic үед хуучин range metres хэрэглэнэ. Чиглэлтэй variogram fit-ийг range/angles-д хэрэглэгч өөрөө сонгож оруулна. Ordinary kriging нь spherical semivariogram + unbiasedness constraint бүхий linear system. Singular системийг unestimated гэж ил гаргана. Negative kriging grades-ийг чимээгүй clamp хийхгүй.
+- Variogram нь isotropic эсвэл чиглэлтэй; azimuth нь хойноос цагийн зүүний дагуу, dip дээш эерэг, tolerance нь чиглэлийн хоёр талын хагас өнцөг, bandwidth нь тэнхлэгээс перпендикуляр хамгийн их зай (метр). Эсрэг чиглэлийн pair ижилд тооцогдоно. Lag зай нь 3D бодит зай. Чиглэлтэй fit нь exploratory бөгөөд kriging covariance-д автоматаар холбогдохгүй; олон pair дээр deterministic seed 2026 ашиглаж 250000 хүртэл pair авна. Spherical fit exploratory бөгөөд геологийн model сонголтыг орлохгүй.
 - Cross-validation нь default leave-one-hole-out; withheld hole-ийн бүх support-ыг training-с хасна. Training-fold mean baseline-тай харьцуулна. Независимый geological benchmark биш.
-- Domain нь polygon-ийн XY extrusion ба Z bounds; cell-centre membership ашигладаг тул boundary volume нь ойролцоо. Block-centre point estimates-ийг block-average гэж нэрлэхгүй.
+- Grid rotation нь bounds-ийн minimum XYZ цэгийг тойрно; bounds ба cell dimensions нь эргүүлэхээс өмнөх grid coordinate. Domain нь world XY polygon ба grid-local Z bounds; cell-centre membership ашигладаг тул boundary volume нь ойролцоо. Slice нь локал grid тэнхлэгтэй эргэнэ. CSV атрибутын экспорт grid angles/origin агуулна.
+- Block support = Point нь төвийн үнэлгээ. 2×2×2, 3×3×3, 4×4×4 нь блокийн дотор midpoint quadrature хэрэглэнэ. Кригингийн RHS нь sample-to-block semivariance-ийн дундаж; variance-ээс within-block semivariance-ийн дунджийг хасна. Бүх support-д centre-selected нэг neighborhood хэрэглэнэ. IDW нь ижил neighborhood-оор тооцсон subpoint утгуудын дундаж. Composite midpoint point support хэвээр; sample-support regularization, boundary-clipped partial volume, numerical convergence review дутуу.
+- Top cut нь зөвхөн estimator-ийн working grade-г cap хийнэ; эх assay өөрчлөгдөхгүй. Capped count, params, status counts, source ба run SHA256 хадгална. Per-hole limit-ийн дараа minimum sample/hole нөхцөл хүрэхгүй бол unestimated. Cross-validation нь block support биш, raw observed grade-тай point holdout шалгалт.
 - Tonnage нь cell volume × constant density; unestimated volume тайланд тусдаа гарна. %/g/t/ppm-ийн weighted mean grade-г тооцно, contained metal conversion эсвэл resource classification хийдэггүй.
-- Schedule нь value-per-tonne greedy heuristic. Predecessor өмнөх period-д дууссан байна. Capacity хэтэрсэн indivisible task төлөвлөгдөхгүй; infeasibility шалтгаан гаргана. Энэ нь economic pit optimizer биш.
+- Эргэлттэй grid-д world-vertical precedence хараахан дэмжихгүй тул schedule үүсгэхэд алдаа гаргана. World-axis model-ийн schedule нь value-per-tonne greedy heuristic. Predecessor өмнөх period-д дууссан байна. Capacity хэтэрсэн indivisible task төлөвлөгдөхгүй; infeasibility шалтгаан гаргана. Энэ нь economic pit optimizer биш.
 - VTP export нь одоогоор цооногийн локал геометр. `.origin.json` offset-г нэмэхэд absolute coordinate сэргээнэ. PNG нь үндсэн viewport.
 
 ## Хэмжээ ба шалгалт
@@ -154,3 +155,26 @@ py -3.11 -m venv .venv
 EXE: `pip install pyinstaller==6.12.0`, дараа нь `scripts/build_windows.ps1`. CPU renderer: `scripts/prepare_mesa.ps1`. Inno Setup 6: `ISCC.exe installer\Rainymine.iss`.
 
 Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL/Commercial, VTK BSD, NumPy/SciPy BSD, PROJ/pyproj болон ezdxf-ийн upstream licenses. Dynamic Qt libraries-ийг багцад хэвээр хадгална. Micromine native file compatibility амлаагүй.
+
+## 0.5.0 — Sub-block / Fault / Haul / MILP / Reference workflow
+
+- **Sub-block levels 0–3:** finest-cell centre-үүдийг world XY polygon ба fault zone-оор ангилна; ижил ангилалтай найман sibling-ийг нэгтгэнэ. Adaptive output нь geometry clipping биш; нимгэн заагийг finest resolution-оос доош барихгүй. 200000 хүртэл finest sample, 50000 output cell. Grid minimum pivot ба rotation хэвээр.
+- **Fault Plane:** point + normal бүхий 8 хүртэл infinite planar barrier. Estimation, cross-validation, variogram нь fault-ийн эсрэг талын sample/pair-ийг холихгүй. Харагдах patch-ийн extent нь зөвхөн guide; barrier infinite. On-plane point нь + тал. Fault throw, displacement restoration, curved faults, implicit stratigraphy дэмжихгүй.
+- **Зам / Тээвэр:** эхлээд нээлттэй XYZ String үүсгээд сонгоно. Segment-ийн 3D урт, signed gradient, max-gradient limit шалгана. Payload/trucks/speeds/loading/dumping/queue/shift/utilization-аар continuous-average cycle capacity тооцно. Curvature, turning radius, superelevation, traction, traffic, engineered ramp биш. Gradient зөрвөл fleet result үүсгэхгүй.
+- **MILP Оновчлол:** world-axis parent grid, vertical column precedence ашиглана. Metal price нь **нэг тонн металлд**, бүх cost нэг currency-д байна; % → 0.01, g/t ба ppm → 1e-6 tonne-metal/tonne-rock. Recovery, mining/processing/haul costs, discount-per-period, mining/processing capacity орно. Optional tasks: ашиггүй block-ийг олборлохгүй байж болно, харин predecessor шаардлагатай бол зардалтай waste-ийг сонгоно. Solver status/gap-ийг харуулна; timeout incumbent-ийг optimal гэж нэрлэхгүй. 12000 binary, 1 сая precedence coefficients; synchronous solver нь тохируулсан 60 сек хүртэл UI-г ачааллуулж болно. Sub-block/rotated grid schedule, slope cones, haul-network coupling, stockpiles, global pit shell optimization дутуу.
+- **External Benchmark:** гадаад `x,y,z,grade` CSV-тэй complete one-to-one coordinate matching ба absolute + relative tolerance-оор тоон харьцуулна. Incomplete/ambiguous/unestimated үр дүн pass болохгүй. Reference SHA256 ба model run SHA256 хадгална. `independent_review_verified` үргэлж false: өгөгдлийн гарал, эрх, real-deposit scope, reviewer sign-off тусдаа шаардлагатай. [Баталгаажуулалтын заавар](docs/EXTERNAL_VALIDATION.md).
+
+## 0.5 — Зөвхөн Rainymine-ийн local туслах
+
+**3D хэрэгслүүд → Local AI Туслах** самбар монголоор программын ажиллагаа, тохиргоо, CSV импорт, алдаа засах зааврыг сонгож өгнө. Ерөнхий чат, геологийн шийдвэр/нөөцийн баталгаа, код үүсгэх, автоматаар үйлдэл хийхгүй.
+
+- CPU engine: pinned llama.cpp b11796; model: Qwen3-1.7B Q4_K_M, 1,282,439,264 bytes (~1.28 GB download), pinned revision/SHA256. Model/runtime лиценз: assets/AI-NOTICES.txt, assets/QWEN_MODEL_LICENSE.txt. Суулгасан багцын root-д эдгээр лиценз мөн байна.
+- **Rainymine-AI-Offline-x64 artifact доторх AI Offline portable ZIP** моделийг дотроо агуулна. Бүх ZIP-ийг задлаад Rainymine.exe нээнэ. Engine/model-д тусдаа installation, интернэт, Ollama, API key шаардахгүй.
+- **Энгийн installer/portable** engine агуулна, model ороогүй. Local AI → Анх тохируулах дарж моделийг нэг удаа татна. Дараа нь оффлайн ажиллана. Model нь хэрэглэгчийн LOCALAPPDATA/Rainymine/ai/models-д хадгалагдана. Нэг удаагийн таталтад интернэт, сул диск хэрэгтэй.
+- Бэлэн GGUF/llama-server файлтай бол Файл сонгох ашиглаж болно; баталгаажуулсан хослол нь дээрх Qwen3/llama.cpp. Бусад model-ийн template/JSON/CPU нийцлийг амлахгүй.
+- Local модель боломжит тусламжийн ID-г сонгоно; дэлгэцийн алхмууд reviewed built-in заавраас гарна. Model-ийн дурын prose/команд/HTML хэрэглэгчид дамжуулахгүй. Эх сурвалжийн help ID харагдана. Хамааралгүй асуултыг буцааж чиглүүлнэ.
+- Туслах project/assay/coordinates/logs/чатын түүхийг уншихгүй. Асуулт + сонгосон тусламжийн хэсгүүд нь зөвхөн 127.0.0.1 дээрх тухайн Rainymine-ийн эхлүүлсэн process-д очно. Proxy/redirect ашиглахгүй. API key/үүлэн inference холболт байхгүй.
+- Setup болон inference background thread-д ажиллана. Зогсоох товч model process-ийг хааж RAM чөлөөлнө. Программ хаахад мөн хаана. Чат файлд хадгалахгүй; Clear нь харагдах түүх ба follow-up ID-г цэвэрлэнэ.
+- Модельгүй үед зааврын dropdown нь оффлайнаар шууд ажиллана; энэ нь generative AI ажилласан гэсэн үг биш. CPU хурд/RAM-аас model startup/response хамаарна. Энэ model нь Mongolian general reasoning/геологийн мэргэжлийн чадвараар баталгаажуулагдаагүй; reviewed help routing-д л ашиглана.
+
+Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.5.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.

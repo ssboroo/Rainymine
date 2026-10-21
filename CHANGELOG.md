@@ -43,3 +43,31 @@
 - Reusable named CSV column mappings saved per import kind inside the project, with explicit application, missing-column checks and undo/redo.
 - Reject empty/duplicate CSV headers and report short/extra-field rows instead of silently dropping values.
 - Regression coverage for profile persistence, transactional history and malformed CSV input.
+
+- Rotated search ellipsoids (azimuth, dip, roll) in estimation and cross-validation. Physical-distance IDW and isotropic kriging covariance remain unchanged.
+- Directional experimental variograms with angular tolerance, perpendicular bandwidth, saved settings and exploratory spherical fits.
+
+## 0.3.0 — Advanced estimation workbench
+
+- Separate geometric-anisotropic spherical covariance ranges/orientation from search rotation.
+- Discretized IDW and ordinary block kriging approximation with 1–4 midpoint supports per axis, common centre-selected neighbourhood, and within-block semivariance correction.
+- Rotated parent-block geometry, local-axis slices, rotation metadata in project/CSV, invariant volumes, and rejection of unsupported rotated-grid scheduling.
+- Non-destructive top cuts, maximum samples per hole, minimum distinct holes, capped counts, status summaries and reproducible run fingerprints.
+- Scrollable estimation dialogs, updated in-app help, Windows package version 0.3.0.
+- Analytical anisotropy/block-variance controls, rotation/render/persistence tests. Independent deposit benchmark, sub-blocks and professional certification remain pending.
+
+## 0.4.0 — Geological barriers and planning scenarios
+
+- Centre-sampled adaptive sub-blocks with sibling coalescing and explicit resolution limits.
+- Infinite planar fault barriers for estimation, validation and variogram pairing; guide meshes without displacement modelling.
+- Polyline gradient checks and constant-speed fleet cycle/capacity scenarios.
+- Economic optional-task HiGHS MILP with capacity, strict predecessor periods, discounting and solver status/gap.
+- External reference CSV comparison, complete matching, provenance hashes and CLI; independent real-deposit review remains pending.
+
+## 0.5.0 — Local software-support assistant
+
+- Native Mongolian support dock, background setup/inference, cancellation and model process cleanup.
+- Pinned llama.cpp CPU runtime + Qwen3-1.7B Q4_K_M model, SHA256-checked atomic downloads and model-included offline portable ZIP.
+- Strict reviewed-help-ID output; no arbitrary generated instructions, project access, file changes, commands or general chat.
+- Localhost-only authenticated process, no proxy/redirect, no cloud inference or API credentials.
+- Offline manual help when model unavailable; scope, invalid output, asset integrity and process-boundary tests.

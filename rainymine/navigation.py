@@ -27,6 +27,9 @@ class NavigationWorkbench(Workbench):
         page=QWidget();buttons=QHBoxLayout(page)
         for title,kind,callback in [('Давхаргын\nсамбар','grid',self.toggle_layers),('Огтлол\nхадгалах','file',self.save_section),('Огтлол\nнээх','surface',self.open_section),('Өмнөх\nогтлол','undo',lambda:self.step_section(-1)),('Дараах\nогтлол','surface',lambda:self.step_section(1)),('X / Y / Z\nзүсэлт','cube',self.slice_dialog)]:
             button=QToolButton();button.setIcon(icon(kind));button.setIconSize(QSize(29,29));button.setText(title);button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon);button.clicked.connect(lambda checked=False,cb=callback:cb());buttons.addWidget(button)
+        from .support_ui import SupportDock
+        self.support=SupportDock(self);self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.support);self.support.hide()
+        help_button=QToolButton();help_button.setIcon(icon('gear'));help_button.setText('Local AI\nТуслах');help_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon);help_button.clicked.connect(lambda:self.support.setVisible(not self.support.isVisible()));buttons.addWidget(help_button)
         buttons.addStretch();self.ribbon.addTab(page,'3D хэрэгслүүд')
         menu=self.menuBar().addMenu('Огтлол');self.action(menu,'Өмнөх огтлол',lambda:self.step_section(-1),'PgUp');self.action(menu,'Дараах огтлол',lambda:self.step_section(1),'PgDown');self.action(menu,'Огтлол хадгалах',self.save_section)
     def refresh(self):
@@ -88,7 +91,7 @@ class NavigationWorkbench(Workbench):
         model=self.project.workspace.get('block_model')
         if not model:QMessageBox.information(self,'Блокийн зүсэлт','Эхлээд блок модель үүсгэнэ үү.');return
         bounds=model['bounds'];positions=self.project.workspace.get('block_slice_positions',[(bounds[i]+bounds[i+3])/2 for i in range(3)])
-        dlg=QDialog(self);dlg.setWindowTitle('X / Y / Z зүсэлтийн байрлал — метр');form=QFormLayout(dlg);spins=[]
+        dlg=QDialog(self);dlg.setWindowTitle('Grid X / Y / Z зүсэлт — локал grid координат, метр');form=QFormLayout(dlg);spins=[]
         for i,axis in enumerate('XYZ'):
             spin=QDoubleSpinBox();spin.setDecimals(3);spin.setRange(bounds[i],bounds[i+3]-.001);spin.setSingleStep(model['size'][i]);spin.setValue(positions[i]);spins.append(spin);form.addRow(axis,spin)
         box=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);box.accepted.connect(dlg.accept);box.rejected.connect(dlg.reject);form.addRow(box)
@@ -114,3 +117,9 @@ class NavigationWorkbench(Workbench):
                     else:self.picked_info.setText(self.layer_name(info['layer'])+'\nCell: '+str(info['cell_id']))
                     self.active_layer=info['layer'];self.refresh_layers()
         super().on_click(obj,event)
+
+    def closeEvent(self,event):
+        if hasattr(self,'support') and self.support.busy():
+            self.support.cancel();event.ignore();return
+        super().closeEvent(event)
+        if event.isAccepted() and hasattr(self,'support'):self.support.shutdown()

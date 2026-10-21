@@ -11,6 +11,8 @@ def points_valid(points,minimum=1):
         if max(map(abs,p))>1e9:raise ValueError('Координат хэт их.')
 
 def validate_workspace(workspace):
+    from .domains import validate_faults
+    validate_faults(workspace.get('faults',[]))
     from .viewing import validate_viewing
     validate_viewing(workspace)
     for s in workspace.get('strings',[]):
@@ -20,6 +22,10 @@ def validate_workspace(workspace):
     for mesh in workspace.get('meshes',[]):validate_mesh_data(mesh)
     model=workspace.get('block_model')
     if model:
+        validate_faults(model.get('faults',[]))
+        from .spatial import model_basis
+        model_basis(model)
+        if 'grid_origin' in model:points_valid([model['grid_origin']])
         if len(model['blocks'])>50000:raise ValueError('Блокийн тоо хэт их.')
         for b in model['blocks']:
             finite(b['x'],b['y'],b['z'],b['dx'],b['dy'],b['dz'])

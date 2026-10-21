@@ -30,3 +30,25 @@
 | Бодит төхөөрөмж | Windows 10/11 x64, хэд хэдэн GPU/driver, offline/upgrade/uninstall test log | CI runner-ээс өөр төхөөрөмжөөр шалгаагүй |
 
 Эдгээр дутуу evidence-ийг программ зохиомлоор үүсгэж баталгаажуулсан мэтээр харуулахгүй.
+
+## 0.3.0 шалгалтын нэмэлт
+
+- Two-sample anisotropic analytic weights (2.598 expected grade).
+- Two-support ordinary block kriging: point variance 0.151; discrete block variance 0.0755.
+- Rotated grid volume / model save-load, large-coordinate covariance rotation invariance.
+- Rotated full-cell and local-slice VTK geometry stays inside the reference local grid.
+- Top-cut source preservation, per-hole caps, minimum distinct holes, cancellation protection.
+- Offscreen Qt parameter dialog with 35 fields: scroll area and visible accept controls.
+- Latest Windows build/installed smoke must be checked on the PR commit; local mathematical tests are not a Windows executable test.
+
+## 0.4.0 development controls
+
+Synthetic tests check sub-block volume conservation/coalescing, planar fault separation, project round-trip, hand-calculated haul capacity (3072 t/shift), MILP against exhaustive enumeration, grade-unit conversion and complete/partial external reference matching. These do not complete the independent real-deposit acceptance gate. See docs/EXTERNAL_VALIDATION.md.
+
+## 0.5.0 local-support evidence
+
+- Actual pinned Qwen3-1.7B Q4_K_M + llama.cpp b11796 CPU inference tested locally: Mongolian CSV import, blank render and block-model help route correctly; unrelated requests are redirected.
+- Reviewed-help output rejects unknown IDs/malformed JSON and discards all arbitrary model prose.
+- Tests cover topic-only follow-up context, off-topic scope, verified/failed/cancelled atomic downloads, archive traversal rejection and localhost process arguments.
+- Offscreen Qt verifies manual help, clear, off-topic handling and plain-text display.
+- Windows CI additionally downloads/hash-checks actual assets and runs local-model inference from source, packaged EXE and installed EXE. Check the exact commit's CI result before claiming this passed.

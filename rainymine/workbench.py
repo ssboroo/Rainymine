@@ -19,7 +19,9 @@ from .core import Project,Lithology,finite,write_records,atomic_write
 from .data_tools import History,SCHEMAS,save_mapping_profile,mapping_profile,csv_preview,mapped_import,rows_to_values,transform_project,qaqc_assays,evaluate_controls
 from .geometry import read_obj,write_obj,read_dxf,write_dxf,mesh_report,constrained_tin,validate_polygon
 from .estimation import estimate_model,sample_support,cross_validate,experimental_variogram,fit_variogram,tonnage_grade
-from .planning import pit_benches,underground_drive,schedule,tasks_from_blocks
+from .planning import pit_benches,underground_drive,schedule,tasks_from_blocks,haul_route,haul_capacity,optimize_schedule,economic_tasks
+from .domains import fault_patch
+from .benchmark import compare_reference
 
 LIGHT='''
 QWidget {font-family:"Segoe UI";font-size:11px;color:#243146;}
@@ -113,8 +115,8 @@ class Workbench(Window):
         tab('Төсөл',[('Файл',[('Шинэ\nтөсөл','file',self.new),('Төсөл\nнээх','file',self.open),('Хадгалах','file',self.save)]),('Өгөгдөл',[('Багана\nтохируулах','grid',lambda:self.import_data('collars')),('CRS\nхөрвүүлэх','pick',self.crs_dialog),('Хүснэгт\nзасвар','grid',self.edit_grid)]),('Түүх',[('Буцаах','undo',self.undo),('Сэргээх','undo',self.redo),('Тохиргоо','gear',self.settings)])])
         tab('Өрөмдлөг',[('Импорт',[('Амсар','holes',lambda:self.import_data('collars')),('Survey','holes',lambda:self.import_data('surveys')),('Сорьц','chart',lambda:self.import_data('assays')),('Литологи','holes',lambda:self.import_data('lithology'))]),('Чанар',[('Сорьцын\nбүрхэлт','grid',self.qaqc),('Стандарт /\nBlank / Dup','chart',self.controls),('Шалгах','gear',self.validate_data)]),('Гаргалгаа',[('Композит','grid',self.composites),('Замнал CSV','file',self.export_paths)])])
         tab('Геологи / DTM',[('Геометр',[('String /\nPolygon','polygon',self.edit_string),('Геометр\nзасах','pick',self.edit_existing_string),('Гадарга\nXYZ','surface',lambda:self.import_data('surface'))]),('DTM / Solid',[('Breakline\nTIN','surface',self.build_tin),('Mesh\nшалгах','cube',self.check_mesh)]),('Солилцоо',[('OBJ\nимпорт','cube',self.import_obj),('OBJ\nэкспорт','cube',self.export_obj),('DXF\nимпорт','polygon',self.import_dxf),('DXF\nэкспорт','polygon',self.export_dxf)])])
-        tab('Блок модель',[('Модель',[('Блок модель\nүүсгэх','cube',self.block_dialog),('Домэйн\nPolygon','polygon',self.edit_string),('Блок CSV\nэкспорт','grid',self.export_blocks),('3 зүсэлт /\nБүх блок','cube',self.block_display)]),('Үнэлгээ',[('Variogram\nба fit','chart',self.variogram),('Cross-\nvalidation','chart',self.cross_validation),('Density /\nCutoff','cube',self.resource_report)])])
-        tab('Уурхай',[('Загварын prototype',[('Ил уурхайн\nBench','pit',self.pit),('Далд уурхайн\nМалталт','cube',self.drive)]),('Төлөвлөлт',[('Capacity\nSchedule','grid',self.schedule_dialog),('Төслийн\nтайлан','file',self.report)])])
+        tab('Блок модель',[('Модель',[('Блок модель\nүүсгэх','cube',self.block_dialog),('Домэйн\nPolygon','polygon',self.edit_string),('Блок CSV\nэкспорт','grid',self.export_blocks),('3 зүсэлт /\nБүх блок','cube',self.block_display)]),('Үнэлгээ',[('Variogram\nба fit','chart',self.variogram),('Cross-\nvalidation','chart',self.cross_validation),('External\nBenchmark','chart',self.external_benchmark),('Fault\nPlane','surface',self.add_fault),('Density /\nCutoff','cube',self.resource_report)])])
+        tab('Уурхай',[('Загварын prototype',[('Ил уурхайн\nBench','pit',self.pit),('Далд уурхайн\nМалталт','cube',self.drive)]),('Төлөвлөлт',[('Capacity\nSchedule','grid',self.schedule_dialog),('Зам /\nТээвэр','surface',self.haul_dialog),('MILP\nОновчлол','chart',self.schedule_milp_dialog),('Төслийн\nтайлан','file',self.report)])])
         tab('Харагдац',[('Камер',[('3D','cube',lambda:self.scene.view('iso')),('Дээрээс','grid',lambda:self.scene.view('top')),('Урдаас','surface',lambda:self.scene.view('north')),('Төвлөрүүлэх','pick',lambda:self.scene.reset())]),('Ажлын орчин',[('Хоёр\nviewport','grid',self.toggle_view),('Агуулга /\nЛитологи','holes',self.color_mode),('Зай\nхэмжих','pick',lambda:self.measure.setChecked(not self.measure.isChecked()))]),('Экспорт',[('PNG зураг','file',self.export_png),('VTP\nгеометр','cube',self.export_vtp),('Заавар','file',self.help)])])
         rb=QToolBar('Ribbon');rb.setMovable(False);rb.addWidget(self.ribbon);self.addToolBar(Qt.ToolBarArea.TopToolBarArea,rb)
         # Large white scientific viewport; the second view is an optional plan window.
@@ -185,17 +187,18 @@ class Workbench(Window):
         if not items:QMessageBox.information(self,title,'Сонгох өгөгдөл алга.');return None
         name,ok=QInputDialog.getItem(self,title,'Сонгоно уу:',items,0,False);return items.index(name) if ok else None
     def params(self,title,defaults):
-        dlg=QDialog(self);dlg.setWindowTitle(title);form=QFormLayout(dlg);inputs={}
+        dlg=QDialog(self);dlg.setWindowTitle(title);dlg.resize(660,640);layout=QVBoxLayout(dlg)
+        scroll=QScrollArea();scroll.setWidgetResizable(True);content=QWidget();form=QFormLayout(content);scroll.setWidget(content);layout.addWidget(scroll);inputs={}
         for name,value in defaults.items():
             if isinstance(value,list):w=QComboBox();w.addItems(value)
             else:w=QLineEdit(str(value))
             inputs[name]=w;form.addRow(name,w)
-        b=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);b.button(QDialogButtonBox.StandardButton.Ok).setText('Тооцох / хадгалах');b.button(QDialogButtonBox.StandardButton.Cancel).setText('Болих');b.accepted.connect(dlg.accept);b.rejected.connect(dlg.reject);form.addRow(b)
+        b=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);b.button(QDialogButtonBox.StandardButton.Ok).setText('Тооцох / хадгалах');b.button(QDialogButtonBox.StandardButton.Cancel).setText('Болих');b.accepted.connect(dlg.accept);b.rejected.connect(dlg.reject);layout.addWidget(b)
         if dlg.exec()!=QDialog.DialogCode.Accepted:return None
         return {k:(w.currentText() if isinstance(w,QComboBox) else w.text()) for k,w in inputs.items()}
     def show_rows(self,title,rows):
         if not rows:QMessageBox.information(self,title,'Өгөгдөл / анхааруулга алга.');return
-        columns=list(rows[0]);dlg=GridDialog(self,columns,rows,title);dlg.box.button(QDialogButtonBox.StandardButton.Save).setText('CSV экспорт')
+        columns=list(dict.fromkeys(k for row in rows for k in row));dlg=GridDialog(self,columns,rows,title);dlg.box.button(QDialogButtonBox.StandardButton.Save).setText('CSV экспорт')
         dlg.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         def save():
             path=self.destination(title,'csv')
@@ -315,9 +318,17 @@ class Workbench(Window):
         meshes=self.project.workspace.get('meshes',[]);i=self.choose('Mesh топологи',[m['name'] for m in meshes])
         if i is not None:self.guard(lambda:self.show_rows('Mesh — self-intersection хараахан шалгахгүй',[mesh_report(meshes[i])]))
     def estimator_params(self):
-        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging','nearest','simple_kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'IDW power':2,'Nugget':0,'Partial sill':1,'Known mean (SK)':0,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
+        result=self.params('Үнэлгээ — search / covariance / block support',{'Арга':['idw','kriging','nearest','simple_kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'Search azimuth':90,'Search dip':0,'Search roll':0,'Max samples per hole':64,'Minimum holes':1,'Top cut (blank = none)':'','IDW power':2,'Nugget':0,'Partial sill':1,'Known mean (SK)':0,'Range metres':100,'Covariance':['Isotropic','Anisotropic'],'Variogram range X':100,'Variogram range Y':100,'Variogram range Z':50,'Variogram azimuth':90,'Variogram dip':0,'Variogram roll':0,'Block support':['Point','2 × 2 × 2','3 × 3 × 3','4 × 4 × 4'],'Composite metres':5,'Minimum coverage':1})
         if not result:return None
-        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'known_mean':float(result['Known mean (SK)']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        params={'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'search_angles':[float(result['Search '+a]) for a in ('azimuth','dip','roll')],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        params['known_mean']=float(result['Known mean (SK)'])
+        params.update(max_per_hole=int(result['Max samples per hole']),minimum_holes=int(result['Minimum holes']),top_cut=float(result['Top cut (blank = none)']) if result['Top cut (blank = none)'].strip() else None)
+        n=1 if result['Block support']=='Point' else int(result['Block support'][0]);params['discretization']=[n,n,n]
+        if result['Covariance']=='Anisotropic':
+            params['variogram_ranges']=[float(result['Variogram range '+a]) for a in 'XYZ']
+            params['variogram_angles']=[float(result['Variogram '+a]) for a in ('azimuth','dip','roll')]
+        params['faults']=deepcopy(self.project.workspace.get('faults',[]))
+        return params
     def block_dialog(self):
         def run():
             parameters=self.estimator_params()
@@ -325,15 +336,17 @@ class Workbench(Window):
             coords=[(h.x,h.y,h.z) for h in self.project.collars]
             if not coords:raise ValueError('Эхлээд цооног импортлоно уу.')
             low=[min(p[i] for p in coords)-50 for i in range(3)];low[2]-=250;high=[max(p[i] for p in coords)+50 for i in range(3)]
-            settings=self.params('Блокийн bounds, хэмжээ — метр',{'Min X':low[0],'Min Y':low[1],'Min Z':low[2],'Max X':high[0],'Max Y':high[1],'Max Z':high[2],'Size X':50,'Size Y':50,'Size Z':20,'Домэйн':['Бүх талбай']+[s['name'] for s in self.project.workspace.get('strings',[]) if s.get('closed')]})
+            settings=self.params('Блокийн bounds, хэмжээ — метр',{'Min X':low[0],'Min Y':low[1],'Min Z':low[2],'Max X':high[0],'Max Y':high[1],'Max Z':high[2],'Size X':50,'Size Y':50,'Size Z':20,'Grid azimuth':90,'Grid dip':0,'Grid roll':0,'Sub-block levels':0,'Домэйн':['Бүх талбай']+[s['name'] for s in self.project.workspace.get('strings',[]) if s.get('closed')]})
             if not settings:return
+            parameters['grid_angles']=[float(settings['Grid '+a]) for a in ('azimuth','dip','roll')]
+            parameters['subblock_levels']=int(settings['Sub-block levels'])
             domain=next((s for s in self.project.workspace.get('strings',[]) if s['name']==settings['Домэйн'] and s.get('closed')),None)
             progress=QProgressDialog('Блокийн агуулга тооцож байна…','Цуцлах',0,100,self);progress.setWindowModality(Qt.WindowModality.ApplicationModal);progress.setMinimumDuration(0);self.computing=True
             def update(i,n):progress.setValue(int(i/n*100));QApplication.processEvents()
             try:model=estimate_model(self.project,[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ'],[float(settings['Size '+a]) for a in 'XYZ'],parameters,domain,cancel=progress.wasCanceled,progress=update)
             finally:self.computing=False;progress.close()
             p=deepcopy(self.project);p.workspace['block_model']=model;p.workspace.pop('block_slice_positions',None);self.commit(p)
-            QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Блокийн төвийн point estimate; block kriging биш.")
+            QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Support: {model['support']}.")
         self.guard(run)
     def block_display(self):
         def run():
@@ -351,7 +364,9 @@ class Workbench(Window):
     def export_blocks(self):
         model=self.project.workspace.get('block_model')
         if not model:QMessageBox.information(self,'Блок модель','Эхлээд блок модель үүсгэнэ үү.');return
-        self.show_rows('Блокийн атрибут — UNCLASSIFIED',model['blocks'])
+        angles=model.get('grid_angles',[90,0,0]);origin=model.get('grid_origin',model['bounds'][:3])
+        rows=[dict(b,**{'grid_'+a:v for a,v in zip(('azimuth','dip','roll'),angles)},**{'origin_'+a:v for a,v in zip('xyz',origin)}) for b in model['blocks']]
+        self.show_rows('Блокийн атрибут — UNCLASSIFIED',rows)
     def cross_validation(self):
         def run():
             params=self.estimator_params()
@@ -362,13 +377,32 @@ class Workbench(Window):
         self.guard(run)
     def variogram(self):
         def run():
-            fields=self.params('Isotropic experimental variogram',{'Lag metres':20,'Lags':15,'Composite metres':5})
+            fields=self.params('Experimental variogram',{'Mode':['Isotropic','Directional'],'Azimuth':90,'Dip':0,'Tolerance degrees':22.5,'Bandwidth metres':100,'Lag metres':20,'Lags':15,'Composite metres':5})
             if not fields:return
-            result=experimental_variogram(sample_support(self.project,float(fields['Composite metres'])),float(fields['Lag metres']),int(fields['Lags']))
-            if len(result['rows'])>=3:result['fit']=fit_variogram(result['rows'])
-            p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart('Isotropic experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
+            direction=None if fields['Mode']=='Isotropic' else {'azimuth':float(fields['Azimuth']),'dip':float(fields['Dip']),'tolerance':float(fields['Tolerance degrees']),'bandwidth':float(fields['Bandwidth metres'])}
+            result=experimental_variogram(sample_support(self.project,float(fields['Composite metres'])),float(fields['Lag metres']),int(fields['Lags']),direction,self.project.workspace.get('faults',[]))
+            if len(result['rows'])>=3:
+                result['fit']=fit_variogram(result['rows'])
+                result['fit']['model']='spherical; '+fields['Mode'].lower()+'; exploratory fit'
+            p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart(fields['Mode']+' experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
             if 'fit' in result:QMessageBox.information(self,'Spherical model fit',json.dumps(result['fit'],indent=2))
         self.guard(run)
+    def help(self):
+        QMessageBox.information(self,'RAINYMINE — Ажлын дараалал',
+            '1. Collar → Survey → Assay / Lithology CSV импортлоно. Баганын загварыг нэрлэж хадгалж болно.\n'
+            '2. Геометр/блок үүсгэхээс өмнө CRS-ийг метрийн проекцод хөрвүүлнэ.\n'
+            '3. Композитын coverage, QA/QC болон чиглэлтэй вариограммыг шалгана.\n'
+            '4. Үнэлгээнд search, covariance ranges/angles, top cut, hole limits, block support-оо тохируулна.\n'
+            '5. Grid rotation нь bounds-ийн minimum XYZ цэгийг тойрно. Slice нь grid-ийн локал тэнхлэгтэй.\n'
+            '6. Cross-validation нь withheld hole-ийг бүрэн хассан point-support шалгалт.\n'
+            '7. Density/cutoff тайлан гаргаж .rmine төсөлд хадгална.\n\n'
+            'Azimuth хойноос цагийн зүүний дагуу; dip дээш эерэг. Search болон covariance тусдаа тохиргоотой.\n'
+            'Discretized block support нь midpoint quadrature approximation; composite midpoint-ууд point support хэвээр.\n'
+            'Sub-block нь finest-cell centre ангиллаар заагийг ойролцоо дүрсэлнэ. Fault нь infinite plane barrier; displacement байхгүй.\n'
+            'Замын gradient/fleet cycle, optional-task MILP болон external CSV benchmark нь тусдаа workflow.\n'
+            'Sub-block / эргэлттэй grid-ийн schedule дэмжигдээгүй. Бүх үр дүн UNCLASSIFIED.\n'
+            'README.md / ACCEPTANCE.md-д бодит хязгаар, баталгаажуулалтын төлөв бий.')
+
     def resource_report(self):
         def run():
             model=self.project.workspace.get('block_model')
@@ -400,4 +434,52 @@ class Workbench(Window):
             QMessageBox.information(self,'Schedule',f"Төлөвлөсөн: {len(result['rows'])}; төлөвлөгдөөгүй: {len(result['unscheduled'])}.\nGreedy heuristic; global optimization, налуугийн өргөтгөсөн precedence, haulage/stockpile хараахан байхгүй.")
             self.show_rows('Capacity schedule',result['rows'])
             if result['unscheduled']:self.show_rows('Төлөвлөгдөөгүй task / шалтгаан',result['unscheduled'])
+        self.guard(run)
+
+    def add_fault(self):
+        def run():
+            f=self.params('Planar fault barrier — displacement байхгүй',{'Нэр':'Fault 1','X':500200,'Y':5300200,'Z':1300,'Normal X':1,'Normal Y':0,'Normal Z':0,'Guide extent metres':200})
+            if not f:return
+            fault={'name':f['Нэр'],'point':[float(f[a]) for a in 'XYZ'],'normal':[float(f['Normal '+a]) for a in 'XYZ']}
+            patch=fault_patch(fault,float(f['Guide extent metres']));p=deepcopy(self.project)
+            p.workspace.setdefault('faults',[]).append(fault);p.workspace.setdefault('meshes',[]).append(patch);self.commit(p)
+        self.guard(run)
+
+    def haul_dialog(self):
+        def run():
+            strings=[s for s in self.project.workspace.get('strings',[]) if not s.get('closed')]
+            i=self.choose('Замын төв шугам — эхлээд XYZ String үүсгэнэ',[s['name'] for s in strings])
+            if i is None:return
+            f=self.params('Polyline haul route / constant-speed fleet',{'Width metres':12,'Maximum gradient %':10,'Payload tonnes':40,'Trucks':3,'Loaded km/h':20,'Empty km/h':30,'Load minutes':3,'Dump minutes':1,'Queue minutes':1,'Shift hours':8,'Utilization':.8})
+            if not f:return
+            route=haul_route(strings[i]['points'],float(f['Width metres']),float(f['Maximum gradient %']))
+            capacity=haul_capacity(route,float(f['Payload tonnes']),int(f['Trucks']),float(f['Loaded km/h']),float(f['Empty km/h']),float(f['Load minutes']),float(f['Dump minutes']),float(f['Queue minutes']),float(f['Shift hours']),float(f['Utilization']))
+            p=deepcopy(self.project);p.workspace.setdefault('haul_scenarios',[]).append({'string':deepcopy(strings[i]),'route':route,'capacity':capacity});self.commit(p)
+            self.show_rows('Замын сегментүүд',route['segments']);self.show_rows('Fleet capacity — average cycle approximation',[capacity])
+        self.guard(run)
+
+    def schedule_milp_dialog(self):
+        def run():
+            model=self.project.workspace.get('block_model')
+            if not model:raise ValueError('Эхлээд world-axis parent model үүсгэнэ үү.')
+            f=self.params('Economic MILP — optional tasks / precedence',{'Density t/m³':2.7,'Cutoff':.5,'Metal price / tonne metal':8000,'Mining cost / tonne rock':3,'Processing cost / tonne ore':8,'Haul cost / tonne rock':1,'Recovery':.9,'Mining tonnes/period':1000000,'Processing tonnes/period':500000,'Periods':12,'Discount per period':.01,'Solver seconds':10})
+            if not f:return
+            tasks=economic_tasks(model,float(f['Density t/m³']),float(f['Cutoff']),self.project.grade_unit,float(f['Metal price / tonne metal']),float(f['Mining cost / tonne rock']),float(f['Processing cost / tonne ore']),float(f['Recovery']),float(f['Haul cost / tonne rock']))
+            result=optimize_schedule(tasks,float(f['Mining tonnes/period']),float(f['Processing tonnes/period']),int(f['Periods']),float(f['Discount per period']),float(f['Solver seconds']))
+            result['assumptions']=f;result['grade_unit']=self.project.grade_unit;result['model_run_sha256']=model.get('run_sha256')
+            p=deepcopy(self.project);p.workspace['optimization']=result;self.commit(p)
+            QMessageBox.information(self,'MILP үр дүн',json.dumps({k:v for k,v in result.items() if k not in ('rows','unscheduled','assumptions')},ensure_ascii=False,indent=2));self.show_rows('MILP schedule',result['rows'])
+        self.guard(run)
+
+    def external_benchmark(self):
+        def run():
+            model=self.project.workspace.get('block_model')
+            if not model:raise ValueError('Эхлээд model үүсгэнэ үү.')
+            path,_=QFileDialog.getOpenFileName(self,'Гадаад reference — x,y,z,grade CSV','','CSV (*.csv)')
+            if not path:return
+            f=self.params('External numerical comparison — review pending',{'Coordinate tolerance metres':.01,'Grade absolute tolerance':.001,'Grade relative tolerance':.01})
+            if not f:return
+            result=compare_reference(model,path,float(f['Coordinate tolerance metres']),float(f['Grade absolute tolerance']),float(f['Grade relative tolerance']))
+            p=deepcopy(self.project);p.workspace['external_benchmark']=result;self.commit(p)
+            QMessageBox.information(self,'Харьцуулалт — хараат бус баталгаа биш',json.dumps({k:v for k,v in result.items() if k!='rows'},ensure_ascii=False,indent=2));self.show_rows('Reference errors',result['rows'])
         self.guard(run)

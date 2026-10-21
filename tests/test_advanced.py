@@ -118,6 +118,45 @@ class EstimationTests(unittest.TestCase):
         r=cross_validate(samples,{'minimum':2,'neighbors':4,'radii':[100,100,100]});self.assertEqual(r['predicted'],4);self.assertEqual(r['rmse'],0)
         for s in samples:s['hole_id']='A'
         self.assertEqual(cross_validate(samples,{'minimum':1,'neighbors':4})['predicted'],0)
+    def test_search_basis_and_rotated_selection(self):
+        import numpy as np
+        self.assertTrue(np.allclose(search_basis(),np.eye(3)))
+        basis=search_basis(35,-40,20)
+        self.assertTrue(np.allclose(basis.T@basis,np.eye(3)))
+        self.assertAlmostEqual(np.linalg.det(basis),1.)
+        samples=[{'hole_id':'E','xyz':[8,0,0],'grade':1},
+                 {'hole_id':'N','xyz':[0,8,0],'grade':9}]
+        params={'minimum':1,'neighbors':1,'radii':[10,2,2]}
+        self.assertEqual(Estimator(samples,params).predict([0,0,0])['grade'],1)
+        self.assertEqual(Estimator(samples,dict(params,search_angles=[0,0,0])).predict([0,0,0])['grade'],9)
+        local=[{'hole_id':str(i),'xyz':xyz,'grade':grade} for i,xyz,grade in
+               [(0,[4,0,0],2),(1,[6,1,0],8),(2,[-5,0,0],5)]]
+        rotated=[dict(row,xyz=(np.array(row['xyz'])@basis.T+[500000,5300000,1400]).tolist()) for row in local]
+        for method in ('idw','kriging','nearest','simple_kriging'):
+            settings=dict(params,method=method,minimum=2,neighbors=3,known_mean=1)
+            expected=Estimator(local,settings).predict([0,0,0])
+            actual=Estimator(rotated,dict(settings,search_angles=[35,-40,20])).predict([500000,5300000,1400])
+            self.assertAlmostEqual(actual['grade'],expected['grade'],places=8)
+            if method=='kriging':self.assertAlmostEqual(actual['variance'],expected['variance'],places=8)
+        with self.assertRaises(ValueError):search_basis(0,91,0)
+
+    def test_directional_variogram_axes_bandwidth_and_symmetry(self):
+        samples=[{'xyz':[0,0,0],'grade':0},{'xyz':[10,0,0],'grade':2},
+                 {'xyz':[0,10,0],'grade':10}]
+        east={'azimuth':90,'dip':0,'tolerance':5,'bandwidth':2}
+        north=dict(east,azimuth=0)
+        e=experimental_variogram(samples,20,1,east)
+        n=experimental_variogram(samples,20,1,north)
+        self.assertEqual(e['pair_count'],1);self.assertEqual(e['rows'][0]['semivariance'],2)
+        self.assertEqual(n['rows'][0]['semivariance'],50)
+        self.assertFalse(e['isotropic']);self.assertEqual(e['direction'],east)
+        reverse=experimental_variogram(samples,20,1,dict(east,azimuth=270))
+        self.assertEqual(reverse['rows'],e['rows'])
+        diagonal=[{'xyz':[0,0,0],'grade':0},{'xyz':[10,1,0],'grade':2}]
+        self.assertEqual(experimental_variogram(diagonal,20,1,dict(east,tolerance=15,bandwidth=.5))['pair_count'],0)
+        for bad in (dict(east,tolerance=0),dict(east,bandwidth=-1),dict(east,dip=100)):
+            with self.assertRaises(ValueError):experimental_variogram(samples,20,1,bad)
+
     def test_block_volume_and_tonnage(self):
         blocks=make_blocks([0,0,0,2.5,2,2],[1,1,1]);self.assertAlmostEqual(sum(b['dx']*b['dy']*b['dz'] for b in blocks),10)
         for b in blocks:b['grade']=2
