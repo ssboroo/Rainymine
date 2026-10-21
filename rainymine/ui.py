@@ -282,13 +282,24 @@ def main():
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
-    from .workbench import Workbench
-    window=Workbench();window.show()
+    from .navigation import NavigationWorkbench
+    window=NavigationWorkbench();window.show()
     if args.smoke:
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
                 from .packaged_checks import verify
+                from .viewing import named_section
+                window.change_layer('holes',{'opacity':.65})
+                assert abs(window.scene.actors['holes'].GetProperty().GetOpacity()-.65)<1e-8
+                window.project=named_section(window.project,'SMOKE',[90,0,100])
+                window.scene.project=window.project
+                assert 'hole_id' in window.scene.identify(window.scene.actors['holes'],0)
+                assert 'block_index' in window.scene.identify(window.scene.actors['blocks'],0)
+                h=window.project.collars[0];point=window.scene.local((h.x,h.y,h.z));renderer=window.scene.renderer
+                renderer.SetWorldPoint(*point,1);renderer.WorldToDisplay();screen=renderer.GetDisplayPoint()
+                window.vtk.SetEventPosition(round(screen[0]),round(screen[1]));window.on_click(None,None)
+                assert window.picked_info.text()!='3D дээр цооног эсвэл блок дарж сонгоно.'
                 verify(window.project)
                 assert window.ribbon.count()>=6
                 assert window.project.workspace.get('block_model')

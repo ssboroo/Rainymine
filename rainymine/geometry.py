@@ -13,6 +13,8 @@ def points_valid(points,minimum=1):
 def validate_workspace(workspace):
     from .domains import validate_faults
     validate_faults(workspace.get('faults',[]))
+    from .viewing import validate_viewing
+    validate_viewing(workspace)
     for s in workspace.get('strings',[]):
         points_valid(s['points'],3 if s.get('closed') else 2)
         if not isinstance(s.get('name'),str):raise ValueError('String нэр буруу.')

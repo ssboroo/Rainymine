@@ -1,5 +1,12 @@
 # Өөрчлөлтийн түүх
 
+## 0.3.0 — 2026-10-21
+
+- Linked 3D drillhole/block picking and persisted per-layer visibility, opacity, RGB/scalar colors and representations.
+- Named sections, previous/next section navigation and movable orthogonal block slices.
+- Visible, slab-clipped selection highlights and synchronized properties in both viewports.
+- Preserves reusable CSV mapping profiles from the existing main branch.
+
 ## 0.2.0 — 2026-10-21
 
 - Цайвар scientific workspace, purple ribbon, custom vector icons, Properties/layers, хоёр viewport, coordinate picking.

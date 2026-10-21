@@ -43,4 +43,21 @@ class SceneTests(unittest.TestCase):
                 self.assertTrue(np.all(grid<=np.array(bounds[3:])+1e-7))
             self.assertAlmostEqual(poly.GetCellData().GetScalars().GetRange()[0],2)
 
+    def test_rotated_subblock_pick_ids_survive_slice_navigation(self):
+        from rainymine.domains import adaptive_blocks
+        from rainymine.estimation import make_blocks
+        p=demo();bounds=[500000,5300000,1200,500020,5300020,1220];angles=[0,0,0]
+        fault={'name':'F','point':[499990,5300000,1200],'normal':[1,0,0]}
+        blocks=adaptive_blocks(make_blocks(bounds,[20,20,20],grid_angles=angles),bounds,angles,None,[fault],1)
+        for i,b in enumerate(blocks):b['grade']=i+1
+        p.workspace['block_model']={'blocks':blocks,'bounds':bounds,'size':[20]*3,'grid_angles':angles,'grid_origin':bounds[:3]}
+        p.workspace['block_slice_positions']=[500005,5300005,1205]
+        scene=Scene(NoRenderWindow());scene.load(p)
+        poly=scene.sources['blocks'];self.assertGreater(poly.GetNumberOfCells(),0)
+        for cell in range(poly.GetNumberOfCells()):
+            info=scene.identify(scene.actors['blocks'],cell)
+            block=blocks[info['block_index']]
+            self.assertEqual(info['block_id'],block['block_id'])
+            self.assertEqual(info['grade'],poly.GetCellData().GetScalars().GetTuple1(cell))
+
 if __name__=='__main__':unittest.main()
