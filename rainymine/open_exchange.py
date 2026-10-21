@@ -2,7 +2,7 @@
 
 OMF targets GMG 2.0-beta.1. GeoPackage is a GIS exchange, not a block-model store.
 """
-from contextlib import contextmanager
+from contextlib import contextmanager,closing
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import datetime,timezone
@@ -195,7 +195,7 @@ def write_geopackage(path,project,cancel=None):
         if meshes:layer(temp,'surface_triangles','Polygon',{'name':'str','mesh_id':'int','face_id':'int'},(feature('Polygon',[[mesh['vertices'][j] for j in face]+[mesh['vertices'][face[0]]]],{'name':mesh['name'],'mesh_id':i,'face_id':j}) for i,mesh in enumerate(meshes) for j,face in enumerate(mesh['faces'])))
         if not temp.exists():
             with fiona.open(str(temp),'w',driver='GPKG',layer='collars',crs_wkt=meta['crs_wkt'],schema={'geometry':'3D Point','properties':{'hole_id':'str'}}):pass
-        with sqlite3.connect(temp) as db:
+        with closing(sqlite3.connect(temp)) as db, db:
             db.execute('CREATE TABLE rainymine_exchange (id INTEGER PRIMARY KEY, metadata_json TEXT NOT NULL)')
             db.execute('INSERT INTO rainymine_exchange VALUES (1,?)',(json.dumps({**meta,'scope':'GIS only; blocks and drill interval tables are in OMF/CSV, not this GeoPackage'},ensure_ascii=False,allow_nan=False),))
             db.execute("INSERT INTO gpkg_contents(table_name,data_type,identifier,description) VALUES ('rainymine_exchange','attributes','RAINYMINE exchange contract','CRS and units; GIS scope only')")

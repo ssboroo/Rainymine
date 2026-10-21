@@ -1,5 +1,6 @@
 import csv,gzip,io,json,sqlite3,tempfile,unittest,zipfile,hashlib
 from pathlib import Path
+from contextlib import closing
 from copy import deepcopy
 import numpy as np
 import pyarrow.parquet as pq
@@ -64,7 +65,7 @@ class OpenExchange(unittest.TestCase):
         p=fixture()
         with tempfile.TemporaryDirectory() as folder:
             path=Path(folder)/'Монгол.gpkg';report=write_geopackage(path,p)
-            with sqlite3.connect(path) as db:
+            with closing(sqlite3.connect(path)) as db:
                 self.assertEqual(db.execute('PRAGMA integrity_check').fetchone()[0],'ok')
                 self.assertEqual(db.execute('PRAGMA application_id').fetchone()[0],0x47504b47)
                 self.assertTrue(all(r[0]==1 for r in db.execute('SELECT z FROM gpkg_geometry_columns')))
