@@ -80,6 +80,9 @@ class OpenExchange(unittest.TestCase):
             with fiona.open(path,'w',driver='GPKG',crs='EPSG:32648',schema={'geometry':'Polygon','properties':{'name':'str'}}) as f:
                 f.write({'geometry':{'type':'Polygon','coordinates':[[[0,0],[10,0],[10,10],[0,0]],[[1,1],[2,1],[2,2],[1,1]]]},'properties':{'name':'hole'}})
             data=read_geopackage(path,'holes');self.assertTrue(data['z_assumed_zero']);self.assertEqual([s['ring_role'] for s in data['strings']],['exterior','hole'])
+            p=Project(crs_code='EPSG:32648');p.workspace['strings']=data['strings'];roundtrip=Path(folder)/'roundtrip.gpkg';write_geopackage(roundtrip,p)
+            with fiona.open(roundtrip,layer='polygons') as source:
+                self.assertEqual(len(source),1);self.assertEqual(len(next(iter(source))['geometry']['coordinates']),2)
             old=path.read_bytes()
             with self.assertRaises(RuntimeError):write_geopackage(path,fixture(),lambda:True)
             self.assertEqual(path.read_bytes(),old)

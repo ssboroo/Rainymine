@@ -176,9 +176,21 @@ def write_geopackage(path,project,cancel=None):
         if project.collars:layer(temp,'drill_traces','LineString',{'hole_id':'str','step_m':'float'},(feature('LineString',points,{'hole_id':h.hole_id,'step_m':5.}) for h,depths,points in _traces(project) if len(points)>=2))
         if project.surface:layer(temp,'surface_points','Point',{'source_id':'int'},(feature('Point',point,{'source_id':i}) for i,point in enumerate(project.surface)))
         strings=project.workspace.get('strings',[])
-        for closed,name,kind in [(False,'strings','LineString'),(True,'polygons','Polygon')]:
-            selected=[s for s in strings if bool(s.get('closed'))==closed]
-            if selected:layer(temp,name,kind,{'name':'str','source_id':'int'},(feature(kind,[s['points']+[s['points'][0]]] if closed else s['points'],{'name':s['name'],'source_id':i}) for i,s in enumerate(selected)))
+        lines=[(i,s) for i,s in enumerate(strings) if not s.get('closed')]
+        if lines:layer(temp,'strings','LineString',{'name':'str','source_id':'int','metadata_json':'str'},(feature('LineString',s['points'],{'name':s['name'],'source_id':i,'metadata_json':json.dumps({k:v for k,v in s.items() if k!='points'},ensure_ascii=False,allow_nan=False)}) for i,s in lines))
+        groups={}
+        for i,s in enumerate(strings):
+            if not s.get('closed'):continue
+            if s.get('ring_role')=='hole' and not s.get('ring_group'):raise ValueError('Polygon hole-ийн exterior group тодорхойгүй; экспорт цуцлав.')
+            key=('group',s['ring_group']) if s.get('ring_group') else ('single',i)
+            groups.setdefault(key,[]).append((i,s))
+        def polygons():
+            for rings in groups.values():
+                exterior=[(i,s) for i,s in rings if s.get('ring_role')!='hole']
+                if len(exterior)!=1:raise ValueError('Polygon group нэг exterior ring-тэй байна.')
+                i,outer=exterior[0];ordered=[outer]+[s for j,s in rings if s.get('ring_role')=='hole']
+                yield feature('Polygon',[s['points']+[s['points'][0]] for s in ordered],{'name':outer['name'],'source_id':i,'metadata_json':json.dumps({'rings':[{k:v for k,v in s.items() if k!='points'} for s in ordered]},ensure_ascii=False,allow_nan=False)})
+        if groups:layer(temp,'polygons','Polygon',{'name':'str','source_id':'int','metadata_json':'str'},polygons())
         meshes=project.workspace.get('meshes',[])
         if meshes:layer(temp,'surface_triangles','Polygon',{'name':'str','mesh_id':'int','face_id':'int'},(feature('Polygon',[[mesh['vertices'][j] for j in face]+[mesh['vertices'][face[0]]]],{'name':mesh['name'],'mesh_id':i,'face_id':j}) for i,mesh in enumerate(meshes) for j,face in enumerate(mesh['faces'])))
         if not temp.exists():
@@ -204,7 +216,7 @@ def read_geopackage(path,layer):
             if count>200000:raise ValueError('GeoPackage 200000 vertex хязгаартай.')
             if len(p)<3:assumed=True
             result=list(p[:3]) if len(p)>=3 else [*p,0.];finite(*result);return result
-        def add(geometry,props,name):
+        def add(geometry,props,name,group):
             kind=geometry['type'];coords=geometry['coordinates']
             if kind=='Point':points.append(xyz(coords));attributes.append(props)
             elif kind=='MultiPoint':
@@ -214,15 +226,15 @@ def read_geopackage(path,layer):
                 for i,ring in enumerate(rings):
                     values=[xyz(p) for p in ring];closed=kind=='Polygon'
                     if closed and values and values[0]==values[-1]:values.pop()
-                    strings.append({'name':name+f' · part {i+1}','points':values,'closed':closed,'attributes':props,'ring_role':('exterior' if i==0 else 'hole') if closed else 'line'})
+                    strings.append({'name':name+f' · part {i+1}','points':values,'closed':closed,'attributes':props,'ring_role':('exterior' if i==0 else 'hole') if closed else 'line','ring_group':group if closed else None})
             elif kind in ('MultiLineString','MultiPolygon'):
-                for i,part in enumerate(coords):add({'type':'LineString' if kind=='MultiLineString' else 'Polygon','coordinates':part},props,name+f':{i+1}')
+                for i,part in enumerate(coords):add({'type':'LineString' if kind=='MultiLineString' else 'Polygon','coordinates':part},props,name+f':{i+1}',group+f':{i+1}')
             else:raise ValueError('GeoPackage geometry дэмжихгүй: '+kind)
         for row in source:
             if row['geometry'] is None:raise ValueError('NULL geometry байна; импорт цуцлав.')
-            props=dict(row['properties']);add(row['geometry'],props,str(props.get('name') or row['id']))
+            props=dict(row['properties']);add(row['geometry'],props,str(props.get('name') or row['id']),str(layer)+':'+str(row['id']))
     return {'strings':strings,'points':points,'point_attributes':attributes,'crs':crs,'z_assumed_zero':assumed,'layer':layer,
-            'note':'polygon rings retained separately; hole rings are marked and must not be treated as ore solids'}
+            'note':'polygon rings stored separately with exterior/hole group; GeoPackage export reassembles rings; not ore solids'}
 
 
 def write_exchange_bundle(path,project,cancel=None):
