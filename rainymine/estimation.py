@@ -1,6 +1,7 @@
 """Experimental deterministic point-support estimation, not classified resources.
 Ordinary kriging uses a spherical semivariogram in an augmented linear system.
-Block-centre estimates are not block-averaged kriging estimates.
+Optional midpoint quadrature approximates block support with a common neighbourhood.
+Composite samples remain point supports at their midpoints; independent validation pending.
 """
 import math
 import hashlib
@@ -11,6 +12,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 from .core import finite,Trajectory,composite_assays
 from .geometry import inside_polygon,validate_polygon
+from .spatial import search_basis
 
 
 def sample_support(project,length=5,minimum_coverage=1.):
@@ -33,27 +35,23 @@ def gamma_spherical(distance,nugget,partial_sill,range_m):
     d=np.asarray(distance,dtype=float);h=np.minimum(d/range_m,1.)
     return np.where(d<=1e-12,0.,nugget+partial_sill*(1.5*h-.5*h**3))
 
-def search_basis(azimuth=90., dip=0., roll=0.):
-    """Columns are local X/Y/Z in world ENU; azimuth clockwise from north.
-    Dip is positive upwards. Roll rotates local Y towards local Z about local X.
-    The default (90, 0, 0) preserves the historical world-axis search.
-    """
-    finite(azimuth, dip, roll)
-    if not -90 <= dip <= 90:
-        raise ValueError('Search dip −90…90 градус байна.')
-    a,d,r=np.radians([azimuth,dip,roll])
-    x=np.array([np.sin(a)*np.cos(d),np.cos(a)*np.cos(d),np.sin(d)])
-    y=np.array([-np.cos(a),np.sin(a),0.])
-    z=np.cross(x,y)
-    return np.column_stack((x,np.cos(r)*y+np.sin(r)*z,-np.sin(r)*y+np.cos(r)*z))
 
 
 class Estimator:
     def __init__(self,samples,params):
         if not samples:raise ValueError('Тооцох сорьц алга. Композитын coverage-ийг шалгана уу.')
-        self.samples=samples;self.params=params
+        self.samples=samples;self.params=deepcopy(params)
         self.xyz=np.asarray([r['xyz'] for r in samples],dtype=float);self.values=np.asarray([r['grade'] for r in samples],dtype=float)
         if not np.isfinite(self.xyz).all() or not np.isfinite(self.values).all():raise ValueError('Sample утга буруу.')
+        if self.xyz.shape!=(len(samples),3):raise ValueError('Sample XYZ бүтэц буруу.')
+        self.top_cut=params.get('top_cut')
+        if self.top_cut is not None:
+            finite(self.top_cut)
+            if self.top_cut<=0:raise ValueError('Top cut > 0 байна.')
+            self.values=np.minimum(self.values,self.top_cut)
+        self.capped_count=int(sum(r['grade']>self.top_cut for r in samples)) if self.top_cut is not None else 0
+        self.max_per_hole=int(params.get('max_per_hole',64));self.minimum_holes=int(params.get('minimum_holes',1))
+        if not 1<=self.max_per_hole<=64 or not 1<=self.minimum_holes<=64:raise ValueError('Hole хязгаар 1…64 байна.')
         if len(np.unique(self.xyz,axis=0))!=len(self.xyz):raise ValueError('Ижил координаттай композит байна. Давхардлыг эх өгөгдөл дээр шийднэ үү.')
         radii=np.asarray(params.get('radii',[200,200,100]),dtype=float)
         if radii.shape!=(3,) or not np.isfinite(radii).all() or (radii<=0).any():raise ValueError('Search ellipsoid-ийн 3 радиус эерэг байна.')
@@ -65,38 +63,74 @@ class Estimator:
         finite(self.power)
         if self.method not in ('idw','kriging') or not 1<=self.minimum<=self.k<=64 or self.power<=0:raise ValueError('Estimator тохиргоо буруу.')
         self.variogram=(float(params.get('nugget',0)),float(params.get('partial_sill',1)),float(params.get('range_m',100)))
+        if self.minimum_holes>self.k:raise ValueError('Minimum holes нь neighbors-оос их байж болохгүй.')
+        self._within_cache={}
         gamma_spherical(1,*self.variogram)
+        self.covariance_ranges=params.get('variogram_ranges')
+        self.covariance_basis=search_basis(*params.get('variogram_angles',[90.,0.,0.]))
+        if self.covariance_ranges is not None:
+            self.covariance_ranges=np.asarray(self.covariance_ranges,dtype=float)
+            if self.covariance_ranges.shape!=(3,) or not np.isfinite(self.covariance_ranges).all() or (self.covariance_ranges<=0).any():
+                raise ValueError('Variogram-ийн 3 range эерэг байна.')
 
-    def predict(self,point,excluded=None,exclude_hole=None):
+    def semivariance(self,delta):
+        if self.covariance_ranges is None:
+            return gamma_spherical(np.linalg.norm(delta,axis=-1),*self.variogram)
+        distance=np.linalg.norm((np.asarray(delta)@self.covariance_basis)/self.covariance_ranges,axis=-1)
+        return gamma_spherical(distance,self.variogram[0],self.variogram[1],1.)
+
+    def predict(self,point,excluded=None,exclude_hole=None,support_offsets=None):
         point=np.asarray(point,dtype=float)
         if point.shape!=(3,) or not np.isfinite(point).all():raise ValueError('Target цэг буруу.')
+        offsets=np.zeros((1,3)) if support_offsets is None else np.asarray(support_offsets,dtype=float)
+        if offsets.ndim!=2 or offsets.shape[1]!=3 or not 1<=len(offsets)<=64 or not np.isfinite(offsets).all():
+            raise ValueError('Block support 1…64 XYZ offset байна.')
+        targets=point+offsets
         candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
         candidate=[i for i in candidate if i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
-        candidate=sorted(candidate,key=lambda i:(float(np.linalg.norm(((self.xyz[i]-point)@self.basis)/self.radii)),i))[:self.k]
-        if len(candidate)<self.minimum:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
+        ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm(((self.xyz[i]-point)@self.basis)/self.radii)),i))
+        candidate=[];hole_counts={}
+        for i in ordered:
+            hole=self.samples[i]['hole_id']
+            if hole_counts.get(hole,0)>=self.max_per_hole:continue
+            candidate.append(i);hole_counts[hole]=hole_counts.get(hole,0)+1
+            if len(candidate)==self.k:break
+        if len(candidate)<self.minimum or len(hole_counts)<self.minimum_holes:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
         xyz=self.xyz[candidate];values=self.values[candidate];d=np.linalg.norm(xyz-point,axis=1)
         exact=np.flatnonzero(d<1e-9)
-        if len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method=='kriging' else None,'neighbors':len(candidate),'status':'exact_sample'}
+        if len(offsets)==1 and np.all(offsets==0) and len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method=='kriging' else None,'neighbors':len(candidate),'status':'exact_sample'}
         if self.method=='idw':
-            weights=(d.min()/d)**self.power;grade=float(np.dot(weights,values)/weights.sum());variance=None
+            target_distances=np.linalg.norm(xyz[:,None,:]-targets[None,:,:],axis=2)
+            predictions=[]
+            for column in target_distances.T:
+                exact_target=np.flatnonzero(column<1e-9)
+                if len(exact_target):predictions.append(float(values[exact_target[0]]));continue
+                weights=(column.min()/column)**self.power
+                predictions.append(float(np.dot(weights,values)/weights.sum()))
+            grade=float(np.mean(predictions));variance=None
         else:
-            distances=np.linalg.norm(xyz[:,None,:]-xyz[None,:,:],axis=2);n=len(candidate)
-            matrix=np.ones((n+1,n+1));matrix[:n,:n]=gamma_spherical(distances,*self.variogram);matrix[n,n]=0
-            rhs=np.r_[gamma_spherical(d,*self.variogram),1.]
+            n=len(candidate)
+            matrix=np.ones((n+1,n+1));matrix[:n,:n]=self.semivariance(xyz[:,None,:]-xyz[None,:,:]);matrix[n,n]=0
+            rhs=np.r_[self.semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1),1.]
+            key=offsets.tobytes()
+            if key not in self._within_cache:
+                if len(self._within_cache)>64:self._within_cache.clear()
+                self._within_cache[key]=float(self.semivariance(offsets[:,None,:]-offsets[None,:,:]).mean())
+            within=self._within_cache[key]
             try:
                 if np.linalg.cond(matrix)>1e12:raise np.linalg.LinAlgError('ill-conditioned')
                 solution=np.linalg.solve(matrix,rhs)
             except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,'status':'singular_kriging_system'}
-            grade=float(np.dot(solution[:n],values));variance=float(np.dot(solution[:n],rhs[:n])+solution[n])
+            grade=float(np.dot(solution[:n],values));variance=float(np.dot(solution[:n],rhs[:n])+solution[n]-within)
             if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,'status':'invalid_variance'}
             variance=max(0.,variance)
         return {'grade':grade,'variance':variance,'neighbors':len(candidate),'status':'estimated'}
 
 
-def make_blocks(bounds,size,domain=None):
+def make_blocks(bounds,size,domain=None,grid_angles=None):
     finite(*bounds,*size)
     if len(bounds)!=6 or len(size)!=3 or min(size)<=0:raise ValueError('Блокийн bounds/хэмжээ буруу.')
-    low=bounds[:3];high=bounds[3:]
+    low=bounds[:3];high=bounds[3:];basis=search_basis(*(grid_angles or [90.,0.,0.]))
     if any(a>=b for a,b in zip(low,high)):raise ValueError('Блокийн min нь max-аас бага байна.')
     counts=[math.ceil((b-a)/s) for a,b,s in zip(low,high,size)]
     if math.prod(counts)>50000:raise ValueError('50000-аас их блок. Хэмжээг томруулна уу.')
@@ -106,6 +140,7 @@ def make_blocks(bounds,size,domain=None):
         for j in range(counts[1]):
             for i in range(counts[0]):
                 index=(i,j,k);mins=[low[a]+index[a]*size[a] for a in range(3)];dims=[min(size[a],high[a]-mins[a]) for a in range(3)];center=[mins[a]+dims[a]/2 for a in range(3)]
+                center=(np.asarray(low)+(np.asarray(center)-low)@basis.T).tolist()
                 if domain and not inside_polygon(center[0],center[1],domain['points']):continue
                 blocks.append(dict(zip(('x','y','z','dx','dy','dz'),center+dims),i=i,j=j,k=k,grade=None,variance=None,status='unestimated'))
     if not blocks:raise ValueError('Домэйн дотор блок олдсонгүй.')
@@ -113,17 +148,29 @@ def make_blocks(bounds,size,domain=None):
 
 
 def estimate_model(project,bounds,size,params,domain=None,cancel=None,progress=None):
-    blocks=make_blocks(bounds,size,domain);samples=sample_support(project,params.get('composite_length',5),params.get('minimum_coverage',1.))
-    if domain:samples=[s for s in samples if inside_polygon(s['xyz'][0],s['xyz'][1],domain['points']) and bounds[2]<=s['xyz'][2]<=bounds[5]]
+    if cancel and cancel():raise RuntimeError('Тооцоог цуцаллаа. Өмнөх төсөл өөрчлөгдөөгүй.')
+    grid_angles=params.get('grid_angles',[90.,0.,0.]);grid_basis=search_basis(*grid_angles)
+    discretization=params.get('discretization',[1,1,1])
+    if (len(discretization)!=3 or any(type(v) is not int or not 1<=v<=4 for v in discretization)):
+        raise ValueError('Discretization axis бүр 1…4 бүхэл тоо байна (64 хүртэл support).')
+    blocks=make_blocks(bounds,size,domain,grid_angles);samples=sample_support(project,params.get('composite_length',5),params.get('minimum_coverage',1.))
+    if domain:samples=[s for s in samples if inside_polygon(s['xyz'][0],s['xyz'][1],domain['points']) and 0<=((np.asarray(s['xyz'])-bounds[:3])@grid_basis)[2]<=bounds[5]-bounds[2]]
     estimator=Estimator(samples,params)
     for i,b in enumerate(blocks):
         if cancel and cancel():raise RuntimeError('Тооцоог цуцаллаа. Өмнөх төсөл өөрчлөгдөөгүй.')
-        b.update(estimator.predict((b['x'],b['y'],b['z'])))
+        axes=[((np.arange(n)+.5)/n-.5)*b[key] for n,key in zip(discretization,('dx','dy','dz'))]
+        offsets=np.array(np.meshgrid(*axes,indexing='ij')).reshape(3,-1).T@grid_basis.T
+        b.update(estimator.predict((b['x'],b['y'],b['z']),support_offsets=offsets))
         if progress and i%50==0:progress(i,len(blocks))
+    if progress:progress(len(blocks),len(blocks))
     inputs={'collars':[asdict(h) for h in project.collars],'surveys':[asdict(s) for s in project.surveys],'assays':[asdict(a) for a in project.assays],'crs':project.crs_code,'unit':project.grade_unit}
     fingerprint=hashlib.sha256(json.dumps(inputs,sort_keys=True).encode()).hexdigest()
     from . import __version__
-    return {'blocks':blocks,'params':params,'bounds':list(bounds),'size':list(size),'domain':domain,'input_sha256':fingerprint,'software_version':__version__,'support':'point at block centre; no block discretisation','classification':'UNCLASSIFIED — independent geological benchmark pending','sample_count':len(samples)}
+    run={'input_sha256':fingerprint,'params':params,'bounds':list(bounds),'size':list(size),'domain':domain,'software_version':__version__}
+    run_sha256=hashlib.sha256(json.dumps(run,sort_keys=True,allow_nan=False).encode()).hexdigest()
+    statuses={}
+    for b in blocks:statuses[b['status']]=statuses.get(b['status'],0)+1
+    return {'blocks':blocks,'params':deepcopy(params),'grid_angles':list(grid_angles),'grid_origin':list(bounds[:3]),'capped_sample_count':estimator.capped_count,'bounds':list(bounds),'size':list(size),'domain':deepcopy(domain),'input_sha256':fingerprint,'run_sha256':run_sha256,'status_counts':statuses,'software_version':__version__,'support':('point at block centre' if math.prod(discretization)==1 else 'discretized block average; midpoint quadrature; common centre-selected neighborhood'),'discretization':list(discretization),'classification':'UNCLASSIFIED — independent geological benchmark pending','sample_count':len(samples)}
 
 
 def cross_validate(samples,params,mode='hole',limit=1000):

@@ -1,4 +1,4 @@
-# RAINYMINE 0.2.0 — Монгол оффлайн 3D уул уурхайн workbench
+# RAINYMINE 0.3.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэл, API key шаардахгүй. Суулгасан EXE нь Python шаардахгүй. Эх кодын dependency таталт болон Windows build-д интернэт хэрэгтэй.
 
@@ -8,10 +8,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.2.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.3.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх амжилттай 0.1.0 artifact нь шинэ 0.2.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x artifact нь шинэ 0.3.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## Мэргэжлийн интерфэйс
 
@@ -34,7 +34,7 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 | CRS | PROJ/pyproj, оффлайн, explicit source/target, XY axis order, метрийн projected target, local bearing rotation | Z босоо datum ба measured-depth scale хөрвүүлэхгүй; geometry/block model үүсгэхийн өмнө хөрвүүлнэ; геодезийн хяналтын бодит цэг хэрэгтэй |
 | Өрөмдлөг / QAQC | Minimum curvature, assay/lithology интервал, missing-support coverage, standard Z-score, blank threshold, duplicate RPD | Хяналтын хязгаарыг лаборатори/геологич сонгоно; зөвшөөрөлгүй outlier устгахгүй; лабораторийн бүрэн batch certification биш |
 | Геометр | XYZ TIN, breakline constrained TIN ба edge verification, string/polygon vertex editor, OBJ triangles, DXF LINE/POLYLINE/3DFACE, topology/volume report | Mesh self-intersection, robust Boolean solids, fault-aware modelling, full DXF entity coverage дутуу |
-| Блок / үнэлгээ | Axis-aligned parent blocks, XY polygon extrusion domain, IDW / isotropic spherical ordinary kriging, rotated ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Point estimate at block centre; block kriging, rotated/sub-block model, anisotropic kriging covariance, top-cuts/domain-by-lithology, independent benchmark дутуу |
+| Блок / үнэлгээ | Rotated parent blocks, XY polygon domain, IDW / isotropic эсвэл geometric-anisotropic spherical ordinary kriging, midpoint block discretization, top cut, per-hole limits, rotated ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Sub-blocks, composite-support regularization, domain-by-lithology, nested variogram structures, independent benchmark дутуу; discrete block support нь approximation |
 | Тайлан | Density t/m³, cutoff scenarios, volume/tonnes/mean grade, missing volume, kriging variance атрибут | **UNCLASSIFIED**; variance нь нөөцийн ангилал биш. Density fields, geologist review, uncertainty sensitivity / reporting-code certification дутуу |
 | Төлөвлөлт | Circular bench/berm/slope prototype, straight underground drive mesh, capacity/precedence reconciliation ба greedy schedule | Ramp, geotechnics, ventilation/support, slope-sector precedence, haulage/stockpile, economic/global optimization дутуу |
 | Түгээлт | Native Windows EXE, portable ZIP, Inno Setup, CPU renderer, source/packaged/installed smoke checks | Signed installer, бодит Windows төхөөрөмж/GPU matrix хараахан байхгүй |
@@ -99,12 +99,14 @@ X зүүн, Y хойд, Z дээш; ажиллах координат метр. 
 
 - Minimum curvature: `Δr=L/2·(u+v)·RF`, `RF=2tan(θ/2)/θ`, θ→0 үед RF=1. Partial station position нь spherical tangent interpolation-той.
 - Composite нь 0-ээс anchored bins; `Σ(overlap·grade)/Σ(overlap)`, coverage нь support/bin length. Missing support 0 агуулга болж хувирахгүй.
-- IDW нь сонгосон эллипсоид дотор nearest support, physical metre distance-аар жинлэнэ. Search azimuth/dip/roll нь локал X/Y/Z хайлтын радиусуудыг эргүүлнэ; default 90/0/0 нь хуучин дэлхийн XYZ тэнхлэгтэй ижил. Dip дээш эерэг; roll нь локал X-ийг тойрон Y-ийг Z рүү эргүүлнэ. Search эргэлт нь neighbor selection-д үйлчилнэ; IDW болон covariance зай метрээр isotropic хэвээр. Ordinary kriging нь spherical semivariogram + unbiasedness constraint бүхий linear system. Singular системийг unestimated гэж ил гаргана. Negative kriging grades-ийг чимээгүй clamp хийхгүй.
+- IDW нь сонгосон эллипсоид дотор nearest support, physical metre distance-аар жинлэнэ. Search azimuth/dip/roll нь локал X/Y/Z хайлтын радиусуудыг эргүүлнэ; default 90/0/0 нь хуучин дэлхийн XYZ тэнхлэгтэй ижил. Dip дээш эерэг; roll нь локал X-ийг тойрон Y-ийг Z рүү эргүүлнэ. Search эргэлт нь neighbor selection-д үйлчилнэ; IDW нь physical distance хэрэглэнэ. Covariance = Anisotropic үед тусдаа variogram angles ба 3 range ашиглаж `h = norm((delta @ basis) / ranges)` тооцно. Isotropic үед хуучин range metres хэрэглэнэ. Чиглэлтэй variogram fit-ийг range/angles-д хэрэглэгч өөрөө сонгож оруулна. Ordinary kriging нь spherical semivariogram + unbiasedness constraint бүхий linear system. Singular системийг unestimated гэж ил гаргана. Negative kriging grades-ийг чимээгүй clamp хийхгүй.
 - Variogram нь isotropic эсвэл чиглэлтэй; azimuth нь хойноос цагийн зүүний дагуу, dip дээш эерэг, tolerance нь чиглэлийн хоёр талын хагас өнцөг, bandwidth нь тэнхлэгээс перпендикуляр хамгийн их зай (метр). Эсрэг чиглэлийн pair ижилд тооцогдоно. Lag зай нь 3D бодит зай. Чиглэлтэй fit нь exploratory бөгөөд kriging covariance-д автоматаар холбогдохгүй; олон pair дээр deterministic seed 2026 ашиглаж 250000 хүртэл pair авна. Spherical fit exploratory бөгөөд геологийн model сонголтыг орлохгүй.
 - Cross-validation нь default leave-one-hole-out; withheld hole-ийн бүх support-ыг training-с хасна. Training-fold mean baseline-тай харьцуулна. Независимый geological benchmark биш.
-- Domain нь polygon-ийн XY extrusion ба Z bounds; cell-centre membership ашигладаг тул boundary volume нь ойролцоо. Block-centre point estimates-ийг block-average гэж нэрлэхгүй.
+- Grid rotation нь bounds-ийн minimum XYZ цэгийг тойрно; bounds ба cell dimensions нь эргүүлэхээс өмнөх grid coordinate. Domain нь world XY polygon ба grid-local Z bounds; cell-centre membership ашигладаг тул boundary volume нь ойролцоо. Slice нь локал grid тэнхлэгтэй эргэнэ. CSV атрибутын экспорт grid angles/origin агуулна.
+- Block support = Point нь төвийн үнэлгээ. 2×2×2, 3×3×3, 4×4×4 нь блокийн дотор midpoint quadrature хэрэглэнэ. Кригингийн RHS нь sample-to-block semivariance-ийн дундаж; variance-ээс within-block semivariance-ийн дунджийг хасна. Бүх support-д centre-selected нэг neighborhood хэрэглэнэ. IDW нь ижил neighborhood-оор тооцсон subpoint утгуудын дундаж. Composite midpoint point support хэвээр; sample-support regularization, boundary-clipped partial volume, numerical convergence review дутуу.
+- Top cut нь зөвхөн estimator-ийн working grade-г cap хийнэ; эх assay өөрчлөгдөхгүй. Capped count, params, status counts, source ба run SHA256 хадгална. Per-hole limit-ийн дараа minimum sample/hole нөхцөл хүрэхгүй бол unestimated. Cross-validation нь block support биш, raw observed grade-тай point holdout шалгалт.
 - Tonnage нь cell volume × constant density; unestimated volume тайланд тусдаа гарна. %/g/t/ppm-ийн weighted mean grade-г тооцно, contained metal conversion эсвэл resource classification хийдэггүй.
-- Schedule нь value-per-tonne greedy heuristic. Predecessor өмнөх period-д дууссан байна. Capacity хэтэрсэн indivisible task төлөвлөгдөхгүй; infeasibility шалтгаан гаргана. Энэ нь economic pit optimizer биш.
+- Эргэлттэй grid-д world-vertical precedence хараахан дэмжихгүй тул schedule үүсгэхэд алдаа гаргана. World-axis model-ийн schedule нь value-per-tonne greedy heuristic. Predecessor өмнөх period-д дууссан байна. Capacity хэтэрсэн indivisible task төлөвлөгдөхгүй; infeasibility шалтгаан гаргана. Энэ нь economic pit optimizer биш.
 - VTP export нь одоогоор цооногийн локал геометр. `.origin.json` offset-г нэмэхэд absolute coordinate сэргээнэ. PNG нь үндсэн viewport.
 
 ## Хэмжээ ба шалгалт

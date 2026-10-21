@@ -2,6 +2,8 @@
 import math
 import colorsys
 import vtk
+import numpy as np
+from .spatial import model_basis
 from .core import Trajectory
 
 class Scene:
@@ -111,24 +113,27 @@ class Scene:
             self.add_poly('mesh_'+str(index),poly,(.52,.65,.83),opacity=.45)
         model=workspace.get('block_model')
         if model:
+            basis=model_basis(model);pivot=np.asarray(model.get('grid_origin',model['bounds'][:3]))
             pts=vtk.vtkPoints();pts.SetDataTypeToDouble();faces=vtk.vtkCellArray();values=vtk.vtkFloatArray();values.SetName('grade')
             for b in model['blocks']:
                 if b.get('grade') is None:continue
-                center=self.local((b['x'],b['y'],b['z']));dims=[b['dx'],b['dy'],b['dz']]
+                world=np.array([b['x'],b['y'],b['z']]);grid_center=pivot+(world-pivot)@basis
+                center=self.local(world);dims=[b['dx'],b['dy'],b['dz']]
                 if workspace.get('block_display','slices')=='slices':
-                    bounds=model['bounds'];planes=[(bounds[i]+bounds[i+3])/2-self.origin[i] for i in range(3)]
+                    bounds=model['bounds'];planes=[(bounds[i]+bounds[i+3])/2 for i in range(3)]
                     for axis in range(3):
-                        if not center[axis]-dims[axis]/2<=planes[axis]<center[axis]+dims[axis]/2:continue
+                        if not grid_center[axis]-dims[axis]/2<=planes[axis]<grid_center[axis]+dims[axis]/2:continue
                         axes=[i for i in range(3) if i!=axis];start=pts.GetNumberOfPoints()
                         for u,v in ((-1,-1),(1,-1),(1,1),(-1,1)):
-                            p=list(center);p[axis]=planes[axis];p[axes[0]]+=u*dims[axes[0]]/2;p[axes[1]]+=v*dims[axes[1]]/2;pts.InsertNextPoint(*p)
+                            p=list(grid_center);p[axis]=planes[axis];p[axes[0]]+=u*dims[axes[0]]/2;p[axes[1]]+=v*dims[axes[1]]/2;pts.InsertNextPoint(*self.local(pivot+(np.asarray(p)-pivot)@basis.T))
                         faces.InsertNextCell(4)
                         for i in range(4):faces.InsertCellPoint(start+i)
                         values.InsertNextValue(b['grade'])
                 else:
                     start=pts.GetNumberOfPoints()
                     for x,y,z in ((-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)):
-                        pts.InsertNextPoint(center[0]+x*b['dx']/2,center[1]+y*b['dy']/2,center[2]+z*b['dz']/2)
+                        offset=np.array([x*b['dx']/2,y*b['dy']/2,z*b['dz']/2])@basis.T
+                        pts.InsertNextPoint(*(np.asarray(center)+offset))
                     for face in ((0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)):
                         faces.InsertNextCell(4)
                         for i in face:faces.InsertCellPoint(start+i)

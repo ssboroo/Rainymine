@@ -185,12 +185,13 @@ class Workbench(Window):
         if not items:QMessageBox.information(self,title,'Сонгох өгөгдөл алга.');return None
         name,ok=QInputDialog.getItem(self,title,'Сонгоно уу:',items,0,False);return items.index(name) if ok else None
     def params(self,title,defaults):
-        dlg=QDialog(self);dlg.setWindowTitle(title);form=QFormLayout(dlg);inputs={}
+        dlg=QDialog(self);dlg.setWindowTitle(title);dlg.resize(660,640);layout=QVBoxLayout(dlg)
+        scroll=QScrollArea();scroll.setWidgetResizable(True);content=QWidget();form=QFormLayout(content);scroll.setWidget(content);layout.addWidget(scroll);inputs={}
         for name,value in defaults.items():
             if isinstance(value,list):w=QComboBox();w.addItems(value)
             else:w=QLineEdit(str(value))
             inputs[name]=w;form.addRow(name,w)
-        b=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);b.button(QDialogButtonBox.StandardButton.Ok).setText('Тооцох / хадгалах');b.button(QDialogButtonBox.StandardButton.Cancel).setText('Болих');b.accepted.connect(dlg.accept);b.rejected.connect(dlg.reject);form.addRow(b)
+        b=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);b.button(QDialogButtonBox.StandardButton.Ok).setText('Тооцох / хадгалах');b.button(QDialogButtonBox.StandardButton.Cancel).setText('Болих');b.accepted.connect(dlg.accept);b.rejected.connect(dlg.reject);layout.addWidget(b)
         if dlg.exec()!=QDialog.DialogCode.Accepted:return None
         return {k:(w.currentText() if isinstance(w,QComboBox) else w.text()) for k,w in inputs.items()}
     def show_rows(self,title,rows):
@@ -315,9 +316,15 @@ class Workbench(Window):
         meshes=self.project.workspace.get('meshes',[]);i=self.choose('Mesh топологи',[m['name'] for m in meshes])
         if i is not None:self.guard(lambda:self.show_rows('Mesh — self-intersection хараахан шалгахгүй',[mesh_report(meshes[i])]))
     def estimator_params(self):
-        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'Search azimuth':90,'Search dip':0,'Search roll':0,'IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
+        result=self.params('Үнэлгээ — search / covariance / block support',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'Search azimuth':90,'Search dip':0,'Search roll':0,'Max samples per hole':64,'Minimum holes':1,'Top cut (blank = none)':'','IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Covariance':['Isotropic','Anisotropic'],'Variogram range X':100,'Variogram range Y':100,'Variogram range Z':50,'Variogram azimuth':90,'Variogram dip':0,'Variogram roll':0,'Block support':['Point','2 × 2 × 2','3 × 3 × 3','4 × 4 × 4'],'Composite metres':5,'Minimum coverage':1})
         if not result:return None
-        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'search_angles':[float(result['Search '+a]) for a in ('azimuth','dip','roll')],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        params={'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'search_angles':[float(result['Search '+a]) for a in ('azimuth','dip','roll')],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        params.update(max_per_hole=int(result['Max samples per hole']),minimum_holes=int(result['Minimum holes']),top_cut=float(result['Top cut (blank = none)']) if result['Top cut (blank = none)'].strip() else None)
+        n=1 if result['Block support']=='Point' else int(result['Block support'][0]);params['discretization']=[n,n,n]
+        if result['Covariance']=='Anisotropic':
+            params['variogram_ranges']=[float(result['Variogram range '+a]) for a in 'XYZ']
+            params['variogram_angles']=[float(result['Variogram '+a]) for a in ('azimuth','dip','roll')]
+        return params
     def block_dialog(self):
         def run():
             parameters=self.estimator_params()
@@ -325,15 +332,16 @@ class Workbench(Window):
             coords=[(h.x,h.y,h.z) for h in self.project.collars]
             if not coords:raise ValueError('Эхлээд цооног импортлоно уу.')
             low=[min(p[i] for p in coords)-50 for i in range(3)];low[2]-=250;high=[max(p[i] for p in coords)+50 for i in range(3)]
-            settings=self.params('Блокийн bounds, хэмжээ — метр',{'Min X':low[0],'Min Y':low[1],'Min Z':low[2],'Max X':high[0],'Max Y':high[1],'Max Z':high[2],'Size X':50,'Size Y':50,'Size Z':20,'Домэйн':['Бүх талбай']+[s['name'] for s in self.project.workspace.get('strings',[]) if s.get('closed')]})
+            settings=self.params('Блокийн bounds, хэмжээ — метр',{'Min X':low[0],'Min Y':low[1],'Min Z':low[2],'Max X':high[0],'Max Y':high[1],'Max Z':high[2],'Size X':50,'Size Y':50,'Size Z':20,'Grid azimuth':90,'Grid dip':0,'Grid roll':0,'Домэйн':['Бүх талбай']+[s['name'] for s in self.project.workspace.get('strings',[]) if s.get('closed')]})
             if not settings:return
+            parameters['grid_angles']=[float(settings['Grid '+a]) for a in ('azimuth','dip','roll')]
             domain=next((s for s in self.project.workspace.get('strings',[]) if s['name']==settings['Домэйн'] and s.get('closed')),None)
             progress=QProgressDialog('Блокийн агуулга тооцож байна…','Цуцлах',0,100,self);progress.setWindowModality(Qt.WindowModality.ApplicationModal);progress.setMinimumDuration(0);self.computing=True
             def update(i,n):progress.setValue(int(i/n*100));QApplication.processEvents()
             try:model=estimate_model(self.project,[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ'],[float(settings['Size '+a]) for a in 'XYZ'],parameters,domain,cancel=progress.wasCanceled,progress=update)
             finally:self.computing=False;progress.close()
             p=deepcopy(self.project);p.workspace['block_model']=model;self.commit(p)
-            QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Блокийн төвийн point estimate; block kriging биш.")
+            QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Support: {model['support']}.")
         self.guard(run)
     def block_display(self):
         def run():
@@ -351,7 +359,9 @@ class Workbench(Window):
     def export_blocks(self):
         model=self.project.workspace.get('block_model')
         if not model:QMessageBox.information(self,'Блок модель','Эхлээд блок модель үүсгэнэ үү.');return
-        self.show_rows('Блокийн атрибут — UNCLASSIFIED',model['blocks'])
+        angles=model.get('grid_angles',[90,0,0]);origin=model.get('grid_origin',model['bounds'][:3])
+        rows=[dict(b,**{'grid_'+a:v for a,v in zip(('azimuth','dip','roll'),angles)},**{'origin_'+a:v for a,v in zip('xyz',origin)}) for b in model['blocks']]
+        self.show_rows('Блокийн атрибут — UNCLASSIFIED',rows)
     def cross_validation(self):
         def run():
             params=self.estimator_params()
@@ -372,6 +382,20 @@ class Workbench(Window):
             p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart(fields['Mode']+' experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
             if 'fit' in result:QMessageBox.information(self,'Spherical model fit',json.dumps(result['fit'],indent=2))
         self.guard(run)
+    def help(self):
+        QMessageBox.information(self,'RAINYMINE — Ажлын дараалал',
+            '1. Collar → Survey → Assay / Lithology CSV импортлоно. Баганын загварыг нэрлэж хадгалж болно.\n'
+            '2. Геометр/блок үүсгэхээс өмнө CRS-ийг метрийн проекцод хөрвүүлнэ.\n'
+            '3. Композитын coverage, QA/QC болон чиглэлтэй вариограммыг шалгана.\n'
+            '4. Үнэлгээнд search, covariance ranges/angles, top cut, hole limits, block support-оо тохируулна.\n'
+            '5. Grid rotation нь bounds-ийн minimum XYZ цэгийг тойрно. Slice нь grid-ийн локал тэнхлэгтэй.\n'
+            '6. Cross-validation нь withheld hole-ийг бүрэн хассан point-support шалгалт.\n'
+            '7. Density/cutoff тайлан гаргаж .rmine төсөлд хадгална.\n\n'
+            'Azimuth хойноос цагийн зүүний дагуу; dip дээш эерэг. Search болон covariance тусдаа тохиргоотой.\n'
+            'Discretized block support нь midpoint quadrature approximation; composite midpoint-ууд point support хэвээр.\n'
+            'Эргэлттэй grid-ийн production schedule дэмжигдээгүй. Бүх үр дүн UNCLASSIFIED.\n'
+            'README.md / ACCEPTANCE.md-д бодит хязгаар, баталгаажуулалтын төлөв бий.')
+
     def resource_report(self):
         def run():
             model=self.project.workspace.get('block_model')

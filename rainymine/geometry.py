@@ -18,6 +18,9 @@ def validate_workspace(workspace):
     for mesh in workspace.get('meshes',[]):validate_mesh_data(mesh)
     model=workspace.get('block_model')
     if model:
+        from .spatial import model_basis
+        model_basis(model)
+        if 'grid_origin' in model:points_valid([model['grid_origin']])
         if len(model['blocks'])>50000:raise ValueError('Блокийн тоо хэт их.')
         for b in model['blocks']:
             finite(b['x'],b['y'],b['z'],b['dx'],b['dy'],b['dz'])

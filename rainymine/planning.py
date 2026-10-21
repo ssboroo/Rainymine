@@ -67,6 +67,10 @@ def schedule(tasks,mining_capacity,processing_capacity,periods):
 def tasks_from_blocks(model,density,cutoff):
     finite(density,cutoff)
     if density<=0 or cutoff<0:raise ValueError('Density/cutoff буруу.')
+    from .spatial import model_basis
+    import numpy as np
+    if not np.allclose(model_basis(model),np.eye(3),atol=1e-10):
+        raise ValueError('Эргэлттэй grid-д vertical precedence хараахан дэмжихгүй. World-axis model ашиглана уу.')
     blocks=model['blocks'];lookup={(b['i'],b['j'],b['k']):str(i) for i,b in enumerate(blocks)};result=[]
     for i,b in enumerate(blocks):
         tonnes=b['dx']*b['dy']*b['dz']*density;grade=b.get('grade');ore=grade is not None and grade>=cutoff

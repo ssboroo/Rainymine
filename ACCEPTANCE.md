@@ -22,3 +22,13 @@
 | Бодит төхөөрөмж | Windows 10/11 x64, хэд хэдэн GPU/driver, offline/upgrade/uninstall test log | CI runner-ээс өөр төхөөрөмжөөр шалгаагүй |
 
 Эдгээр дутуу evidence-ийг программ зохиомлоор үүсгэж баталгаажуулсан мэтээр харуулахгүй.
+
+## 0.3.0 шалгалтын нэмэлт
+
+- Two-sample anisotropic analytic weights (2.598 expected grade).
+- Two-support ordinary block kriging: point variance 0.151; discrete block variance 0.0755.
+- Rotated grid volume / model save-load, large-coordinate covariance rotation invariance.
+- Rotated full-cell and local-slice VTK geometry stays inside the reference local grid.
+- Top-cut source preservation, per-hole caps, minimum distinct holes, cancellation protection.
+- Offscreen Qt parameter dialog with 35 fields: scroll area and visible accept controls.
+- Latest Windows build/installed smoke must be checked on the PR commit; local mathematical tests are not a Windows executable test.
