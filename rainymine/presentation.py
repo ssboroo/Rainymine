@@ -43,6 +43,9 @@ class PresentationWorkbench(AdvancedWorkbench):
 
     def build_ui(self):
         super().build_ui();self.ribbon.setObjectName('ribbon');self.ribbon.setFixedHeight(134)
+        # The reference keeps both sidebars full-height; data sits below 3D only.
+        self.setCorner(Qt.Corner.BottomLeftCorner,Qt.DockWidgetArea.LeftDockWidgetArea)
+        self.setCorner(Qt.Corner.BottomRightCorner,Qt.DockWidgetArea.RightDockWidgetArea)
         self.ribbon.tabBar().setToolTip('Табыг давхар дарж хэрэгслийн мөрийг хураана / дэлгэнэ · Ctrl+F1')
         self.ribbon.tabBarDoubleClicked.connect(lambda index:self.collapse_ribbon())
         docks=self.findChildren(QDockWidget);self.project_dock=docks[0];self.section_dock=docks[1];self.data_dock=docks[2]
