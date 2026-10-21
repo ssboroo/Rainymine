@@ -3,7 +3,7 @@ from PySide6.QtCore import Qt,QSize,QTimer
 from PySide6.QtGui import QAction,QKeySequence,QFont,QShortcut,QColor,QBrush
 from PySide6.QtWidgets import (QWidget,QHBoxLayout,QLabel,QToolBar,QToolButton,QPushButton,
     QDockWidget,QHeaderView,QDialog,QVBoxLayout,QLineEdit,QListWidget,QListWidgetItem,
-    QSizePolicy,QTabWidget,QApplication,QTreeWidgetItem,QTableWidget,QTableWidgetItem,QAbstractItemView,QScrollArea,QComboBox)
+    QSizePolicy,QTabWidget,QApplication,QTreeWidgetItem,QTableWidget,QTableWidgetItem,QAbstractItemView,QScrollArea,QComboBox,QMenu)
 from .advanced import AdvancedWorkbench
 from .icons import icon,brand_icon,semantic_icon
 from .theme import STYLE
@@ -151,6 +151,12 @@ class PresentationWorkbench(AdvancedWorkbench):
         self.guide_dock.setWidget(tabs);self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.guide_dock);panels.addAction(self.guide_dock.toggleViewAction())
 
     def show_ai_guide(self):self.guide_dock.show();self.guide_tabs.setCurrentIndex(2)
+
+    def createPopupMenu(self):
+        menu=QMenu(self)
+        for dock in (self.layer_dock,self.project_dock,self.section_dock,self.guide_dock,self.data_dock):
+            menu.addAction(dock.toggleViewAction())
+        return menu
 
     def polish_controls(self):
         for button in self.findChildren(QToolButton):

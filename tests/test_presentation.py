@@ -74,3 +74,8 @@ class PresentationTests(unittest.TestCase):
         w.support.question.setText('Өнөөдөр цаг агаар ямар вэ?');w.support.ask()
         self.assertIn('Rainymine',w.support.chat.toPlainText())
         self.assertIsNone(w.support.engine);w.support.clear();w.guide_tabs.setCurrentIndex(0)
+    def test_panel_menu_has_no_detached_empty_ai_dock(self):
+        menu=self.window.createPopupMenu();actions=menu.actions()
+        self.assertEqual(len(actions),5)
+        self.assertNotIn(self.window.support.toggleViewAction(),actions)
+        menu.close()

@@ -55,7 +55,7 @@ QComboBox QAbstractItemView {background:white;color:@ink;selection-background-co
 QPushButton {background:white;color:@ink;border:1px solid #ccd6df;border-radius:4px;padding:7px 10px;min-height:18px;}
 QPushButton:hover {background:#edf7f4;border-color:#91c2b9;}
 QPushButton:pressed,QPushButton:checked {background:#d8eee7;color:#0c5e5b;}
-QPushButton:default {background:@accent;color:white;border-color:@accent;}
+QPushButton:default {background:#087b7c;color:white;border-color:#087b7c;}
 QPushButton:disabled {background:#f0f3f5;color:#8c99a5;}
 QCheckBox {spacing:7px;padding:4px 0;}
 QCheckBox::indicator {width:16px;height:16px;}
@@ -83,4 +83,4 @@ QProgressBar::chunk {background:@accent;border-radius:3px;}
 '''
 for key,value in COLORS.items():STYLE=STYLE.replace('@'+key,value)
 
-STYLE += "QLabel#guideNumber {color:white;background:#00bdbb;border-radius:12px;font-size:13px;font-weight:600;}"
+STYLE += "QLabel#guideNumber {color:#063a45;background:#00bdbb;border-radius:12px;font-size:13px;font-weight:600;}"
