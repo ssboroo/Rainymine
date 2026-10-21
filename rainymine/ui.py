@@ -115,7 +115,7 @@ class Window(QMainWindow):
     def guard(self,callback):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:return callback()
-        except (OSError,ValueError,TypeError,RuntimeError) as exc:
+        except (OSError,ValueError,TypeError,RuntimeError,KeyError,IndexError,OverflowError) as exc:
             QMessageBox.critical(self,'Үйлдэл амжилтгүй',str(exc));return False
         finally:QApplication.restoreOverrideCursor()
 
@@ -282,12 +282,20 @@ def main():
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
-    window=Window();window.show()
+    from .workbench import Workbench
+    window=Workbench();window.show()
     if args.smoke:
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
-                window.scene.view('top');window.scene.set_section((90,0,100));window.scene.set_section(None)
+                assert window.ribbon.count()>=6
+                assert window.project.workspace.get('block_model')
+                assert window.scene.sources['blocks'].GetNumberOfCells()>0
+                window.toggle_view();window.show_hole(window.project.collars[0].hole_id)
+                window.scene.set_section((90,0,100));window.scene.set_section(None)
+                window.ribbon.setCurrentIndex(3)
+                window.toggle_view()
+                window.scene.view('iso')
                 window.vtk.GetRenderWindow().Render()
                 if capture is not None:
                     output=capture.GetOutput()

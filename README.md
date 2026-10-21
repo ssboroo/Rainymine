@@ -1,104 +1,81 @@
-# RAINYMINE 0.1.0
+# RAINYMINE 0.2.0 — Монгол оффлайн 3D уул уурхайн workbench
 
-**Монгол хэлтэй, оффлайн Windows геологи ба 3D өрөмдлөгийн программ.**
+Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэл, API key шаардахгүй. Суулгасан EXE нь Python шаардахгүй. Эх кодын dependency таталт болон Windows build-д интернэт хэрэгтэй.
 
-Qt 6 / PySide6 + VTK ашигласан жинхэнэ native desktop хэрэглүүр. Браузер, сервер, API key, нэвтрэх бүртгэл шаардахгүй. Төслийн файл болон өгөгдөл хэрэглэгчийн компьютерт хадгалагдана. Суулгагдсан EXE-г ажиллуулахад Python болон интернэт хэрэггүй.
+**Энэ нь хөгжүүлэлтийн / туршилтын хувилбар. Micromine-ийн бүрэн орлуулалт, баталгаажсан нөөцийн тайлан, үйлдвэрлэлийн уурхайн төлөвлөгөө гэж үзэхгүй.** Micromine-ийн код, хаалттай формат болон брэнд ашиглаагүй.
 
-> Энэ бол Micromine төрлийн ажлын урсгалд зориулсан **эхний ажилладаг суурь хувилбар**. Micromine-ийн бүрэн орлуулалт биш. Нөөцийн баталгаажсан үнэлгээ, үйлдвэрлэлийн төлөвлөгөө гаргах түвшинд хараахан хүрээгүй. Micromine-ийн код, брэнд, хаалттай формат ашиглаагүй.
+## Windows суулгагч татах
 
-## Одоо ажиллах боломж
+1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
+2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
+3. `Rainymine-0.2.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-- Монгол интерфэйс: цэс, төслийн давхарга, хүснэгт, хайлт, огтлолын тохиргоо.
-- CSV: амсар, survey хэмжилт, сорьцын интервал, гадаргын XYZ импорт.
-- Survey-тай цооногийн **minimum curvature** замнал; survey-гүй бол амсрын чиглэлээр шулуун.
-- Сорьцын интервалын агуулгаар 3D өнгөлөлт. Сорьцгүй хэсэг саарал; хоосон утгыг 0 агуулга гэж үзэхгүй.
-- XYZ цэгүүдээс Delaunay TIN гадарга; тунгалаг дүрслэл, давхарга асаах/унтраах.
-- 3D эргэлт, зөөх, томруулах, дээрээс/урдаас/хажуугаас харах.
-- Азимут, шилжилт, зузаантай **бодит босоо slab clipping**.
-- 3D геометр дээр хоёр цэг сонгон зай болон Z зөрүү хэмжих.
-- Цооног гараар нэмэх; цооногийн жагсаалт, координатын хүснэгт.
-- Уртаар жигнэсэн композит CSV; support_m ба coverage тусдаа гарна.
-- Бүх өгөгдлийг агуулсан `.rmine` төсөл хадгалах/нээх, хадгалах үед атомик файл солилт.
-- Хадгалаагүй өөрчлөлтийн хамгаалалт; хадгалах замтай, өөрчлөгдсөн төсөлд 2 минут тутмын `.autosave` нөөц.
-- Замналын CSV, PNG зураг, VTP геометр, HTML тайлан экспорт.
-- Дотоод эх рүү координат шилжүүлж том проекцын координатын дүрслэлийн нарийвчлал хадгална.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх амжилттай 0.1.0 artifact нь шинэ 0.2.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
-## Windows дээр татаж суулгах
+## Мэргэжлийн интерфэйс
 
-1. [Actions → Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml) руу орно.
-2. Амжилттай дууссан хамгийн сүүлийн ажиллуулалтаас **Rainymine-Windows-x64** artifact татна. Artifact татахад GitHub нэвтрэлт шаардагдаж болно.
-3. ZIP-ийг задалж `Rainymine-0.1.0-Setup-x64.exe` ажиллуулна. Эсвэл portable ZIP-ийг задалж **хавтсыг бүхлээр нь** хадгалан `Rainymine.exe` нээнэ.
-4. Программ жишээ төсөлтэй нээгдэнэ. `Файл → Шинэ төсөл` сонгож өөрийн CSV-г импортлоно.
+Цайвар ажлын орчин, нил ягаан navigation, бүлэглэсэн icon-той ribbon:
 
-**Build ногоон болсны дараа л artifact бэлэн болно.** GitHub workflow нь тест, native UI smoke test, EXE бүтээлт, packaged EXE smoke test, суулгагч бүтээлт болон суулгасан EXE smoke test хийдэг. EXE нь одоогоор кодын тоон гарын үсэггүй. Windows runner нь GPU-гүй учир software renderer ашиглан UI-г шалгана.
+- **Төсөл:** нээх/хадгалах, CSV mapping, CRS, хүснэгт, undo/redo.
+- **Өрөмдлөг:** collar/survey/assay/lithology, coverage, QA/QC controls, композит.
+- **Геологи / DTM:** string/polygon засвар, constrained TIN, mesh topology, DXF/OBJ.
+- **Блок модель:** grid/domain, IDW/ordinary kriging, variogram, cross-validation, tonnage-grade.
+- **Уурхай:** bench prototype, шулуун underground drive, capacity schedule.
+- **Харагдац:** камер, хоёр viewport, литологийн өнгө, зай/координат, PNG/VTP.
 
-**3D цонх нээгдэхгүй/хар байвал:** `Rainymine-Software.bat` эсвэл Start цэсний `RAINYMINE - CPU rendering`-ийг ашиглана. Багцад оффлайн Mesa/llvmpipe драйвер дагалдана. Энэ горим GPU шаардлагыг багасгах боловч CPU дээр ажиллах тул том өгөгдөлд удаан байж болно. Системийн драйверийг солихгүй.
+Зүүн талд layer list ба шинж чанар/огтлол, голд том цагаан 3D талбар, доор координатын хүснэгт болон status мөр. Эхлэхэд нээгдэх **ЖИШЭЭ** төсөл нь зохиомол орд, литологи, блокийн гурван ортогонал зүсэлттэй; бодит уурхайн өгөгдөл биш.
 
-Зорилтот орчин: Windows 10/11 x64; OpenGL 3.2+ дэмждэг графикийн драйвер. Энэ хувилбарын шалгалт нь Windows runner болон зохиомол жишээ өгөгдлөөр хийгдэнэ; бүх төрлийн уурхайн том өгөгдөл, бүх компьютерийн драйвер дээр баталгаажуулсан гэсэн үг биш.
+## Боломж ба бодит хязгаар
 
-## Эх кодоос ажиллуулах
+| Чиглэл | Оруулсан боломж | Хараахан баталгаажаагүй / дутуу |
+|---|---|---|
+| Өгөгдөл | CSV багана mapping/preview, мөрийн алдааны тайлан, SHA256 provenance, editable grid, 20 алхмын undo/redo, v1→v2 төслийн migration | Бодит уурхайн anonymized acceptance dataset өгөөгүй; mapping profile сонгож дахин ашиглах UI, detection-limit workflow дутуу |
+| CRS | PROJ/pyproj, оффлайн, explicit source/target, XY axis order, метрийн projected target, local bearing rotation | Z босоо datum ба measured-depth scale хөрвүүлэхгүй; geometry/block model үүсгэхийн өмнө хөрвүүлнэ; геодезийн хяналтын бодит цэг хэрэгтэй |
+| Өрөмдлөг / QAQC | Minimum curvature, assay/lithology интервал, missing-support coverage, standard Z-score, blank threshold, duplicate RPD | Хяналтын хязгаарыг лаборатори/геологич сонгоно; зөвшөөрөлгүй outlier устгахгүй; лабораторийн бүрэн batch certification биш |
+| Геометр | XYZ TIN, breakline constrained TIN ба edge verification, string/polygon vertex editor, OBJ triangles, DXF LINE/POLYLINE/3DFACE, topology/volume report | Mesh self-intersection, robust Boolean solids, fault-aware modelling, full DXF entity coverage дутуу |
+| Блок / үнэлгээ | Axis-aligned parent blocks, XY polygon extrusion domain, isotropic IDW / spherical ordinary kriging, ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Point estimate at block centre; block kriging, rotated/sub-block model, directional variogram, top-cuts/domain-by-lithology, independent benchmark дутуу |
+| Тайлан | Density t/m³, cutoff scenarios, volume/tonnes/mean grade, missing volume, kriging variance атрибут | **UNCLASSIFIED**; variance нь нөөцийн ангилал биш. Density fields, geologist review, uncertainty sensitivity / reporting-code certification дутуу |
+| Төлөвлөлт | Circular bench/berm/slope prototype, straight underground drive mesh, capacity/precedence reconciliation ба greedy schedule | Ramp, geotechnics, ventilation/support, slope-sector precedence, haulage/stockpile, economic/global optimization дутуу |
+| Түгээлт | Native Windows EXE, portable ZIP, Inno Setup, CPU renderer, source/packaged/installed smoke checks | Signed installer, бодит Windows төхөөрөмж/GPU matrix хараахан байхгүй |
 
-Python **3.11 эсвэл 3.12, 64-bit** суулгана.
+Дэлгэрэнгүй бүтээгдэхүүний чиглэл: [ROADMAP.md](ROADMAP.md). Дээрх хязгааруудыг хэрэгжсэн мэтээр нэрлэхгүй.
 
-Windows дээр эхний удаа `Setup-Windows.bat`, дараагийн удаа `Start-Windows.bat` нээнэ. Эхний dependency таталтад интернэт хэрэгтэй, дараа нь оффлайн ажиллана.
+## Ажиллуулах дараалал
 
-```powershell
-py -3.11 -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
-.venv\Scripts\python main.py
-```
+1. `Төсөл → Шинэ`.
+2. Project тохиргоогоор grade unit (%, g/t, ppm) сонгоно. Нэгж солих нь тоон утгыг хөрвүүлэхгүй.
+3. `Өрөмдлөг → Амсар` сонгож CSV багануудыг зураглана. Дараа нь Survey, Сорьц, Литологи.
+4. Өөр CRS-тай бол **геометр/блок модель үүсгэхийн өмнө** explicit source/target CRS-тай хөрвүүлнэ.
+5. `Геологи / DTM`-д XYZ, strings/polygons, OBJ/DXF импортлоно.
+6. `Блок модель үүсгэх`-д арга, search, variogram, composite coverage, bounds, cell size, domain тохируулна. Progress/cancel нь model тооцоонд ажиллана. Цуцлахад өмнөх model солигдохгүй.
+7. Cross-validation, variogram, coverage/QAQC-г шалгаж дараа нь density/cutoff тайлан гаргана.
+8. `.rmine` төсөлд хадгална. Хадгалах замтай өөрчлөгдсөн төсөлд 2 минут тутам `.autosave` үүснэ. Нөөцийг хуулж `.rmine` өргөтгөлтэй болгоод сэргээнэ.
 
-EXE өөрөө бүтээх бол:
+## CSV форматууд
 
-```powershell
-.venv\Scripts\python -m pip install pyinstaller==6.12.0
-.venv\Scripts\Activate.ps1
-.\scripts\build_windows.ps1
-```
-
-CPU renderer дагалдуулах бол эхлээд `scripts/prepare_mesa.ps1` ажиллуулна (таталтад интернэт хэрэгтэй).
-
-Суулгагч бүтээхэд Inno Setup 6 шаардлагатай: `ISCC.exe installer\Rainymine.iss`.
-
-## Өгөгдлийн формат
-
-CSV нь UTF-8 / UTF-8 BOM, таслалаар тусгаарласан, эхний мөр нь дараах **англи баганын нэртэй** байна. Монгол цооногийн нэр оруулж болно. `examples/` хавтсанд жишээнүүд бий. Excel-ээс `CSV UTF-8` сонгож экспортлоно. `.xlsx` шууд импорт хараахан байхгүй.
-
-### 1. Амсар — collars.csv
+UTF-8/BOM, comma/semicolon/tab delimiter-ийг танина; эхний мөр гарчиг. Import mapping-оор өөр нэртэй баганыг зураглаж болно. `.xlsx`-ийг шууд нээхгүй; Excel-ээс CSV UTF-8 экспортлоно.
 
 ```csv
 hole_id,x,y,z,depth,azimuth,dip
 RM-001,500000,5300000,1450,250,45,-65
 ```
 
-X = зүүн, Y = хойд, Z = өндөр; бүгд **метр**. Географийн өргөрөг/уртраг (degree) шууд оруулахгүй. Нэг төслийн бүх хүснэгт нэг проекцын систем, нэг нэгжтэй байна. CRS талбар нь тайлбар бөгөөд координат автоматаар хөрвүүлэхгүй.
-
-Азимут хойноос цагийн зүүний дагуу: 0 хойд, 90 зүүн. Налуу (`dip`) −90 босоо доош, 0 хэвтээ. Өгсөх чиглэлтэй цооног одоогоор дэмжихгүй. Гүн нь **measured depth**, босоо гүн биш.
-
-**Амсрын сан дахин импортлох нь survey ба сорьцын санг цэвэрлэнэ.** Үүний өмнө программ баталгаажуулалт асууна. Импорт бүхлээрээ зөв болсны дараа сан солигдоно.
-
-### 2. Замнал — surveys.csv
-
 ```csv
 hole_id,depth,azimuth,dip
 RM-001,0,45,-65
-RM-001,100,50,-70
 RM-001,250,60,-75
 ```
-
-Цооног бүрийн survey 0 м-ээс эхэлнэ, гүн давхардахгүй, амсрын total depth-ээс хэтрэхгүй. Станцуудын хооронд minimum curvature; сүүлийн станцаас total depth хүртэл чиглэл тогтмол. Survey-гүй цооногийн амсрын azimuth/dip хэрэглэгдэнэ. 180° огцом эсрэг чиглэлийг зөвшөөрөхгүй.
-
-### 3. Сорьц — assays.csv
 
 ```csv
 hole_id,from_m,to_m,grade
 RM-001,0,10,0.3
-RM-001,10,20,1.8
 ```
 
-Нэг цооногийн сорьцын интервал давхцахгүй, from < to, total depth дотор байна. Агуулга сөрөг биш. `Файл → Төслийн тохиргоо`-оор %, g/t, ppm сонгоно. **Нэгж өөрчлөхөд тоон утга хөрвөхгүй**; импортын өмнө зөв нэгж сонгоно. Хоосон хэсгийг missing support гэж хадгална.
-
-### 4. Гадарга — surface.csv
+```csv
+hole_id,from_m,to_m,rock
+RM-001,0,100,Боржин
+```
 
 ```csv
 x,y,z
@@ -107,42 +84,50 @@ x,y,z
 500000,5300100,1455
 ```
 
-3-аас цөөнгүй, XY координат давхцахгүй, нэг шулуунд байрлаагүй цэг хэрэгтэй. XY дээр Delaunay тор үүсгэнэ. Энэ нь fault-aware geological solid эсвэл хэт огцом ханын баталгаажсан тор биш; breakline, boundary, нүх/тасралтыг тайлбарлахгүй.
+QA/QC controls:
 
-## Тооцоо ба экспортын тайлбар
+```csv
+sample_id,type,measured,expected,sd
+STD-1,standard,1.02,1,0.05
+BLK-1,blank,0.01,,
+DUP-1,duplicate,1.1,1,
+```
 
-- Minimum curvature: `Δr = L/2 × (u + v) × RF`, `RF = 2 tan(θ/2) / θ`; θ→0 үед RF=1. Partial station position нь tangent-ийн сфер интерполяцтай ижил аргаар интегралдана.
-- Композитын bins нь 0 метрээс эхэлнэ. `grade = Σ(overlap × grade) / Σ(overlap)`; `coverage = support / bin length`. Дутуу support-ыг хэрэглэгч өөрөө шүүнэ; литологи болон домэйнээр compositing хийх хараахан байхгүй.
-- VTP нь **локал эхээс шилжүүлсэн координаттай**. Хамт үүсэх `.origin.json`-ийн offset_xyz-г нэмэхэд төслийн координат сэргээнэ. VTP нь одоогийн зүсэлтийн шүүлтүүрээс үл хамааран бүх цооногийн геометр гаргана.
-- Огтлолын offset нь UI-д харуулсан 3D эхээс хэмжигдэнэ; хэвтээ нормалын азимутыг ашиглана. Сонгосон цооногийн highlight нь шүүлтүүрийг зөрчихөөс сэргийлж огтлолын үед нуугдана.
-- Автомат нөөцийг сэргээх: `.rmine.autosave` файлыг хуулж `.rmine` өргөтгөлтэй болгоод нээнэ. Хадгалах замгүй шинэ төсөлд autosave ажиллахгүй.
-- Мэдээлэл шалгалт нь бүтэц/тоон хязгаар/холбоосыг шалгана; CRS нийцэл, лабораторийн QA/QC, геологийн бодит байдлыг батлахгүй.
+X зүүн, Y хойд, Z дээш; ажиллах координат метр. Survey depth нь measured depth; azimuth хойноос цагийн зүүний дагуу; dip −90 босоо доош. Survey 0 м-ээс эхэлж, сүүлийн станцаас TD хүртэл тогтмол чиглэлээр сунгана. Интервалууд нэг хүснэгт дотроо давхцахгүй. Импорт бүхлээрээ хүчинтэй үед л сан солигдоно; буруу мөрийг чимээгүй алгасахгүй.
 
-## Шалгалт
+## Тооцооны тэмдэглэл
+
+- Minimum curvature: `Δr=L/2·(u+v)·RF`, `RF=2tan(θ/2)/θ`, θ→0 үед RF=1. Partial station position нь spherical tangent interpolation-той.
+- Composite нь 0-ээс anchored bins; `Σ(overlap·grade)/Σ(overlap)`, coverage нь support/bin length. Missing support 0 агуулга болж хувирахгүй.
+- IDW нь сонгосон эллипсоид дотор nearest support, physical metre distance-аар жинлэнэ. Ordinary kriging нь spherical semivariogram + unbiasedness constraint бүхий linear system. Singular системийг unestimated гэж ил гаргана. Negative kriging grades-ийг чимээгүй clamp хийхгүй.
+- Variogram isotropic; олон pair дээр deterministic seed 2026 ашиглаж 250000 хүртэл pair авна. Spherical fit exploratory бөгөөд геологийн model сонголтыг орлохгүй.
+- Cross-validation нь default leave-one-hole-out; withheld hole-ийн бүх support-ыг training-с хасна. Training-fold mean baseline-тай харьцуулна. Независимый geological benchmark биш.
+- Domain нь polygon-ийн XY extrusion ба Z bounds; cell-centre membership ашигладаг тул boundary volume нь ойролцоо. Block-centre point estimates-ийг block-average гэж нэрлэхгүй.
+- Tonnage нь cell volume × constant density; unestimated volume тайланд тусдаа гарна. %/g/t/ppm-ийн weighted mean grade-г тооцно, contained metal conversion эсвэл resource classification хийдэггүй.
+- Schedule нь value-per-tonne greedy heuristic. Predecessor өмнөх period-д дууссан байна. Capacity хэтэрсэн indivisible task төлөвлөгдөхгүй; infeasibility шалтгаан гаргана. Энэ нь economic pit optimizer биш.
+- VTP export нь одоогоор цооногийн локал геометр. `.origin.json` offset-г нэмэхэд absolute coordinate сэргээнэ. PNG нь үндсэн viewport.
+
+## Хэмжээ ба шалгалт
+
+Хүснэгт бүр 100000 мөр; 5000 collar; 50000 блок; проект/импорт 32 MB хүртэл. Том төсөл хязгаар хэтэрвэл error гарна; хуучин файл солигдохгүй. Polygon 2000 орой хүртэл. Mesh self-intersection хараахан шалгахгүй. Том model render болон зарим analysis UI-г түр ачааллуулж болно; бүх computation background thread болоогүй.
 
 ```powershell
 python -m unittest discover -s tests -v
 python main.py --smoke --screenshot smoke.png
 ```
 
-Жишиг тест: босоо/дөрвөн зүгийн шулуун, аналитик 90° нум, азимутын 359→1 шилжилт, station continuity, survey tail, сорьцын давхцал, NaN/Infinity, файлын roundtrip, буруу хадгалалтаас хуучин файл хамгаалах, композитын coverage, VTK тор ба бодит clipping, том координатын origin shift.
+CI нь математик/өгөгдөл/геометр тест, ribbon + 2 viewport + block scene smoke, EXE build, packaged smoke, суулгагч build, silent install, installed EXE smoke хийдэг. Windows runner нь CPU OpenGL горим ашигладаг. Энэ нь бодит хэрэглэгчийн компьютер, бүх GPU болон бодит ордын independent review-г орлохгүй.
 
-## Дараагийн шат — Micromine төрлийн өргөн хэрэглээнд хүргэх
+## Эх кодоос
 
-1. Бодит уурхайн anonymized collar/survey/assay/lithology файлаар хүлээн авах тест; CRS хөрвүүлэлт, import mapping, editable data grid, assay QA/QC.
-2. Литологийн домэйн, string/polygon засвар, DTM breakline, wireframe/solid, DXF/OBJ импорт/экспорт.
-3. Блок модель, домэйн хязгаарлалт, variogram, IDW/ordinary kriging; cross-validation ба хараат бус геологичийн benchmark.
-4. Density, cutoff, tonnage/grade тайлан, uncertainty ба нөөцийн ангиллын мэргэжлийн хяналт.
-5. Ил/далд уурхайн загвар, налуугийн дүрэм, төлөвлөлт, scheduling ба оновчлол.
-6. Том өгөгдөл, undo/redo, coordinate picking, олон viewport, signed installer, жинхэнэ Windows төхөөрөмжийн баталгаажуулалт.
+Python 3.11/3.12 x64. `Setup-Windows.bat` нэг удаа, дараа нь `Start-Windows.bat`.
 
-Эдгээр дутуу модулиудыг одоогийн хувилбарт байгаа мэтээр үзүүлэхгүй. Micromine native файлын нийцэл амлаагүй.
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python main.py
+```
 
-## Эх сурвалж / суурь
+EXE: `pip install pyinstaller==6.12.0`, дараа нь `scripts/build_windows.ps1`. CPU renderer: `scripts/prepare_mesa.ps1`. Inno Setup 6: `ISCC.exe installer\Rainymine.iss`.
 
-- [Micromine Origin боломжууд](https://onlinehelp.micromine.com/origin-beyond/en/Origin.htm) — ажлын урсгалын чиглэл.
-- [Qt for Python](https://doc.qt.io/qtforpython-6/) — native Монгол UI.
-- [VTK Qt interactor](https://docs.vtk.org/en/v9.3.0/api/python/vtkmodules/vtkmodules.qt.html) — native 3D viewer.
-- [PyInstaller](https://pyinstaller.org/en/stable/) — Windows дээр Windows EXE багцлах.
-
-RAINYMINE нь Micromine-тэй холбоогүй, бие даасан Rainy Studio төсөл. Dependency-үүд тус бүрийн лицензтэй; Qt/PySide6-ийн LGPL/GPL/арилжааны нөхцөлийг түгээлтэд мөрдөнө.
+Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL/Commercial, VTK BSD, NumPy/SciPy BSD, PROJ/pyproj болон ezdxf-ийн upstream licenses. Dynamic Qt libraries-ийг багцад хэвээр хадгална. Micromine native file compatibility амлаагүй.
