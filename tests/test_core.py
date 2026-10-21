@@ -59,6 +59,13 @@ class DataTests(unittest.TestCase):
             with self.assertRaises(ValueError):read_collars(f)
             f.write_text('x,y,z\nnan,0,0',encoding='utf-8')
             with self.assertRaises(ValueError):read_surface(f)
+    def test_oversized_save_preserves_old_file(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            f=Path(d)/'a.rmine';save_project(f,self.project());before=f.read_bytes()
+            with patch('rainymine.core.MAX_FILE',100):
+                with self.assertRaises(ValueError):save_project(f,self.project())
+            self.assertEqual(f.read_bytes(),before)
     def test_unknown_format(self):
         with self.assertRaises(ValueError):Project.from_dict({'format':'other'})
     def test_surface_duplicate(self):

@@ -5,6 +5,7 @@ No estimation, reserve classification or economic assumptions are made.
 from dataclasses import dataclass, asdict, field
 from pathlib import Path
 import csv
+import bisect
 import io
 import json
 import math
@@ -149,6 +150,7 @@ class Trajectory:
         if not self.stations:self.stations=[Survey(collar.hole_id,0,collar.azimuth,collar.dip)]
         if self.stations[-1].depth<collar.depth:
             s=self.stations[-1];self.stations.append(Survey(collar.hole_id,collar.depth,s.azimuth,s.dip))
+        self.depths=[s.depth for s in self.stations]
         self.positions=[(collar.x,collar.y,collar.z)]
         for a,b in zip(self.stations,self.stations[1:]):
             d=displacement(b.depth-a.depth,direction(a.azimuth,a.dip),direction(b.azimuth,b.dip))
@@ -158,18 +160,17 @@ class Trajectory:
         finite(depth)
         if not 0<=depth<=self.collar.depth:raise ValueError('Хэмжсэн гүн цооногийн хязгаараас гарсан.')
         if depth==self.collar.depth:return self.positions[-1]
-        for i,(a,b) in enumerate(zip(self.stations,self.stations[1:])):
-            if a.depth<=depth<=b.depth:
-                u=direction(a.azimuth,a.dip);v=direction(b.azimuth,b.dip)
-                t=(depth-a.depth)/(b.depth-a.depth)
-                d=displacement(depth-a.depth,u,slerp(u,v,t))
-                return tuple(x+y for x,y in zip(self.positions[i],d))
-        return self.positions[0]
+        i=max(0,min(len(self.stations)-2,bisect.bisect_right(self.depths,depth)-1))
+        a,b=self.stations[i:i+2]
+        u=direction(a.azimuth,a.dip);v=direction(b.azimuth,b.dip)
+        t=(depth-a.depth)/(b.depth-a.depth)
+        d=displacement(depth-a.depth,u,slerp(u,v,t))
+        return tuple(x+y for x,y in zip(self.positions[i],d))
 
     def sample(self,start=0,end=None,step=5):
         end=self.collar.depth if end is None else end
         if not 0<=start<=end<=self.collar.depth or step<=0:raise ValueError('Замналын муж буруу.')
-        depths={start,end,*[s.depth for s in self.stations if start<s.depth<end]}
+        depths={start,end,*self.depths[bisect.bisect_right(self.depths,start):bisect.bisect_left(self.depths,end)]}
         n=math.ceil((end-start)/step)
         if n>20000:raise ValueError('Замналын алхам хэт бага.')
         depths.update(min(end,start+i*step) for i in range(n))
@@ -183,7 +184,11 @@ def atomic_write(path,text):
     finally:
         if os.path.exists(temp):os.unlink(temp)
 
-def save_project(path,project):atomic_write(path,json.dumps(project.to_dict(),ensure_ascii=False,indent=2,allow_nan=False))
+def save_project(path,project):
+    text=json.dumps(project.to_dict(),ensure_ascii=False,indent=2,allow_nan=False)
+    if len(text.encode('utf-8'))>MAX_FILE:
+        raise ValueError('Төслийн хэмжээ 32 MB-аас их байна. Өгөгдлөө жижиг төслүүдэд хуваана уу.')
+    atomic_write(path,text)
 
 def load_project(path):
     if Path(path).stat().st_size>MAX_FILE:raise ValueError('Төсөл 32 MB-аас их байна.')
