@@ -314,7 +314,9 @@ class Scene:
         hud.SetInput('\n'.join(
             f'{axis}: {extent[i]+self.origin[j]:,.0f} … {extent[i+1]+self.origin[j]:,.0f} m'
             for j,(axis,i) in enumerate((('E',0),('N',2),('Z',4)))))
-        hud.SetDisplayPosition(12,12)
+        hud.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        hud.SetPosition(.02,.96)
+        hud.GetTextProperty().SetVerticalJustificationToTop()
         hud.GetTextProperty().SetFontSize(11)
         hud.GetTextProperty().SetColor(.19,.28,.38)
         hud.PickableOff()
