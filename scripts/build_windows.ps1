@@ -2,11 +2,12 @@ $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 python -m unittest discover -s tests -v
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
-python -m PyInstaller --noconfirm --clean --windowed --onedir --name Rainymine --icon assets\rainymine.ico --collect-all vtkmodules --collect-data pyproj --collect-data ezdxf --hidden-import vtkmodules.qt.QVTKRenderWindowInteractor --hidden-import pyodbc --collect-submodules scipy.optimize --collect-all pyarrow --collect-all manifold3d --collect-all rasterio --collect-all laspy --collect-all lazrs --hidden-import shapefile --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --add-data "examples;examples" --add-data "assets;assets" main.py
+python -m PyInstaller --noconfirm --clean --windowed --onedir --name Rainymine --icon assets\rainymine.ico --collect-all vtkmodules --collect-data pyproj --collect-data ezdxf --hidden-import vtkmodules.qt.QVTKRenderWindowInteractor --hidden-import pyodbc --collect-submodules scipy.optimize --collect-all pyarrow --collect-all manifold3d --collect-all rasterio --collect-all fiona --collect-all jsonschema --collect-all jsonschema_specifications --collect-all laspy --collect-all lazrs --hidden-import shapefile --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --add-data "examples;examples" --add-data "assets;assets" main.py
 if ($LASTEXITCODE -ne 0) { throw 'Executable build failed' }
 Copy-Item README.md dist\Rainymine\README.md
 New-Item -ItemType Directory -Path dist\Rainymine\docs,dist\Rainymine\assets -Force | Out-Null
 Copy-Item docs\*.md dist\Rainymine\docs
+Copy-Item docs\benchmarks dist\Rainymine\docs\benchmarks -Recurse -Force
 Copy-Item assets\brandbook-2026.jpg,assets\rainymine-brand.svg,assets\brandmark.png,assets\splash.svg,assets\splash-new.png,assets\splash-background.jpg dist\Rainymine\assets
 Copy-Item release dist\Rainymine\release -Recurse -Force
 Copy-Item assets\AI-NOTICES.txt dist\Rainymine\AI-NOTICES.txt

@@ -119,7 +119,7 @@ def read_obj(path):
 
 def write_obj(path,mesh):
     validate_mesh_data(mesh)
-    text='# RAINYMINE coordinates: project metres\n'+''.join('v '+' '.join(f'{x:.12g}' for x in p)+'\n' for p in mesh['vertices'])
+    text='# RAINYMINE coordinates: project metres\n'+''.join('v '+' '.join(f'{x:.17g}' for x in p)+'\n' for p in mesh['vertices'])
     text+=''.join('f '+' '.join(str(i+1) for i in f)+'\n' for f in mesh['faces']);atomic_write(path,text)
 
 def read_dxf(path):

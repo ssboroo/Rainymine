@@ -66,6 +66,15 @@ def verify(project):
         with rasterio.open(image,'w',driver='GTiff',width=3,height=3,count=1,dtype='float32',crs='EPSG:32648',transform=from_origin(500000,5300030,10,10)) as dataset:
             dataset.write(np.arange(9,dtype=np.float32).reshape(3,3),1)
         terrain,terrain_info=read_dem(image);assert len(terrain['faces'])==8
+    from .open_exchange import write_omf,write_geopackage,read_geopackage,write_exchange_bundle
+    from copy import deepcopy
+    exchange_fixture=deepcopy(project);exchange_fixture.crs_code='EPSG:32648'  # Test-only synthetic CRS; never relabel the user's project.
+    with TemporaryDirectory() as folder:
+        root=Path(folder)
+        assert write_omf(root/'Монгол.omf',exchange_fixture)['elements']>0
+        assert write_geopackage(root/'Монгол.gpkg',exchange_fixture)['features']>0
+        assert read_geopackage(root/'Монгол.gpkg','collars')['points']
+        assert write_exchange_bundle(root/'Монгол.zip',exchange_fixture)['files']>=8
     from .engineering import rtc_buffer,morton_codes,oriented_core,density_composites
     from .block_store import write_block_parquet,read_block_model,scan_block_batches
     from .validation import validate_tables

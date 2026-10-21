@@ -1,3 +1,10 @@
+# Open exchange
+
+- Atomic OMF 2.0-beta.1 export: rotated sparse/freeform leaf blocks, attributes with NULLs, trajectories, strings and surfaces; pinned offline GMG schema validation.
+- Fiona/GDAL GeoPackage GIS export and selected vector-layer import; CRS/Z and ring roles retained.
+- Atomic CSV/CAD ZIP with units/CRS/rotation, typed column metadata and SHA-256 manifest; OBJ double-precision output.
+- Windows frozen/installed exchange dependency checks; docs/OPEN_EXCHANGE.mn.md records exact scope and pending cross-vendor acceptance.
+
 # Professional workflows
 
 - Manifold CSG, mesh repair, transform gizmo and coordinate snap query.
