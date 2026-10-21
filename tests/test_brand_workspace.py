@@ -68,6 +68,15 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
                 if item.data(0,Qt.ItemDataRole.UserRole)=='string_0':found.append(item.text(0))
         self.assertEqual(found,['Гадарга'])
 
+    def test_small_window_keeps_inspector_inside_the_sidebar(self):
+        window=self.make_window();window.resize(1080,740);window.show();self.app.processEvents()
+        value=window.inspector_values['dimensions']
+        point=value.mapTo(window.support.widget(), value.rect().bottomLeft())
+        self.assertLessEqual(point.y(),window.support.widget().height())
+        self.assertTrue(window.help_scroller.widgetResizable())
+        self.assertEqual(window.scene.coordinate_grid.GetXAxisLabelVisibility(),0)
+        self.assertIn('E:',window.scene.coordinate_text.GetInput())
+
 
 class CutawayTests(unittest.TestCase):
     def test_cutaway_preserves_source_block_ids_and_restores_full_mesh(self):

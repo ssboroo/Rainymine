@@ -132,3 +132,9 @@ QSplitter::handle {background:#e3edf4;}
 QProgressBar {border:1px solid #c4e1e8;background:#edf7fa;border-radius:5px;text-align:center;}
 QProgressBar::chunk {background:#19c6b3;border-radius:4px;}
 '''
+
+THEME += '''
+QGroupBox#blockInspector {border:1px solid #d4e4ee;border-radius:4px;margin:2px 0 0 0;padding:0;background:white;}
+QGroupBox#blockInspector::title {subcontrol-origin:margin;subcontrol-position:top left;left:10px;top:5px;font-weight:600;color:#101c2c;}
+QGroupBox#blockInspector QLabel {font-size:11px;min-height:16px;}
+'''

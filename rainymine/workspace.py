@@ -217,7 +217,11 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         help_panel = self.support.widget()
         help_panel.setParent(None)
         self.assistant_tabs = QTabWidget()
-        self.assistant_tabs.addTab(help_panel, 'Тусламж')
+        self.help_scroller = QScrollArea()
+        self.help_scroller.setWidgetResizable(True)
+        self.help_scroller.setMinimumHeight(100)
+        self.help_scroller.setWidget(help_panel)
+        self.assistant_tabs.addTab(self.help_scroller, 'Тусламж')
         self.project_summary = QLabel()
         self.project_summary.setWordWrap(True)
         self.project_summary.setTextFormat(Qt.TextFormat.PlainText)
@@ -606,7 +610,10 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         layout = QVBoxLayout(panel);layout.setContentsMargins(0,0,0,0)
         layout.addWidget(self.assistant_tabs, 3)
         group = QGroupBox('Сонгосон блокийн шинж')
+        group.setObjectName('blockInspector')
         self.inspector_form = QFormLayout(group)
+        self.inspector_form.setContentsMargins(10,22,10,8)
+        self.inspector_form.setVerticalSpacing(3)
         self.inspector_values = {}
         for key, title in (('index','Дугаар'),('x','Зүүн (м)'),('y','Хойд (м)'),
                            ('z','Өндөр (м)'),('grade','Агуулга'),('density','Нягт (т/м³)'),
@@ -650,7 +657,9 @@ class WorkspaceWorkbench(AdvancedWorkbench):
     def toggle_coordinate_grid(self, value):
         for scene in (self.scene,self.secondary):
             if scene and scene.coordinate_grid:
-                scene.coordinate_grid.SetVisibility(value);scene.window.Render()
+                scene.coordinate_grid.SetVisibility(value)
+                if scene.coordinate_text:scene.coordinate_text.SetVisibility(value)
+                scene.window.Render()
 
     def toggle_cutaway(self, value):
         for scene in (self.scene,self.secondary):
@@ -726,6 +735,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         for scene in (self.scene, self.secondary):
             if not scene:continue
             if scene.coordinate_grid:scene.coordinate_grid.SetVisibility(grid)
+            if scene.coordinate_text:scene.coordinate_text.SetVisibility(grid)
             if 'blocks' in scene.actors:scene.actors['blocks'].GetProperty().SetEdgeVisibility(edges)
 
     def layer_selected(self, item, *args):

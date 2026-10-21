@@ -309,7 +309,7 @@ def main(app=None,splash=None):
     if args.language:window.set_language(args.language, persist=not args.smoke)
     window.show()
     if args.screenshot:
-        window.resize(1440,900);QApplication.processEvents()
+        window.setFixedSize(1440,900);QApplication.processEvents()
     if splash:
         splash.set_stage('3D ажлын орчин бэлэн боллоо')
         if args.smoke:
@@ -365,6 +365,7 @@ def main(app=None,splash=None):
                 window.ribbon.setCurrentIndex(0)
                 window.toggle_view()
                 window.update_labels()
+                window.toggle_cutaway(window.display_buttons['Тасалж харах'].isChecked())
                 window.scene.view('iso')
                 window.vtk.GetRenderWindow().Render()
                 if capture is not None:
