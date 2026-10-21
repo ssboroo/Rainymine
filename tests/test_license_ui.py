@@ -39,3 +39,7 @@ class LicenseDialogTests(unittest.TestCase):
             self.assertTrue(dialog.start.isHidden())
             dialog.accept()
             self.assertEqual(dialog.result(), QDialog.DialogCode.Accepted)
+
+    def test_packaged_licensing_verification_path(self):
+        from rainymine.packaged_checks import verify_licensing
+        verify_licensing()

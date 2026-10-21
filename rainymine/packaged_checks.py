@@ -8,7 +8,38 @@ from .estimation import Estimator,estimate_model
 from .planning import optimize_schedule,haul_route,haul_capacity
 from .benchmark import compare_reference
 
+def verify_licensing():
+    # Ephemeral test key only: never trusted by the application's public registry.
+    import base64
+    import json
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from cryptography.hazmat.primitives import serialization
+    from .licensing import LicenseManager, StateStore, TRIAL_SECONDS, canonical
+    from .license_ui import LicenseDialog
+    from PySide6.QtWidgets import QDialog
+    private = Ed25519PrivateKey.generate()
+    public = private.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
+    now = [1800000000]
+    with TemporaryDirectory() as folder:
+        manager = LicenseManager(StateStore(Path(folder), False), {'smoke': base64.b64encode(public).decode()}, 'smoke-device', lambda: now[0])
+        assert manager.status().kind == 'not_started'
+        assert manager.status(True).allowed
+        now[0] += TRIAL_SECONDS
+        assert not manager.status().allowed
+        dialog = LicenseDialog(manager)
+        assert not dialog.proceed.isEnabled()
+        dialog.accept()
+        assert dialog.result() != QDialog.DialogCode.Accepted
+        dialog.close()
+        payload = {'schema': 1, 'product': 'RAINYMINE', 'key_id': 'smoke', 'license_id': 'packaged-smoke', 'customer': 'Smoke', 'device_id': manager.device, 'not_before': now[0], 'expires_at': now[0] + 86400}
+        path = Path(folder) / 'smoke.rainylic'
+        path.write_text(json.dumps({'payload': payload, 'signature': base64.b64encode(private.sign(canonical(payload))).decode()}))
+        assert manager.activate(path).kind == 'licensed'
+        assert manager.status().allowed
+
+
 def verify(project):
+    verify_licensing()
     from .implicit import implicit_surface
     from .optimization import economic_pit,pit_mesh
     from .estimation import make_blocks
