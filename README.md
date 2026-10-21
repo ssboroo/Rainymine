@@ -1,8 +1,12 @@
+## 0.7.0 — RAINYMINE 2026 ажлын талбар
+
+Хавсаргасан загварт тулгуурласан цайвар/оюу ногоон native ажлын талбар: 6 ангиллын хэрэгсэл, зүүн давхарга/цооног/огтлол, төвийн 3D харагдац, доод бодит блокийн хүснэгт, баруун локал туслах. Постерын уурхайн фото нь 3D өгөгдлийг орлохгүй. 7 хоногийн trial хэвээр; RAINY STUDIO · 90220101.
+
 # RAINYMINE 0.5.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
 
-`Загвар / оновчлол` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
+`Геологи / Өрөмдлөг / Уурхайн төлөвлөлт` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
 
 - **RBF:** композитын агуулгын linear RBF interpolation + cutoff isosurface. 4–10000 support, 5–60 grid resolution; сонгосон bounds дотор extrapolation хийнэ. Fault, stratigraphy, signed-distance constraint болон автомат геологийн solid баталгаа байхгүй.
 - **Pit:** undiscounted maximum closure-ийг HiGHS binary MILP solver-оор бодно. Блок бүрийн олборлолтын зардал, боловсруулах зардал, recovery, price болон налуугийн precedence орно. Price = нэг project grade-unit × тонн тутмын мөнгө; хувь, g/t хөрвүүлэлт автоматаар хийхгүй. 5000 хүртэл ижил хэмжээтэй, бүрэн тэгш өнцөгт parent grid; бүх grade шаардлагатай. Conservative square next-level slope stencil; model-ийн гаднах stripping орохгүй. Ramps/pushbacks, scheduling/NPV болон Whittle benchmark биш.
@@ -26,7 +30,7 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 
-- **3D хэрэгслүүд** таб: давхаргын Properties, огтлол хадгалах/нээх, өмнөх/дараах огтлол (`PageUp` / `PageDown`), X/Y/Z зүсэлтийн байрлал.
+- **Харагдац** таб: давхаргын Properties, огтлол хадгалах/нээх, өмнөх/дараах огтлол (`PageUp` / `PageDown`), X/Y/Z зүсэлтийн байрлал.
 - 3D дээр дарсан цооногийг хүснэгттэй холбоотой сонгож, блокийн индекс/координат/агуулга/variance-г Properties-д харуулна. Хэмжилтийн горим идэвхтэй үед сонголт өөрчлөхгүй.
 - Давхарга бүрийг нуух/харуулах, opacity, RGB өнгө эсвэл агуулгын өнгө, solid/wireframe/points сонголттой. Хоёр viewport ижил тохиргоог хэрэглэнэ.
 - Давхаргын тохиргоо, нэртэй огтлол, блокийн зүсэлтийн координат `.rmine` файлд хадгалагдана; undo/redo ажиллана.
@@ -41,8 +45,8 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 
 - **Төсөл:** нээх/хадгалах, CSV mapping, CRS, хүснэгт, undo/redo.
 - **Өрөмдлөг:** collar/survey/assay/lithology, coverage, QA/QC controls, композит.
-- **Геологи / DTM:** string/polygon засвар, constrained TIN, mesh topology, DXF/OBJ.
-- **Блок модель:** grid/domain, IDW/ordinary kriging, variogram, cross-validation, tonnage-grade.
+- **Геологи:** string/polygon засвар, constrained TIN, mesh topology, DXF/OBJ.
+- **Блок загвар:** grid/domain, IDW/ordinary kriging, variogram, cross-validation, tonnage-grade.
 - **Уурхай:** bench prototype, шулуун underground drive, capacity schedule.
 - **Харагдац:** камер, хоёр viewport, литологийн өнгө, зай/координат, PNG/VTP.
 
@@ -69,7 +73,7 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 2. Project тохиргоогоор grade unit (%, g/t, ppm) сонгоно. Нэгж солих нь тоон утгыг хөрвүүлэхгүй.
 3. `Өрөмдлөг → Амсар` сонгож CSV багануудыг зураглана. Дараа нь Survey, Сорьц, Литологи.
 4. Өөр CRS-тай бол **геометр/блок модель үүсгэхийн өмнө** explicit source/target CRS-тай хөрвүүлнэ.
-5. `Геологи / DTM`-д XYZ, strings/polygons, OBJ/DXF импортлоно.
+5. `Геологи`-д XYZ, strings/polygons, OBJ/DXF импортлоно.
 6. `Блок модель үүсгэх`-д арга, search, variogram, composite coverage, bounds, cell size, domain тохируулна. Progress/cancel нь model тооцоонд ажиллана. Цуцлахад өмнөх model солигдохгүй.
 7. Cross-validation, variogram, coverage/QAQC-г шалгаж дараа нь density/cutoff тайлан гаргана.
 8. `.rmine` төсөлд хадгална. Хадгалах замтай өөрчлөгдсөн төсөлд 2 минут тутам `.autosave` үүснэ. Нөөцийг хуулж `.rmine` өргөтгөлтэй болгоод сэргээнэ.
@@ -166,7 +170,7 @@ Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL
 
 ## 0.5 — Зөвхөн Rainymine-ийн local туслах
 
-**3D хэрэгслүүд → Local AI Туслах** самбар монголоор программын ажиллагаа, тохиргоо, CSV импорт, алдаа засах зааврыг сонгож өгнө. Ерөнхий чат, геологийн шийдвэр/нөөцийн баталгаа, код үүсгэх, автоматаар үйлдэл хийхгүй.
+**Харагдац → Хиймэл оюуны туслах** самбар монголоор программын ажиллагаа, тохиргоо, CSV импорт, алдаа засах зааврыг сонгож өгнө. Ерөнхий чат, геологийн шийдвэр/нөөцийн баталгаа, код үүсгэх, автоматаар үйлдэл хийхгүй.
 
 - CPU engine: pinned llama.cpp b11796; model: Qwen3-1.7B Q4_K_M, 1,282,439,264 bytes (~1.28 GB download), pinned revision/SHA256. Model/runtime лиценз: assets/AI-NOTICES.txt, assets/QWEN_MODEL_LICENSE.txt. Суулгасан багцын root-д эдгээр лиценз мөн байна.
 - **Rainymine-AI-Offline-x64 artifact доторх AI Offline portable ZIP** моделийг дотроо агуулна. Бүх ZIP-ийг задлаад Rainymine.exe нээнэ. Engine/model-д тусдаа installation, интернэт, Ollama, API key шаардахгүй.

@@ -1,4 +1,4 @@
-# Мэдэгдэж буй хязгаар — 0.6.0
+# Мэдэгдэж буй хязгаар — 0.7.0
 
 - Туршилтын, UNCLASSIFIED үр дүн. Бодит ордын хараат бус reference, геологичийн дүгнэлт байхгүй.
 - Sub-block нь finest-cell centre ангилал; exact solid clipping биш. Хагарал нь infinite plane barrier; displacement/curved fault restoration дэмжихгүй. RBF нь тусдаа extrapolation, structural constraint-гүй.

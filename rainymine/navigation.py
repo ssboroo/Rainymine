@@ -41,7 +41,7 @@ class NavigationWorkbench(Workbench):
             if 'visible' in style:check.blockSignals(True);check.setChecked(style['visible']);check.blockSignals(False)
         self.refresh_layers()
     def layer_name(self,key):
-        fixed={'holes':'Цооног / сорьц','collars':'Амсрын цэгүүд','surface':'Гадаргын TIN','blocks':'Блок модель'}
+        fixed={'holes':'Цооног / сорьц','collars':'Амсрын цэгүүд','surface':'Гадаргын загвар','blocks':'Блок загвар'}
         if key in fixed:return fixed[key]
         if key.startswith('string_'):return self.project.workspace.get('strings',[])[int(key.split('_')[1])]['name']
         if key.startswith('mesh_'):return self.project.workspace.get('meshes',[])[int(key.split('_')[1])]['name']

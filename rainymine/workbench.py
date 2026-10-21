@@ -66,8 +66,23 @@ ICON_PATHS={
  'pit':'<path d="M2 8h7v6h7v7h8v7h10M2 13h4v7h7v7h8v6"/>',
  'gear':'<path d="M6 9h24M6 18h24M6 27h24"/><circle cx="13" cy="9" r="4" fill="white"/><circle cx="24" cy="18" r="4" fill="white"/><circle cx="16" cy="27" r="4" fill="white"/>'}
 
+
+ICON_PATHS.update({
+ 'folder':'<path d="M3 10h12l4 4h14v18H3zM3 10V6h11l4 4"/>',
+ 'save':'<path d="M5 4h23l5 5v23H5zM11 4v10h15V4M12 32V21h14v11"/>',
+ 'import':'<path d="M5 19v13h27V19M18 3v20m-6-6 6 6 6-6"/>',
+ 'export':'<path d="M5 19v13h27V19M18 24V3m-6 6 6-6 6 6"/>',
+ 'layers':'<path d="m3 12 15-9 15 9-15 9zM3 19l15 9 15-9M3 26l15 9 15-9"/>',
+ 'section':'<path d="M9 3 3 32h23l7-29zM3 20l30-9M18 1l-4 34"/>',
+ 'measure':'<path d="m4 27 23-23 6 6-23 23zM11 20l4 4M17 14l4 4M23 8l4 4"/>',
+ 'search':'<circle cx="15" cy="15" r="10"/><path d="m23 23 11 11"/>',
+ 'pan':'<path d="M12 19V6a3 3 0 0 1 6 0v12V4a3 3 0 0 1 6 0v14-10a3 3 0 0 1 6 0v16c0 7-6 11-12 11-4 0-6-3-8-7L3 18q2-5 6-1l3 4"/>',
+ 'rotate':'<path d="M31 12A14 14 0 1 0 31 26M31 3v10H21"/>',
+ 'zoom':'<circle cx="15" cy="15" r="10"/><path d="m23 23 11 11M10 15h10M15 10v10"/>'
+})
+
 def icon(kind):
-    svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><g fill="none" stroke="#6b4d93" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">'+ICON_PATHS.get(kind,ICON_PATHS['gear'])+'</g></svg>'
+    svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><g fill="none" stroke="#172b45" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">'+ICON_PATHS.get(kind,ICON_PATHS['gear'])+'</g></svg>'
     pix=QPixmap(40,40);pix.fill(Qt.GlobalColor.transparent);painter=QPainter(pix);QSvgRenderer(QByteArray(svg.encode())).render(painter);painter.end();return QIcon(pix)
 
 class GridDialog(QDialog):

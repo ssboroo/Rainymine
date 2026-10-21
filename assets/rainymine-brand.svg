@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+<defs><linearGradient id="teal" x2="1" y2="1"><stop stop-color="#19e0cc"/><stop offset="1" stop-color="#009da5"/></linearGradient><linearGradient id="silver" x2="1" y2="1"><stop stop-color="#eef6fb"/><stop offset="1" stop-color="#9aa6b2"/></linearGradient><linearGradient id="copper" x2="1" y2="1"><stop stop-color="#f7b05b"/><stop offset="1" stop-color="#a65d23"/></linearGradient></defs>
+<g stroke="#f4f8fb" stroke-width="2.5" stroke-linejoin="round">
+<path fill="#101c2c" d="M10 12h21l36 24-20 12L10 23z"/>
+<path fill="url(#teal)" d="M10 28h17l22 15-17 11-22-14z"/>
+<path fill="url(#silver)" d="m32 54 43-29 18 12-45 30z"/>
+<path fill="#101c2c" d="M10 45 48 69v24L10 68z"/>
+<path fill="url(#copper)" d="M10 57 30 70 10 84z"/>
+<path fill="#101c2c" d="m48 69 45-30v45L74 95V66L63 74v21L48 85z"/>
+<path fill="url(#copper)" d="m75 53 18-14v45L75 72z"/>
+<path fill="url(#silver)" d="m48 69 15-10v26l-15 8z"/>
+</g></svg>

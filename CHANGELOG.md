@@ -1,3 +1,10 @@
+## 0.7.0
+
+- Implement native 2026 reference workspace: light/teal palette, six ribbon categories, grouped layer tree, viewport modes, lazy block table and visible local assistant.
+- Preserve geology workflows, picking, sections, project save and seven-day licensing.
+- Update reviewed help paths to match moved tools; add code-native vector brand and icon system.
+- Distinguish reference poster imagery from actual project geometry and unimplemented splash artwork.
+
 ## 0.6.0
 
 - Explicit 168-hour trial; Windows DPAPI file/registry anchors and rollback checks.
