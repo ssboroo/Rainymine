@@ -22,7 +22,7 @@ class SupportWorker(QThread):
 
 class SupportDock(QDockWidget):
     def __init__(self,parent):
-        super().__init__('ХИЙМЭЛ ОЮУНЫ ТУСЛАХ',parent);self.worker=None;self.engine=None;self.previous=None
+        super().__init__('ХИЙМЭЛ ОЮУНЫ ТУСЛАХ',parent);self.worker=None;self.engine=None;self.previous=None;self._conversation_started=False
         self.settings=QSettings();engine,model=default_paths()
         self.engine_path=self.settings.value('local_ai/engine',str(engine));self.model_path=self.settings.value('local_ai/model',str(model))
         panel=QWidget();layout=QVBoxLayout(panel);self.setWidget(panel);self.setMinimumWidth(340)
@@ -36,10 +36,11 @@ class SupportDock(QDockWidget):
         self.manual=QComboBox();self.manual.addItem('Зааврыг шууд үзэх — модель шаардахгүй');self.manual.addItems([t['title'] for t in TOPICS]);self.manual.activated.connect(self.show_manual);layout.addWidget(self.manual)
         clear=QPushButton('Чат цэвэрлэх');clear.clicked.connect(self.clear);layout.addWidget(clear)
     def append(self,who,text):
+        self._conversation_started=True
         self.chat.append('')
         cursor=self.chat.textCursor();cursor.movePosition(cursor.MoveOperation.End)
         cursor.insertText(who+'\n'+text+'\n');self.chat.setTextCursor(cursor)
-    def clear(self):self.chat.clear();self.previous=None
+    def clear(self):self.chat.clear();self.previous=None;self._conversation_started=False
     def busy(self):return self.worker is not None and self.worker.isRunning()
     def start_worker(self,callback,on_result):
         if self.busy():return

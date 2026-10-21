@@ -107,6 +107,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.workspace_split.setSizes([570, 190])
         self.refresh_workspace()
         root = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
+        self.title_label.setProperty('userText', True)
         self.setWindowIcon(brand_icon())
         self.tool_catalog = {b.property('commandSource'): b for i in range(self.ribbon.count()) for b in self.ribbon.widget(i).findChildren(QToolButton) if b.property('commandSource')}
         self.polish_controls()
@@ -378,7 +379,8 @@ class WorkspaceWorkbench(AdvancedWorkbench):
                 continue
             name = 'Цооногууд' if key in ('holes', 'collars') else 'Блок загвар' if key == 'blocks' else 'Төслийн өгөгдөл' if key == 'surface' else 'Геометр / Уурхай'
             source = self.scene.sources.get(key)
-            item = QTreeWidgetItem([tr(self.layer_name(key)), str(source.GetNumberOfCells() if source else 0)])
+            display_name = tr(self.layer_name(key)) if key in ('holes','collars','surface','blocks') else self.layer_name(key)
+            item = QTreeWidgetItem([display_name, str(source.GetNumberOfCells() if source else 0)])
             item.setData(0, Qt.ItemDataRole.UserRole, key)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(0, Qt.CheckState.Checked if actor.GetVisibility() else Qt.CheckState.Unchecked)
@@ -405,11 +407,11 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.brand_project.setToolTip(self.project.name)
         self.update_labels()
         self.apply_view_preferences()
-        if language()=='en':self.update_english_summary()
         if hasattr(self, 'localizer'):
             self.localizer.apply(self)
         self.data_tabs.setTabText(0, tr(f'Блок загвар · {len(blocks):,}'))
         self.project_summary.setText(f'{self.project.name}\n\n{len(self.project.collars):,} цооног\n{len(self.project.assays):,} сорьц\n{len(blocks):,} блок\n\nКоординат: {self.project.crs_code or "Локал метр"}\nАгуулгын нэгж: {self.project.grade_unit}\n\nТөслийн мэдээлэл энэ самбарт локал харагдана. AI модельд төслийн өгөгдөл дамжуулахгүй.\n\nRAINY STUDIO · 90220101')
+        if language()=='en':self.update_english_summary()
 
     def block_row_selected(self, index):
         if self._table_sync or not index.isValid():
@@ -703,7 +705,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.refresh_layers()
         if self._workspace_ready:self.refresh_workspace()
         # The initial reviewed guide is static; user conversations are never rewritten.
-        if not self.support.previous:
+        if not getattr(self.support, '_conversation_started', False):
             self.support.chat.setPlainText(
                 'Welcome to RAINYMINE.\n\n1. Import collars → surveys → assays.\n2. Check coordinates and units before estimation.\n3. Use All tools or Ctrl+K to find any command.\n\nLocal assistant: application support only. No project data is sent to a cloud service.'
                 if code=='en' else

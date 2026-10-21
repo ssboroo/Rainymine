@@ -48,6 +48,26 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
         window.refresh()
         self.assertFalse(window.scene.coordinate_grid.GetVisibility())
 
+    def test_language_refresh_keeps_user_names_and_conversation(self):
+        window=self.make_window()
+        window.project.name='Төсөл'
+        h=window.project.collars[0]
+        window.project.workspace.setdefault('strings',[]).append(
+            {'name':'Гадарга','closed':False,'points':[[h.x,h.y,h.z],[h.x+10,h.y+10,h.z]]})
+        window.support.append('User','Keep this customer conversation.')
+        original=window.support.chat.toPlainText()
+        window.set_language('en',persist=False);window.refresh()
+        self.assertEqual(window.brand_project.text(),'Төсөл')
+        self.assertIn('drillholes',window.project_summary.text())
+        self.assertEqual(window.support.chat.toPlainText(),original)
+        found=[]
+        for i in range(window.layer_list.topLevelItemCount()):
+            group=window.layer_list.topLevelItem(i)
+            for j in range(group.childCount()):
+                item=group.child(j)
+                if item.data(0,Qt.ItemDataRole.UserRole)=='string_0':found.append(item.text(0))
+        self.assertEqual(found,['Гадарга'])
+
 
 class CutawayTests(unittest.TestCase):
     def test_cutaway_preserves_source_block_ids_and_restores_full_mesh(self):
