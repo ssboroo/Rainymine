@@ -73,7 +73,12 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
 
     def test_small_window_keeps_inspector_inside_the_sidebar(self):
         window=self.make_window();window.resize(1080,740);window.show();self.app.processEvents()
+        self.assertFalse(window.block_inspector.isChecked())
+        window.show_block_properties(0)
+        self.app.processEvents()
         value=window.inspector_values['dimensions']
+        window.inspector_scroll.ensureWidgetVisible(value)
+        self.app.processEvents()
         point=value.mapTo(window.support.widget(), value.rect().bottomLeft())
         self.assertLessEqual(point.y(),window.support.widget().height())
         self.assertTrue(window.help_scroller.widgetResizable())

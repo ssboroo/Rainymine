@@ -686,7 +686,11 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
             value.setProperty('userText', True);value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             self.inspector_values[key] = value
             self.inspector_form.addRow(title, value)
-        layout.addWidget(group, 1)
+        self.inspector_scroll = QScrollArea()
+        self.inspector_scroll.setWidgetResizable(True)
+        self.inspector_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.inspector_scroll.setWidget(group)
+        layout.addWidget(self.inspector_scroll)
         self.support.setWidget(panel)
         # Empty properties should not consume most of a laptop's assistant panel.
         group.setCheckable(True)
@@ -698,6 +702,8 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
                 if widget is not None:
                     widget.setVisible(expanded)
             group.setMaximumHeight(16777215 if expanded else 38)
+            self.inspector_scroll.setFixedHeight(
+                min(240, max(140, self.support.height()//2)) if expanded else 40)
         group.toggled.connect(expand_properties)
         group.setChecked(False)
 
