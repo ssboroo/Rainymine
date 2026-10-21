@@ -11,6 +11,8 @@ def points_valid(points,minimum=1):
         if max(map(abs,p))>1e9:raise ValueError('Координат хэт их.')
 
 def validate_workspace(workspace):
+    from .viewing import validate_viewing
+    validate_viewing(workspace)
     for s in workspace.get('strings',[]):
         points_valid(s['points'],3 if s.get('closed') else 2)
         if not isinstance(s.get('name'),str):raise ValueError('String нэр буруу.')
