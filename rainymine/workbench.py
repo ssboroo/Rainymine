@@ -332,7 +332,7 @@ class Workbench(Window):
             def update(i,n):progress.setValue(int(i/n*100));QApplication.processEvents()
             try:model=estimate_model(self.project,[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ'],[float(settings['Size '+a]) for a in 'XYZ'],parameters,domain,cancel=progress.wasCanceled,progress=update)
             finally:self.computing=False;progress.close()
-            p=deepcopy(self.project);p.workspace['block_model']=model;self.commit(p)
+            p=deepcopy(self.project);p.workspace['block_model']=model;p.workspace.pop('block_slice_positions',None);self.commit(p)
             QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Блокийн төвийн point estimate; block kriging биш.")
         self.guard(run)
     def block_display(self):

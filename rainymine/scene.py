@@ -8,8 +8,8 @@ class Scene:
     def __init__(self,window):
         self.window=window;self.renderer=vtk.vtkRenderer();window.AddRenderer(self.renderer)
         self.renderer.SetBackground(.035,.055,.09);self.renderer.SetBackground2(.10,.15,.22);self.renderer.GradientBackgroundOn()
-        self.mode='assay';self.project=None;self.origin=(0,0,0);self.sources={};self.actors={};self.labels=[]
-        self.section=None;self.pipeline=[];self.paths={};self.grade_max=1
+        self.selected_hole=None;self.cell_holes=[];self.mode='assay';self.project=None;self.origin=(0,0,0);self.sources={};self.actors={};self.labels=[]
+        self.base_properties={};self.selection_pipeline=[];self.section=None;self.pipeline=[];self.paths={};self.grade_max=1
         light=vtk.vtkLight();light.SetLightTypeToHeadlight();self.renderer.AddLight(light)
         self.renderer.GetActiveCamera().ParallelProjectionOn()
         self.lut=vtk.vtkLookupTable();self.lut.SetNumberOfTableValues(256);self.lut.SetNanColor(.45,.5,.6,1)
@@ -36,10 +36,10 @@ class Scene:
         samples=trajectory.sample(start,end,step=max(5,trajectory.collar.depth/80))
         for (_,p),(_,q) in zip(samples,samples[1:]):
             a=points.InsertNextPoint(*self.local(p));b=points.InsertNextPoint(*self.local(q))
-            lines.InsertNextCell(2);lines.InsertCellPoint(a);lines.InsertCellPoint(b);scalars.InsertNextValue(value)
+            lines.InsertNextCell(2);lines.InsertCellPoint(a);lines.InsertCellPoint(b);scalars.InsertNextValue(value);self.cell_holes.append(trajectory.collar.hole_id)
 
     def load(self,project):
-        project.validate();self.project=project
+        project.validate();self.project=project;self.cell_holes=[];self.selected_hole=None
         for actor in self.actors.values():self.renderer.RemoveActor(actor)
         for actor in self.labels:self.renderer.RemoveActor(actor)
         self.actors={};self.sources={};self.labels=[];self.paths={}
@@ -62,12 +62,18 @@ class Scene:
                 self.polyline(points,lines,scalars,tr,a.from_m,a.to_m,rock_codes[a.rock] if self.mode=='lithology' else a.grade);previous=a.to_m
             if previous<h.depth:self.polyline(points,lines,scalars,tr,previous,h.depth,-1)
         poly=vtk.vtkPolyData();poly.SetPoints(points);poly.SetLines(lines);poly.GetCellData().SetScalars(scalars)
+        hole_indices=vtk.vtkIntArray();hole_indices.SetName('hole_index');lookup={h.hole_id:i for i,h in enumerate(project.collars)}
+        for name in self.cell_holes:hole_indices.InsertNextValue(lookup[name])
+        poly.GetCellData().AddArray(hole_indices)
         self.sources['holes']=poly
         mapper=vtk.vtkPolyDataMapper();mapper.SetInputData(poly);mapper.SetLookupTable(self.lut);mapper.SetScalarRange(0,self.grade_max);mapper.SetScalarModeToUseCellData()
         actor=vtk.vtkActor();actor.SetMapper(mapper);actor.GetProperty().SetLineWidth(4)
         self.renderer.AddActor(actor);self.actors['holes']=actor
         cp=vtk.vtkPolyData();cp.SetPoints(collars)
         vertices=vtk.vtkVertexGlyphFilter();vertices.SetInputData(cp);vertices.Update()
+        collar_ids=vtk.vtkIntArray();collar_ids.SetName('hole_index')
+        for i in range(len(project.collars)):collar_ids.InsertNextValue(i)
+        vertices.GetOutput().GetCellData().AddArray(collar_ids)
         self.sources['collars']=vertices.GetOutput()
         cm=vtk.vtkPolyDataMapper();cm.SetInputData(vertices.GetOutput())
         ca=vtk.vtkActor();ca.SetMapper(cm);ca.GetProperty().SetColor(.8,.9,1);ca.GetProperty().SetPointSize(7)
@@ -92,7 +98,8 @@ class Scene:
         if self.window.GetInteractor():
             axes=vtk.vtkAxesActor();self.marker=vtk.vtkOrientationMarkerWidget();self.marker.SetOrientationMarker(axes)
             self.marker.SetInteractor(self.window.GetInteractor());self.marker.SetViewport(0,0,.18,.18);self.marker.EnabledOn();self.marker.InteractiveOff()
-        self.set_section(None,render=False);self.reset()
+        self.base_properties={key:{'color':list(actor.GetProperty().GetColor()),'opacity':actor.GetProperty().GetOpacity()} for key,actor in self.actors.items()}
+        self.set_section(None,render=False);self.apply_styles();self.reset()
 
     def add_workspace(self,workspace):
         for index,s in enumerate(workspace.get('strings',[])):
@@ -111,12 +118,12 @@ class Scene:
             self.add_poly('mesh_'+str(index),poly,(.52,.65,.83),opacity=.45)
         model=workspace.get('block_model')
         if model:
-            pts=vtk.vtkPoints();pts.SetDataTypeToDouble();faces=vtk.vtkCellArray();values=vtk.vtkFloatArray();values.SetName('grade')
-            for b in model['blocks']:
+            pts=vtk.vtkPoints();pts.SetDataTypeToDouble();faces=vtk.vtkCellArray();values=vtk.vtkFloatArray();values.SetName('grade');block_ids=vtk.vtkIntArray();block_ids.SetName('block_index')
+            for block_index,b in enumerate(model['blocks']):
                 if b.get('grade') is None:continue
                 center=self.local((b['x'],b['y'],b['z']));dims=[b['dx'],b['dy'],b['dz']]
                 if workspace.get('block_display','slices')=='slices':
-                    bounds=model['bounds'];planes=[(bounds[i]+bounds[i+3])/2-self.origin[i] for i in range(3)]
+                    bounds=model['bounds'];positions=workspace.get('block_slice_positions',[(bounds[i]+bounds[i+3])/2 for i in range(3)]);planes=[positions[i]-self.origin[i] for i in range(3)]
                     for axis in range(3):
                         if not center[axis]-dims[axis]/2<=planes[axis]<center[axis]+dims[axis]/2:continue
                         axes=[i for i in range(3) if i!=axis];start=pts.GetNumberOfPoints()
@@ -124,7 +131,7 @@ class Scene:
                             p=list(center);p[axis]=planes[axis];p[axes[0]]+=u*dims[axes[0]]/2;p[axes[1]]+=v*dims[axes[1]]/2;pts.InsertNextPoint(*p)
                         faces.InsertNextCell(4)
                         for i in range(4):faces.InsertCellPoint(start+i)
-                        values.InsertNextValue(b['grade'])
+                        values.InsertNextValue(b['grade']);block_ids.InsertNextValue(block_index)
                 else:
                     start=pts.GetNumberOfPoints()
                     for x,y,z in ((-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)):
@@ -132,8 +139,8 @@ class Scene:
                     for face in ((0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)):
                         faces.InsertNextCell(4)
                         for i in face:faces.InsertCellPoint(start+i)
-                        values.InsertNextValue(b['grade'])
-            poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetPolys(faces);poly.GetCellData().SetScalars(values)
+                        values.InsertNextValue(b['grade']);block_ids.InsertNextValue(block_index)
+            poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetPolys(faces);poly.GetCellData().SetScalars(values);poly.GetCellData().AddArray(block_ids)
             self.add_poly('blocks',poly,(.4,.8,.7),opacity=1.,scalar=True)
             self.actors['blocks'].SetVisibility(self.mode!='lithology')
 
@@ -163,38 +170,74 @@ class Scene:
         for name,poly in self.sources.items():
             mapper=self.actors[name].GetMapper()
             if section is None:mapper.SetInputData(poly);continue
-            az,offset,width=section;normal=(math.sin(math.radians(az)),math.cos(math.radians(az)),0)
-            pipeline=poly
-            for sign in (1,-1):
-                plane=vtk.vtkPlane();plane.SetNormal(*(sign*n for n in normal))
-                plane.SetOrigin(*(n*(offset-sign*width/2) for n in normal))
-                clip=vtk.vtkClipPolyData();clip.SetClipFunction(plane);clip.SetValue(0)
-                if isinstance(pipeline,vtk.vtkPolyData):clip.SetInputData(pipeline)
-                else:clip.SetInputConnection(pipeline.GetOutputPort())
-                self.pipeline.extend([plane,clip]);pipeline=clip
-            mapper.SetInputConnection(pipeline.GetOutputPort())
-        self.select(None,render=False)
+            mapper.SetInputConnection(self.clip_poly(poly,section).GetOutputPort())
+        self.select(self.selected_hole,render=False)
         if render:self.window.Render()
 
     def visible(self,name,value):
         if name in self.actors:self.actors[name].SetVisibility(value)
         if name=='holes':
-            self.legend.SetVisibility(value)
+            if 'selected' in self.actors:self.actors['selected'].SetVisibility(value)
             for label in self.labels:label.SetVisibility(value and self.section is None)
+        self.update_legend()
         self.window.Render()
 
     def select(self,hole_id,render=True):
+        self.selected_hole=hole_id
         if 'selected' in self.actors:self.renderer.RemoveActor(self.actors.pop('selected'))
+        self.selection_pipeline=[]
         if hole_id in self.paths:
             pts=vtk.vtkPoints();pts.SetDataTypeToDouble();cells=vtk.vtkCellArray();tr=self.paths[hole_id];samples=tr.sample()
             cells.InsertNextCell(len(samples))
             for _,p in samples:cells.InsertCellPoint(pts.InsertNextPoint(*self.local(p)))
             poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetLines(cells)
-            mapper=vtk.vtkPolyDataMapper();mapper.SetInputData(poly)
-            a=vtk.vtkActor();a.SetMapper(mapper);a.GetProperty().SetColor(1,1,1);a.GetProperty().SetLineWidth(7)
-            # Selection is hidden in a slab to avoid displaying unclipped geometry.
-            a.SetVisibility(self.section is None);self.renderer.AddActor(a);self.actors['selected']=a
+            mapper=vtk.vtkPolyDataMapper()
+            if self.section:mapper.SetInputConnection(self.clip_poly(poly,self.section,selection=True).GetOutputPort())
+            else:mapper.SetInputData(poly)
+            a=vtk.vtkActor();a.SetMapper(mapper);a.GetProperty().SetColor(.95,.12,.45);a.GetProperty().SetLineWidth(7)
+            # Selection uses the same slab and layer visibility as its source.
+            a.PickableOff();a.SetVisibility(self.actors['holes'].GetVisibility());self.renderer.AddActor(a);self.actors['selected']=a
         if render:self.window.Render()
+
+    def clip_poly(self,poly,section,selection=False):
+        az,offset,width=section;normal=(math.sin(math.radians(az)),math.cos(math.radians(az)),0);pipeline=poly
+        for sign in (1,-1):
+            plane=vtk.vtkPlane();plane.SetNormal(*(sign*n for n in normal));plane.SetOrigin(*(n*(offset-sign*width/2) for n in normal))
+            clip=vtk.vtkClipPolyData();clip.SetClipFunction(plane);clip.SetValue(0)
+            if isinstance(pipeline,vtk.vtkPolyData):clip.SetInputData(pipeline)
+            else:clip.SetInputConnection(pipeline.GetOutputPort())
+            (self.selection_pipeline if selection else self.pipeline).extend([plane,clip]);pipeline=clip
+        return pipeline
+
+    def apply_styles(self):
+        for key,style in self.project.workspace.get('layer_styles',{}).items():
+            if key not in self.actors:continue
+            actor=self.actors[key];prop=actor.GetProperty();self.visible(key,style.get('visible',True))
+            if key=='blocks' and self.mode=='lithology':actor.SetVisibility(False)
+            prop.SetOpacity(style.get('opacity',self.base_properties.get(key,{}).get('opacity',1.)))
+            mode=style.get('representation','surface')
+            {'surface':prop.SetRepresentationToSurface,'wireframe':prop.SetRepresentationToWireframe,'points':prop.SetRepresentationToPoints}[mode]()
+            color=style.get('color')
+            actor.GetMapper().SetScalarVisibility(color is None and key in ('holes','blocks'))
+            prop.SetColor(*(color if color is not None else self.base_properties.get(key,{}).get('color',[.5,.6,.8])))
+        self.update_legend()
+
+    def update_legend(self):
+        self.legend.SetVisibility(any(self.actors[k].GetVisibility() and self.actors[k].GetMapper().GetScalarVisibility() for k in ('holes','blocks') if k in self.actors))
+
+    def identify(self,actor,cell_id):
+        if cell_id<0:return None
+        key=next((k for k,a in self.actors.items() if a==actor),None)
+        if key is None or key=='selected':return None
+        mapper=actor.GetMapper();mapper.Update();poly=mapper.GetInput()
+        if cell_id>=poly.GetNumberOfCells():return None
+        data=poly.GetCellData();hole=data.GetArray('hole_index');block=data.GetArray('block_index')
+        if hole is not None:
+            index=int(hole.GetTuple1(cell_id))
+            return {'layer':key,'hole_id':self.project.collars[index].hole_id}
+        if block is not None:
+            index=int(block.GetTuple1(cell_id));return {'layer':key,'block_index':index,**self.project.workspace['block_model']['blocks'][index]}
+        return {'layer':key,'cell_id':cell_id}
 
     def screenshot(self,path):
         self.window.Render();capture=vtk.vtkWindowToImageFilter();capture.SetInput(self.window);capture.ReadFrontBufferOff();capture.Update()
