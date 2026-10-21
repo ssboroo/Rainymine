@@ -34,7 +34,7 @@ def validate_archive(path, offline=False):
 
 
 def prepare(root, dist):
-    config = json.loads((root / 'release/config.json').read_text())
+    config = json.loads((root / 'release/config.json').read_text(encoding='utf-8'))
     if config['source_commit'] == 'CURRENT_BUILD':
         if not os.environ.get('GITHUB_ACTIONS') or not os.environ.get('GITHUB_RUN_ID'):
             raise ValueError('Release provenance requires a GitHub Actions build')
@@ -88,7 +88,7 @@ def prepare(root, dist):
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     check_paths = [dist / item['name'] for item in records] + [inventory_path, manifest_path]
     (dist / 'SHA256SUMS.txt').write_text(''.join(digest(path) + '  ' + path.name + '\n' for path in check_paths), encoding='utf-8')
-    for line in (dist / 'SHA256SUMS.txt').read_text().splitlines():
+    for line in (dist / 'SHA256SUMS.txt').read_text(encoding='utf-8').splitlines():
         expected, name = line.split('  ', 1)
         if digest(dist / name) != expected:
             raise ValueError('Post-write checksum mismatch')

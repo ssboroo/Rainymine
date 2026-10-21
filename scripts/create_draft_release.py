@@ -17,7 +17,7 @@ def verified_assets(dist, commit, run):
         raise ValueError('Artifact provenance differs from this workflow')
     required = {asset['name'] for asset in manifest['assets']} | {'package-inventory.json', 'release-manifest.json'}
     sums = {}
-    for line in (dist / 'SHA256SUMS.txt').read_text().splitlines():
+    for line in (dist / 'SHA256SUMS.txt').read_text(encoding='utf-8').splitlines():
         sha, name = line.split('  ', 1)
         if Path(name).name != name or '/' in name or '\\' in name or not re.fullmatch('[a-f0-9]{64}', sha) or name in sums:
             raise ValueError('Unsafe or duplicate checksum entry')

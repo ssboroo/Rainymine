@@ -41,7 +41,7 @@ def main():
     if args.command == 'init':
         if args.private_key.exists():
             parser.error('Private key already exists; refusing overwrite.')
-        keys = json.loads(args.public_keys.read_text()) if args.public_keys.exists() else {}
+        keys = json.loads(args.public_keys.read_text(encoding='utf-8')) if args.public_keys.exists() else {}
         if args.key_id in keys:
             parser.error('Key ID already exists; choose a new rotation ID.')
         if password != getpass.getpass('Repeat password: ').encode():

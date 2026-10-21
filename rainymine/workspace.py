@@ -121,6 +121,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.layer_dock.setMinimumWidth(245)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.layer_dock)
         self.layer_list.setHeaderLabels(['Давхарга', 'Элемент'])
+        self.layer_list.header().setStretchLastSection(False)
         self.layer_list.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self.layer_list.header().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         # The bottom data grid belongs under the viewport, between the two sidebars.
@@ -195,7 +196,16 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.support.setWindowTitle('ХИЙМЭЛ ОЮУНЫ ТУСЛАХ')
         self.support.setMinimumWidth(295)
         self.support.setMaximumWidth(420)
-        self.support.append('Ажлаа эхлүүлэх', '① Өгөгдөл оруулах\nАмсар, замнал, сорьц, гадаргын мэдээллээ импортлоно.\n\n② Тохиргоо хийх\nКоординат, огтлол, блок загварын параметрээ шалгана.\n\n③ Алдаа засах\nАсуултаа бичих эсвэл шалгасан зааврыг шууд сонгоно.')
+        note = help_panel.layout().itemAt(0).widget()
+        note.setToolTip(note.text())
+        note.setText('Программ ашиглах, тохируулах, алдаа засах локал туслах.')
+        self.support.status.setText('Шууд заавар сонгох эсвэл асуултаа бичнэ үү.')
+        self.support.chat.setHtml("""
+        <table cellspacing="4" cellpadding="2">
+        <tr><td valign="top" style="color:#00b7b1;font-size:20px">①</td><td><b>Өгөгдөл оруулах</b><br/><span style="color:#647b91">Цооног, гадарга, сорьцын мэдээллээ импортлоно.</span></td></tr>
+        <tr><td valign="top" style="color:#00b7b1;font-size:20px">②</td><td><b>Тохиргоо хийх</b><br/><span style="color:#647b91">Координат, блок загварын параметрээ шалгана.</span></td></tr>
+        <tr><td valign="top" style="color:#00b7b1;font-size:20px">③</td><td><b>Алдаа засах</b><br/><span style="color:#647b91">Асуултаа бичих эсвэл шууд заавар сонгоно.</span></td></tr>
+        </table>""")
         self.support.show()
 
     def build_ribbon(self):
@@ -322,7 +332,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.updating_layers = True
         self.layer_list.clear()
         groups = {}
-        for title in ('Төслийн өгөгдөл', 'Цооногууд', 'Блок загвар', 'Геометр ба уурхайн загвар'):
+        for title in ('Төслийн өгөгдөл', 'Цооногууд', 'Блок загвар', 'Геометр / Уурхай'):
             group = QTreeWidgetItem([title, ''])
             self.layer_list.addTopLevelItem(group)
             groups[title] = group
@@ -330,7 +340,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         for key, actor in self.scene.actors.items():
             if key == 'selected':
                 continue
-            name = 'Цооногууд' if key in ('holes', 'collars') else 'Блок загвар' if key == 'blocks' else 'Төслийн өгөгдөл' if key == 'surface' else 'Геометр ба уурхайн загвар'
+            name = 'Цооногууд' if key in ('holes', 'collars') else 'Блок загвар' if key == 'blocks' else 'Төслийн өгөгдөл' if key == 'surface' else 'Геометр / Уурхай'
             source = self.scene.sources.get(key)
             item = QTreeWidgetItem([self.layer_name(key), str(source.GetNumberOfCells() if source else 0)])
             item.setData(0, Qt.ItemDataRole.UserRole, key)

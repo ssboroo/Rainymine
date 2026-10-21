@@ -63,8 +63,6 @@ jobs:
           $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
           if (-not $app.WaitForExit(180000)) { $app.Kill(); throw 'Installed app smoke test timed out' }
           if ($app.ExitCode -ne 0) { throw 'Installed app failed' }
-      - name: Assemble checked release kit
-        run: python scripts/prepare_release.py --dist dist
       - uses: actions/upload-artifact@v4
         with:
           name: Rainymine-Windows-x64
@@ -80,6 +78,8 @@ jobs:
           path: dist/Rainymine-0.7.0-AI-Offline-x64.zip
           compression-level: 0
           if-no-files-found: error
+      - name: Assemble checked release kit
+        run: python scripts/prepare_release.py --dist dist
       - name: Upload diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
