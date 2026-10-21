@@ -1,4 +1,14 @@
-# RAINYMINE 0.5.0 — Монгол оффлайн 3D уул уурхайн workbench
+# RAINYMINE 0.6 — 2026 ажлын орчин
+
+Хэрэглэгчийн Монгол brand board-д тулгуурласан цайвар scientific workspace, navy/teal/copper M тэмдэг, шинэ native vector icons. Зүүнд бүлэглэсэн давхаргууд, төвд 3D ба өгөгдлийн хүснэгт, баруунд ажилладаг оффлайн туслах самбар.
+
+- Шинэ эхлэл дэлгэц нь VTK импортлохоос өмнө гарна. Хөдөлгөөнт busy зурвас ба бодит ачаалж буй үеийн мэдээлэлтэй; зориуд хүлээлгэх хугацаагүй. Хэрэглэгчийн reference-д тулгуурлан imagegen-ээр бүтээсэн artwork нь `assets/splash.jpg` дотор, интернэтгүй багцлагдана.
+- Ctrl+K: үйлдэл хайх; Ctrl+F1: ribbon хураах/дэлгэх; F10: 3D төвлөрсөн горим. Самбарууд цэснээс нуусан самбараа сэргээнэ.
+- Давхаргын нэр, төрлийн vector icon, харагдах байдал, тунгалагшил, дүрслэл. Анх зөвхөн сонгосон цооногийн нэр харагдана; Шошго товч бүх нэрийг харуулна.
+- Доод хэсэгт блок/цооногийн хүснэгт; агуулгын өнгө ба 1000 мөрийн paging. Бүх блокийг экспортлох өмнөх үйлдэл хэвээр.
+- Баруун туслах нь оффлайн заавар, шууд нээх хэрэгслүүд болон Local AI табтай. Main дээрх Qwen3 / llama.cpp туслахыг хадгалсан; зөвхөн программын хянагдсан зааварт хариулна.
+
+# RAINYMINE 0.6.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
 
@@ -19,10 +29,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.5.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.6.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь шинэ 0.5.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь шинэ 0.6.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 
@@ -156,7 +166,7 @@ EXE: `pip install pyinstaller==6.12.0`, дараа нь `scripts/build_windows.p
 
 Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL/Commercial, VTK BSD, NumPy/SciPy BSD, PROJ/pyproj болон ezdxf-ийн upstream licenses. Dynamic Qt libraries-ийг багцад хэвээр хадгална. Micromine native file compatibility амлаагүй.
 
-## 0.5.0 — Sub-block / Fault / Haul / MILP / Reference workflow
+## 0.6.0 — Sub-block / Fault / Haul / MILP / Reference workflow
 
 - **Sub-block levels 0–3:** finest-cell centre-үүдийг world XY polygon ба fault zone-оор ангилна; ижил ангилалтай найман sibling-ийг нэгтгэнэ. Adaptive output нь geometry clipping биш; нимгэн заагийг finest resolution-оос доош барихгүй. 200000 хүртэл finest sample, 50000 output cell. Grid minimum pivot ба rotation хэвээр.
 - **Fault Plane:** point + normal бүхий 8 хүртэл infinite planar barrier. Estimation, cross-validation, variogram нь fault-ийн эсрэг талын sample/pair-ийг холихгүй. Харагдах patch-ийн extent нь зөвхөн guide; barrier infinite. On-plane point нь + тал. Fault throw, displacement restoration, curved faults, implicit stratigraphy дэмжихгүй.
@@ -177,4 +187,4 @@ Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL
 - Setup болон inference background thread-д ажиллана. Зогсоох товч model process-ийг хааж RAM чөлөөлнө. Программ хаахад мөн хаана. Чат файлд хадгалахгүй; Clear нь харагдах түүх ба follow-up ID-г цэвэрлэнэ.
 - Модельгүй үед зааврын dropdown нь оффлайнаар шууд ажиллана; энэ нь generative AI ажилласан гэсэн үг биш. CPU хурд/RAM-аас model startup/response хамаарна. Энэ model нь Mongolian general reasoning/геологийн мэргэжлийн чадвараар баталгаажуулагдаагүй; reviewed help routing-д л ашиглана.
 
-Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.5.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.
+Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.6.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.

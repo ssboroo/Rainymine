@@ -270,10 +270,10 @@ class Window(QMainWindow):
         if self.may_discard():self.vtk.Finalize();event.accept()
         else:event.ignore()
 
-def main():
+def main(app=None,splash=None):
     import argparse
     parser=argparse.ArgumentParser();parser.add_argument('--smoke',action='store_true');parser.add_argument('--screenshot');args=parser.parse_args()
-    app=QApplication(sys.argv[:1]);app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
+    app=app or QApplication(sys.argv[:1]);app.setStyle('Fusion');app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
     from PySide6.QtGui import QFont
     app.setFont(QFont('Segoe UI',10))
     asset_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
@@ -282,12 +282,23 @@ def main():
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
-    from .advanced import AdvancedWorkbench
-    window=AdvancedWorkbench();window.show()
+    if splash:splash.set_stage('Төслийн өгөгдөл болон ажлын орчныг бэлтгэж байна…')
+    from .presentation import PresentationWorkbench
+    window=PresentationWorkbench();window.show()
+    if splash:
+        splash.set_stage('3D ажлын орчин бэлэн боллоо')
+        if args.smoke:
+            assert splash.artwork_loaded, 'Startup artwork not packaged'
+            if args.screenshot:splash.grab().save(str(Path(args.screenshot).with_name('windows-startup.png')))
+        splash.finish(window)
     if args.smoke:
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
+                window.collapse_ribbon();assert window.ribbon_collapsed;window.collapse_ribbon()
+                window.focus_workspace();assert window.focus_active;window.focus_workspace()
+                assert window.block_table.rowCount()>0
+                window.show_ai_guide();assert window.guide_tabs.currentIndex()==2;window.guide_tabs.setCurrentIndex(0)
                 from .packaged_checks import verify
                 from .viewing import named_section
                 window.change_layer('holes',{'opacity':.65})
