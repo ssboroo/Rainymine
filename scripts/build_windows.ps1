@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 python -m unittest discover -s tests -v
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
-python -m PyInstaller --noconfirm --clean --windowed --onedir --name Rainymine --icon assets\rainymine.ico --collect-all vtkmodules --collect-data pyproj --collect-data ezdxf --hidden-import vtkmodules.qt.QVTKRenderWindowInteractor --hidden-import pyodbc --collect-submodules scipy.optimize --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --add-data "examples;examples" --add-data "assets;assets" main.py
+python -m PyInstaller --noconfirm --clean --windowed --onedir --name Rainymine --icon assets\rainymine.ico --collect-all vtkmodules --collect-data pyproj --collect-data ezdxf --hidden-import vtkmodules.qt.QVTKRenderWindowInteractor --hidden-import pyodbc --collect-submodules scipy.optimize --collect-all pyarrow --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --add-data "examples;examples" --add-data "assets;assets" main.py
 if ($LASTEXITCODE -ne 0) { throw 'Executable build failed' }
 Copy-Item README.md dist\Rainymine\README.md
 New-Item -ItemType Directory -Path dist\Rainymine\docs,dist\Rainymine\assets -Force | Out-Null

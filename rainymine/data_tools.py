@@ -5,14 +5,24 @@ from pathlib import Path
 import csv
 import hashlib
 import math
-from .core import finite, Collar, Survey, Assay, Lithology
+from .core import finite, Collar, Survey, Assay, Lithology, Structure, Geotech
 
 SCHEMAS={
  'collars':('hole_id','x','y','z','depth','azimuth','dip'),
  'surveys':('hole_id','depth','azimuth','dip'),
  'assays':('hole_id','from_m','to_m','grade'),
  'lithology':('hole_id','from_m','to_m','rock'),
+ 'structure':('hole_id','depth','alpha','beta','feature_type'),
+ 'geotech':('hole_id','from_m','to_m','rqd_pct','tcr_pct','ucs_mpa','jrc'),
  'surface':('x','y','z')}
+
+def parse_cell(kind,field,raw):
+    """Shared CSV/grid admission, preserving unmeasured geotech values as NULL."""
+    if field in ('rqd_pct','tcr_pct','ucs_mpa','jrc') and kind=='geotech' and (raw is None or str(raw).strip()==''):
+        return None
+    if raw is None or not str(raw).strip():raise ValueError(field+' хоосон')
+    if field in ('hole_id','rock','feature_type'):return str(raw).strip()
+    value=float(raw);finite(value);return value
 
 class History:
     """Bounded full-project snapshots; edits are validated before commit."""
@@ -90,10 +100,7 @@ def mapped_import(path,kind,mapping,delimiter=','):
                 item={}
                 for field in schema:
                     raw=row[mapping[field]]
-                    if raw is None or not raw.strip():raise ValueError(field+' хоосон')
-                    value=raw.strip() if field in ('hole_id','rock') else float(raw)
-                    if field not in ('hole_id','rock'):finite(value)
-                    item[field]=value
+                    item[field]=parse_cell(kind,field,raw)
                 rows.append(item)
             except (TypeError,ValueError,KeyError) as e:issues.append({'row':i,'error':str(e)})
     report={'source_name':Path(path).name,'sha256':hashlib.sha256(Path(path).read_bytes()).hexdigest(),
@@ -103,7 +110,7 @@ def mapped_import(path,kind,mapping,delimiter=','):
 
 def rows_to_values(kind,rows):
     if kind=='surface':return [[r[k] for k in ('x','y','z')] for r in rows]
-    cls={'collars':Collar,'surveys':Survey,'assays':Assay,'lithology':Lithology}[kind]
+    cls={'collars':Collar,'surveys':Survey,'assays':Assay,'lithology':Lithology,'structure':Structure,'geotech':Geotech}[kind]
     return [cls(**r) for r in rows]
 
 def transform_project(project,source,target):

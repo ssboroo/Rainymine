@@ -1,5 +1,5 @@
 """Metric drillhole geometry. North-clockwise azimuth, negative-down dip.
-Minimum curvature integrates spherical interpolation of tangent vectors.
+Minimum curvature integrates spherical interpolation of tangent vectors; upward holes supported.
 No estimation, reserve classification or economic assumptions are made.
 """
 from dataclasses import dataclass, asdict, field
@@ -46,6 +46,24 @@ class Lithology:
     to_m: float
     rock: str
 
+@dataclass(frozen=True)
+class Structure:
+    hole_id: str
+    depth: float
+    alpha: float
+    beta: float
+    feature_type: str = 'JOINT'
+
+@dataclass(frozen=True)
+class Geotech:
+    hole_id: str
+    from_m: float
+    to_m: float
+    rqd_pct: float | None = None
+    tcr_pct: float | None = None
+    ucs_mpa: float | None = None
+    jrc: float | None = None
+
 @dataclass
 class Project:
     name: str = 'Шинэ төсөл'
@@ -58,6 +76,8 @@ class Project:
     lithology: list = field(default_factory=list)
     crs_code: str = ''
     workspace: dict = field(default_factory=dict)
+    structure: list = field(default_factory=list)
+    geotech: list = field(default_factory=list)
 
     def validate(self):
         if not isinstance(self.name, str) or not self.name.strip() or len(self.name)>200:
@@ -66,7 +86,7 @@ class Project:
             raise ValueError('Координатын системийн тайлбар буруу.')
         if self.grade_unit not in ('%', 'g/t', 'ppm'):
             raise ValueError('Агуулгын нэгж: %, g/t эсвэл ppm.')
-        for rows in (self.collars,self.surveys,self.assays,self.surface,self.lithology):
+        for rows in (self.collars,self.surveys,self.assays,self.surface,self.lithology,self.structure,self.geotech):
             if not isinstance(rows,list) or len(rows)>MAX_ROWS:raise ValueError('Хүснэгтийн хэмжээ хэтэрсэн.')
         if len(self.collars)>5000:raise ValueError('Энэ хувилбарт 5000 хүртэл цооног дэмжинэ.')
         holes={}
@@ -105,6 +125,23 @@ class Project:
         for name,items in rocks.items():
             items=sorted(items,key=lambda a:a.from_m)
             if any(a.to_m>b.from_m for a,b in zip(items,items[1:])):raise ValueError(f'{name}: литологийн интервал давхардсан.')
+        for r in self.structure:
+            finite(r.depth,r.alpha,r.beta)
+            if r.hole_id not in holes or not 0<=r.depth<=holes[r.hole_id].depth or not 0<=r.alpha<=90 or not 0<=r.beta<360 or not isinstance(r.feature_type,str) or not r.feature_type.strip() or len(r.feature_type)>100:
+                raise ValueError('Structure цооног / гүн / alpha / beta / feature буруу.')
+        geotech={}
+        for r in self.geotech:
+            finite(r.from_m,r.to_m)
+            if r.hole_id not in holes or not 0<=r.from_m<r.to_m<=holes[r.hole_id].depth:raise ValueError('Geotech интервал буруу.')
+            for value,high in ((r.rqd_pct,100),(r.tcr_pct,100),(r.ucs_mpa,None),(r.jrc,20)):
+                if value is not None:
+                    finite(value)
+                    if value<0 or (high is not None and value>high):raise ValueError('Geotech хэмжилтийн муж буруу.')
+            if r.rqd_pct is not None and r.tcr_pct is not None and r.rqd_pct>r.tcr_pct:raise ValueError('RQD нь TCR-ээс их байж болохгүй.')
+            geotech.setdefault(r.hole_id,[]).append(r)
+        for rows in geotech.values():
+            rows.sort(key=lambda r:r.from_m)
+            if any(a.to_m>b.from_m for a,b in zip(rows,rows[1:])):raise ValueError('Geotech интервал давхардсан.')
         if not isinstance(self.crs_code,str) or not isinstance(self.workspace,dict):raise ValueError('Төслийн нэмэлт мэдээллийн бүтэц буруу.')
         from .geometry import validate_workspace
         validate_workspace(self.workspace)
@@ -126,16 +163,17 @@ class Project:
 
     def to_dict(self):
         self.validate()
-        return {'format':'rainymine','version':2,'units':'metres',**asdict(self)}
+        return {'format':'rainymine','version':3,'units':'metres',**asdict(self)}
 
     @classmethod
     def from_dict(cls,data):
-        if not isinstance(data,dict) or data.get('format')!='rainymine' or data.get('version') not in (1,2) or data.get('units')!='metres':
+        if not isinstance(data,dict) or data.get('format')!='rainymine' or data.get('version') not in (1,2,3) or data.get('units')!='metres':
             raise ValueError('Дэмжигдээгүй RAINYMINE төслийн формат.')
         try:
             p=cls(name=data['name'],crs=data['crs'],grade_unit=data['grade_unit'],
                 collars=[Collar(**r) for r in data['collars']],surveys=[Survey(**r) for r in data['surveys']],
-                assays=[Assay(**r) for r in data['assays']],surface=data['surface'],lithology=[Lithology(**r) for r in data.get('lithology',[])],crs_code=data.get('crs_code',''),workspace=data.get('workspace',{}))
+                assays=[Assay(**r) for r in data['assays']],surface=data['surface'],lithology=[Lithology(**r) for r in data.get('lithology',[])],crs_code=data.get('crs_code',''),workspace=data.get('workspace',{}),
+                structure=[Structure(**r) for r in data.get('structure',[])],geotech=[Geotech(**r) for r in data.get('geotech',[])])
         except (KeyError,TypeError) as exc:raise ValueError('Төслийн өгөгдлийн бүтэц буруу.') from exc
         return p.validate()
 
@@ -144,7 +182,7 @@ def finite(*values):
         raise ValueError('Зөвхөн бодит, төгсгөлөг тоон утга зөвшөөрнө.')
 
 def angles(az,dip):
-    if not 0<=az<360 or not -90<=dip<=0:raise ValueError('Азимут 0 ≤ A < 360, налуу −90 ≤ D ≤ 0 байна.')
+    if not 0<=az<360 or not -90<=dip<=90:raise ValueError('Азимут 0 ≤ A < 360, налуу −90 ≤ D ≤ 90 байна.')
 
 def dot(a,b):return sum(x*y for x,y in zip(a,b))
 
@@ -169,7 +207,7 @@ def displacement(length,u,v,method="minimum_curvature"):
         return (length*horizontal*math.sin(a1+da/2)*sinc(da/2),
                 length*horizontal*math.cos(a1+da/2)*sinc(da/2),
                 length*math.sin((d1+d2)/2)*sinc(dd/2))
-    rf=1. if theta<1e-8 else 2*math.tan(theta/2)/theta
+    rf=1.+theta*theta/12.+theta**4/120. if theta<1e-3 else 2*math.tan(theta/2)/theta
     return tuple(length*(a+b)*rf/2 for a,b in zip(u,v))
 
 def slerp(u,v,t):

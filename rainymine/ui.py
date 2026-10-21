@@ -204,7 +204,7 @@ class Window(QMainWindow):
         self.guard(run)
     def add_hole(self):
         dlg=QDialog(self);dlg.setWindowTitle('Цооног нэмэх');form=QFormLayout(dlg);name=QLineEdit();form.addRow('Цооногийн нэр',name);inputs={}
-        for key,label,low,high,default in [('x','X / Зүүн, м',-1e9,1e9,0),('y','Y / Хойд, м',-1e9,1e9,0),('z','Z / Өндөр, м',-1e9,1e9,0),('depth','Гүн, м',.01,20000,200),('azimuth','Азимут, °',0,359.99,0),('dip','Налуу, °',-90,0,-90)]:
+        for key,label,low,high,default in [('x','X / Зүүн, м',-1e9,1e9,0),('y','Y / Хойд, м',-1e9,1e9,0),('z','Z / Өндөр, м',-1e9,1e9,0),('depth','Гүн, м',.01,20000,200),('azimuth','Азимут, °',0,359.99,0),('dip','Налуу, °',-90,90,-90)]:
             spin=QDoubleSpinBox();spin.setRange(low,high);spin.setDecimals(2);spin.setValue(default);inputs[key]=spin;form.addRow(label,spin)
         buttons=QDialogButtonBox(QDialogButtonBox.StandardButton.Ok|QDialogButtonBox.StandardButton.Cancel);buttons.button(QDialogButtonBox.StandardButton.Ok).setText('Нэмэх');buttons.button(QDialogButtonBox.StandardButton.Cancel).setText('Болих');form.addRow(buttons)
         def add():

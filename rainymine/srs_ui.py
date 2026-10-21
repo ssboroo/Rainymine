@@ -12,7 +12,16 @@ class SrsTools:
                                ('Литологийн композит…',self.lithology_composite_report),
                                ('Swath X / Y / Z…',self.swath_report),
                                ('Survey огцом өөрчлөлт…',self.survey_dogleg_report),
-                               ('Хүдэр холих LP…',self.blending_report)]:
+                               ('Хүдэр холих LP…',self.blending_report),
+                               ('Бүтцийн CSV импорт…',lambda:self.import_data('structure')),
+                               ('Геотехник CSV импорт…',lambda:self.import_data('geotech')),
+                               ('VAL-01…10 шалгалт…',self.validation_report),
+                               ('Чиглүүлсэн чөмөг…',self.core_orientation_report),
+                               ('Density композит CSV…',self.mass_composite_report),
+                               ('Кригингийн KE / SoR…',self.kriging_quality_report),
+                               ('Morton Parquet экспорт…',self.parquet_export),
+                               ('Parquet блок импорт…',self.parquet_import),
+                               ('Блокийн гадаад гадарга…',self.exposed_faces_view)]:
             self.action(menu,title,callback)
 
     def desurvey_export(self):
@@ -84,3 +93,89 @@ class SrsTools:
         from .srs_tools import survey_doglegs
         settings=self.params('Survey dogleg — алдааг автоматаар засахгүй',{'Босго, градус / 30 м':10})
         if settings:self.guard(lambda:self.show_rows('Survey dogleg',survey_doglegs(self.project,float(settings['Босго, градус / 30 м']))))
+
+    def validation_report(self):
+        from dataclasses import asdict
+        import csv
+        from pathlib import Path
+        from .validation import validate_tables
+        from .core import MAX_FILE,MAX_ROWS
+        settings=self.params('10 дүрэм — эх өгөгдлийг автоматаар засахгүй',
+                             {'Өгөгдөл':['Одоогийн төсөл','collars','surveys','assays','lithology','structure','geotech'],'Dogleg градус / 30 м':5})
+        if not settings:return
+        def run():
+            tables=asdict(self.project);kind=settings['Өгөгдөл']
+            if kind!='Одоогийн төсөл':
+                path,_=QFileDialog.getOpenFileName(self,'Урьдчилсан CSV шалгалт — lower_case баганын нэр','','CSV (*.csv)')
+                if not path:return
+                if Path(path).stat().st_size>MAX_FILE:raise ValueError('CSV хэт том.')
+                with open(path,encoding='utf-8-sig',newline='') as stream:
+                    rows=[]
+                    for row in csv.DictReader(stream):
+                        if len(rows)>=MAX_ROWS:raise ValueError('CSV мөрийн хязгаар хэтэрсэн.')
+                        rows.append(row)
+                tables[kind]=rows
+            self.show_rows('VAL-01…10 — автоматаар засвар хийгээгүй',validate_tables(tables,max_dogleg=float(settings['Dogleg градус / 30 м'])))
+        self.guard(run)
+
+    def core_orientation_report(self):
+        from .engineering import oriented_core
+        settings=self.params('Чиглүүлсэн чөмөг — beta: доод лавлах шугамаас',
+                             {'Hole grid azimuth':0,'Hole dip':-90,'Alpha':45,'Beta':0})
+        if settings:self.guard(lambda:self.show_rows('Чөмгийн хавтгай — ENU convention',
+            [oriented_core(*[float(settings[k]) for k in ('Hole grid azimuth','Hole dip','Alpha','Beta')])]))
+
+    def mass_composite_report(self):
+        from .engineering import density_composites
+        path,_=QFileDialog.getOpenFileName(self,'Нэг цооногийн CSV: hole_id, from_m, to_m, grade, density','','CSV (*.csv)')
+        if not path:return
+        def run():
+            rows=read_rows(path,('hole_id','from_m','to_m','grade','density'))
+            if len({r['hole_id'] for r in rows})!=1:raise ValueError('Нэг цооногийн интервал оруулна уу.')
+            settings=self.params('Density × уртаар жинлэсэн композит',{'Урт, м':5})
+            if settings:self.show_rows('Density композит — ижил cross-section',density_composites(rows,float(settings['Урт, м'])))
+        self.guard(run)
+
+    def kriging_quality_report(self):
+        rows=[]
+        for i,b in enumerate(self.project.workspace.get('block_model',{}).get('blocks',[])):
+            if 'kriging_efficiency' in b:
+                rows.append({'block_index':i,**{k:b.get(k) for k in ('x','y','z','grade','variance','block_variance','kriging_efficiency','slope_of_regression')}})
+            if len(rows)==1000:break
+        self.show_rows('KE / SoR — эхний 1000 үнэлсэн блок; нөөцийн ангилал биш',rows)
+
+    def parquet_export(self):
+        def run():
+            from .block_store import write_block_parquet
+            model=self.project.workspace.get('block_model')
+            if not model:raise ValueError('Блок загвар алга.')
+            path=self.destination('Morton Parquet — координат float64','parquet')
+            if path:
+                result=self.busy(lambda:write_block_parquet(path,model,self.project.crs_code,self.project.grade_unit))
+                self.show_rows('Parquet хадгаллаа',[result])
+        self.guard(run)
+
+    def parquet_import(self):
+        path,_=QFileDialog.getOpenFileName(self,'RAINYMINE Parquet — desktop 50000 блок хүртэл','','Parquet (*.parquet)')
+        if not path:return
+        def run():
+            from copy import deepcopy
+            from .block_store import read_block_model
+            model,metadata=self.busy(lambda:read_block_model(path))
+            if metadata['crs']!=self.project.crs_code or metadata['grade_unit']!=self.project.grade_unit:
+                raise ValueError('CRS / агуулгын нэгж таарахгүй. Эхлээд тохирох төслөө нээнэ үү.')
+            p=deepcopy(self.project);p.workspace['block_model']=model;self.commit(p)
+        self.guard(run)
+
+    def exposed_faces_view(self):
+        settings=self.params('Гадаад гадарга — огтлоход дотор тал харагдахгүй',{'Горим':['Бүх блок','Зөвхөн гадаад талст']})
+        if not settings:return
+        def run():
+            from copy import deepcopy
+            from .engineering import exposed_block_faces
+            if settings['Горим']=='Зөвхөн гадаад талст':
+                model=self.project.workspace.get('block_model')
+                if not model:raise ValueError('Блок загвар алга.')
+                exposed_block_faces(model['blocks'])
+            p=deepcopy(self.project);p.workspace['block_display']='exposed' if settings['Горим']=='Зөвхөн гадаад талст' else 'blocks';self.commit(p)
+        self.guard(run)

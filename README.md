@@ -228,3 +228,7 @@ Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime та
 ## SRS хэрэгжилт
 
 [Шаардлага бүрийн хэрэгжилт, үлдэгдэл](docs/SRS_TRACEABILITY.mn.md). `Шинжилгээ / SRS` цэсэнд замналын 3 арга бүхий CSV экспорт, литологийн композит, XYZ swath, survey dogleg болон нэг үеийн feed blending LP нэмэгдсэн.
+
+## SRS v2 инженерийн нэмэлт
+
+[Хэрэгжилт, файл форматын v3 нийцэл, HPC/SLA-ийн үлдэгдэл](docs/SRS_V2_ENGINEERING.mn.md). `Шинжилгээ / SRS` цэсэнд Structure/Geotech импорт, 10 дүрмийн тайлан, oriented core, density композит, KE/SoR, Morton Parquet болон exposed-face горим нэмэгдсэн. Parquet-д PyArrow 19.0.1 ашиглана.
