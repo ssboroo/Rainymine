@@ -1,5 +1,7 @@
 # RAINYMINE 2026 · 0.9.0
 
+[DH CSV багц импорт ба эх хүснэгтийн харагдац](docs/DH_IMPORT.mn.md) — multi-element long/pivot, NULL/qualifier, geology join, portable raw archive.
+
 [OMF / GeoPackage / CSV–CAD metadata солилцоо](docs/OPEN_EXCHANGE.mn.md) — шинэ экспорт/импортын дэмжлэг, хувилбар, хязгаар.
 
 [Мэргэжлийн өргөтгөл, форматын дэмжлэг ба хэмжсэн гүйцэтгэл](docs/PROFESSIONAL_WORKFLOWS.mn.md) — шинэ «Мэргэжлийн хэрэгсэл» цэс: CSG/gizmo, LAS/LAZ, GeoTIFF, SHP, Surpac ASCII, constrained RBF, IK/multipass, ramp/tunnel/ring, хязгаартай stope болон blend MILP.
