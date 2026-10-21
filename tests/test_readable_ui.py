@@ -13,6 +13,8 @@ class ReadableWorkspaceTests(WorkspaceLayoutTests):
     def test_all_captions_fit_and_last_command_can_be_scrolled_into_view(self):
         window = self.make_window()
         window.show()
+        if window.ribbon_collapsed:
+            window.collapse_ribbon()
         for locale in ('mn', 'en'):
             window.set_language(locale, persist=False)
             for width, height in ((960, 640), (1280, 720), (1600, 900)):
