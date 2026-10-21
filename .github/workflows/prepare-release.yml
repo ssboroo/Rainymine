@@ -1,0 +1,75 @@
+name: Prepare verified release candidate
+on:
+  push:
+    branches: [codex/release-prep-0.5.0]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: prepare-release-0.5.0
+  cancel-in-progress: false
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check packaging helper
+        run: python -m unittest discover -s tests -p test_release_packaging.py -v
+      - name: Verify binary provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from urllib.request import Request, urlopen
+          c = json.load(open('release/config.json'))
+          request = Request('https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + str(c['source_run_id']), headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+          with urlopen(request) as response:
+              run = json.load(response)
+          assert run['conclusion'] == 'success' and run['status'] == 'completed'
+          assert run['head_sha'] == c['source_commit']
+          tree = subprocess.check_output(['git', 'rev-parse', c['source_commit'] + '^{tree}'], text=True).strip()
+          assert tree == c['source_tree']
+          subprocess.run(['git', 'diff', '--exit-code', c['source_commit'], 'HEAD', '--', 'rainymine', 'assets', 'installer', 'requirements.txt', 'Rainymine.spec', 'scripts/build_windows.ps1', 'scripts/prepare_local_ai.py', 'scripts/prepare_mesa.ps1'], check=True)
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: Rainymine-Windows-x64
+          path: release-dist
+          run-id: 39605254612
+          github-token: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: Rainymine-AI-Offline-x64
+          path: release-dist
+          run-id: 39605254612
+          github-token: ${{ github.token }}
+      - name: Prepare and verify assets
+        run: python scripts/prepare_release.py --dist release-dist
+      - name: Create draft prerelease with verified assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          c = json.load(open('release/config.json'))
+          tag = c['tag']
+          existing = subprocess.run(['gh', 'release', 'view', tag, '--json', 'isDraft,isPrerelease,targetCommitish'], capture_output=True, text=True)
+          if existing.returncode == 0:
+              release = json.loads(existing.stdout)
+              if not release['isDraft'] or not release['isPrerelease'] or release['targetCommitish'] != c['source_commit']:
+                  raise SystemExit('Refusing to modify an unrelated or published release')
+          else:
+              subprocess.run(['gh', 'release', 'create', tag, '--draft', '--prerelease', '--target', c['source_commit'], '--title', c['title'], '--notes-file', 'release/RELEASE_NOTES.mn.md'], check=True)
+          files = c['files'] + ['Rainymine-' + c['version'] + '-Release-Kit.zip', 'release-manifest.json', 'package-inventory.json', 'SHA256SUMS.txt']
+          subprocess.run(['gh', 'release', 'upload', tag, '--clobber'] + [str(Path('release-dist') / name) for name in files], check=True)
+          subprocess.run(['gh', 'release', 'view', tag, '--json', 'url,isDraft,isPrerelease,assets'], check=True)
+          PY
