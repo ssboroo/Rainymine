@@ -1,5 +1,7 @@
 # RAINYMINE 2026 · 0.9.0
 
+**2026-10-22 интерфейсийн засвар:** Монгол/English хэрэгслийн бүтэн нэрийг хоёр мөрийн ribbon-д хэмжиж байрлуулна. Нарийн цонхонд хэрэгслийн мөр болон хүснэгт хөндлөн гүйнэ. Windows dark-mode-оос үл хамаарах цайвар palette, уншигдах бичвэр, Ө/Ү дэмжих 3D фонт, хурааж болох блокийн шинж чанарын самбартай.
+
 [OMF / GeoPackage / CSV–CAD metadata солилцоо](docs/OPEN_EXCHANGE.mn.md) — шинэ экспорт/импортын дэмжлэг, хувилбар, хязгаар.
 
 [Мэргэжлийн өргөтгөл, форматын дэмжлэг ба хэмжсэн гүйцэтгэл](docs/PROFESSIONAL_WORKFLOWS.mn.md) — шинэ «Мэргэжлийн хэрэгсэл» цэс: CSG/gizmo, LAS/LAZ, GeoTIFF, SHP, Surpac ASCII, constrained RBF, IK/multipass, ramp/tunnel/ring, хязгаартай stope болон blend MILP.

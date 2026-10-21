@@ -1,11 +1,26 @@
 """VTK 3D scene; all coordinates are shifted around the local origin."""
 import math
 import colorsys
+import os
+from pathlib import Path
 import vtk
 import numpy as np
 from .spatial import model_basis
 from .core import Trajectory
 
+
+def readable_text(prop):
+    """Use an installed Unicode font for Mongolian Ө/Ү in VTK annotations."""
+    candidates = (Path(os.environ.get('WINDIR', 'C:/Windows'))/'Fonts'/'segoeui.ttf',
+                  Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'),
+                  Path('/System/Library/Fonts/Supplemental/Arial Unicode.ttf'))
+    for font in candidates:
+        if font.is_file():
+            prop.SetFontFamily(vtk.VTK_FONT_FILE)
+            prop.SetFontFile(str(font))
+            break
+    prop.SetColor(.09, .16, .23)
+    prop.ShadowOff()
 class Scene:
     def __init__(self,window):
         self.window=window;self.renderer=vtk.vtkRenderer();window.AddRenderer(self.renderer)
@@ -87,7 +102,9 @@ class Scene:
         if len(project.collars)<=200:
             for h in project.collars:
                 text=vtk.vtkBillboardTextActor3D();text.SetInput(h.hole_id);p=self.local((h.x,h.y,h.z));text.SetPosition(p[0],p[1],p[2]+4)
-                text.GetTextProperty().SetFontSize(11);text.GetTextProperty().SetColor(.12,.14,.2);text.GetTextProperty().SetOrientation(90)
+                text.GetTextProperty().SetFontSize(13);readable_text(text.GetTextProperty());text.GetTextProperty().SetOrientation(90)
+                text.GetTextProperty().SetBackgroundColor(.96,.98,1.)
+                text.GetTextProperty().SetBackgroundOpacity(.8)
                 self.renderer.AddActor(text);self.labels.append(text)
         if project.surface:
             sp=vtk.vtkPoints();sp.SetDataTypeToDouble()
@@ -274,6 +291,7 @@ class Scene:
         self.renderer.SetBackground2(.98, .99, 1.)
         self.renderer.GradientBackgroundOn()
         for prop in (self.legend.GetLabelTextProperty(), self.legend.GetTitleTextProperty()):
+            readable_text(prop)
             prop.SetColor(.08, .16, .25)
         self.legend.SetPosition(.86, .62)
         self.legend.SetWidth(.12)
