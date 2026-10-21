@@ -20,9 +20,9 @@ UninstallDisplayIcon={app}\Rainymine.exe
 Source: "..\dist\Rainymine\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\RAINYMINE"; Filename: "{app}\Rainymine.exe"
-Name: "{group}\RAINYMINE - CPU rendering"; Filename: "{app}\Rainymine-Software.bat"
+Name: "{group}\RAINYMINE - CPU дүрслэл"; Filename: "{app}\Rainymine-Software.bat"
 Name: "{autodesktop}\RAINYMINE"; Filename: "{app}\Rainymine.exe"; Tasks: desktopicon
 [Tasks]
-Name: "desktopicon"; Description: "Create a desktop shortcut"; Flags: unchecked
+Name: "desktopicon"; Description: "Ширээний товчлол үүсгэх"; Flags: unchecked
 [Run]
-Filename: "{app}\Rainymine.exe"; Description: "Launch RAINYMINE"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Rainymine.exe"; Description: "RAINYMINE-ийг нээх"; Flags: nowait postinstall skipifsilent
