@@ -39,6 +39,13 @@ class Assay:
     to_m: float
     grade: float
 
+@dataclass(frozen=True)
+class Lithology:
+    hole_id: str
+    from_m: float
+    to_m: float
+    rock: str
+
 @dataclass
 class Project:
     name: str = 'Шинэ төсөл'
@@ -48,6 +55,9 @@ class Project:
     surveys: list = field(default_factory=list)
     assays: list = field(default_factory=list)
     surface: list = field(default_factory=list)
+    lithology: list = field(default_factory=list)
+    crs_code: str = ''
+    workspace: dict = field(default_factory=dict)
 
     def validate(self):
         if not isinstance(self.name, str) or not self.name.strip() or len(self.name)>200:
@@ -56,7 +66,7 @@ class Project:
             raise ValueError('Координатын системийн тайлбар буруу.')
         if self.grade_unit not in ('%', 'g/t', 'ppm'):
             raise ValueError('Агуулгын нэгж: %, g/t эсвэл ppm.')
-        for rows in (self.collars,self.surveys,self.assays,self.surface):
+        for rows in (self.collars,self.surveys,self.assays,self.surface,self.lithology):
             if not isinstance(rows,list) or len(rows)>MAX_ROWS:raise ValueError('Хүснэгтийн хэмжээ хэтэрсэн.')
         if len(self.collars)>5000:raise ValueError('Энэ хувилбарт 5000 хүртэл цооног дэмжинэ.')
         holes={}
@@ -86,6 +96,18 @@ class Project:
         for name,aa in intervals.items():
             aa=sorted(aa,key=lambda a:a.from_m)
             if any(a.to_m>b.from_m for a,b in zip(aa,aa[1:])):raise ValueError(f'{name}: сорьцын интервал давхардсан.')
+        rocks={}
+        for a in self.lithology:
+            finite(a.from_m,a.to_m)
+            if a.hole_id not in holes or not 0<=a.from_m<a.to_m<=holes[a.hole_id].depth or not isinstance(a.rock,str) or not a.rock.strip() or len(a.rock)>100:
+                raise ValueError('Литологийн цооног, интервал эсвэл төрөл буруу.')
+            rocks.setdefault(a.hole_id,[]).append(a)
+        for name,items in rocks.items():
+            items=sorted(items,key=lambda a:a.from_m)
+            if any(a.to_m>b.from_m for a,b in zip(items,items[1:])):raise ValueError(f'{name}: литологийн интервал давхардсан.')
+        if not isinstance(self.crs_code,str) or not isinstance(self.workspace,dict):raise ValueError('Төслийн нэмэлт мэдээллийн бүтэц буруу.')
+        from .geometry import validate_workspace
+        validate_workspace(self.workspace)
         seen=set()
         for p in self.surface:
             if not isinstance(p,(tuple,list)) or len(p)!=3:raise ValueError('Гадаргын цэг X,Y,Z байна.')
@@ -104,16 +126,16 @@ class Project:
 
     def to_dict(self):
         self.validate()
-        return {'format':'rainymine','version':1,'units':'metres',**asdict(self)}
+        return {'format':'rainymine','version':2,'units':'metres',**asdict(self)}
 
     @classmethod
     def from_dict(cls,data):
-        if not isinstance(data,dict) or data.get('format')!='rainymine' or data.get('version')!=1 or data.get('units')!='metres':
+        if not isinstance(data,dict) or data.get('format')!='rainymine' or data.get('version') not in (1,2) or data.get('units')!='metres':
             raise ValueError('Дэмжигдээгүй RAINYMINE төслийн формат.')
         try:
             p=cls(name=data['name'],crs=data['crs'],grade_unit=data['grade_unit'],
                 collars=[Collar(**r) for r in data['collars']],surveys=[Survey(**r) for r in data['surveys']],
-                assays=[Assay(**r) for r in data['assays']],surface=data['surface'])
+                assays=[Assay(**r) for r in data['assays']],surface=data['surface'],lithology=[Lithology(**r) for r in data.get('lithology',[])],crs_code=data.get('crs_code',''),workspace=data.get('workspace',{}))
         except (KeyError,TypeError) as exc:raise ValueError('Төслийн өгөгдлийн бүтэц буруу.') from exc
         return p.validate()
 
