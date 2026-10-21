@@ -224,3 +224,7 @@ Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime та
 ## 0.6.0 — 7 хоногийн туршилт
 
 168 цагийн offline trial болон төхөөрөмжид холбосон, Ed25519 гарын үсэгтэй лицензийн шалгалт нэмэгдсэн. Эзэмшигчийн public key тохируулаагүй тул одоогийн build арилжааны лиценз хүлээн авахад хараахан бэлэн биш. [Монгол лицензийн заавар](release/LICENSING.mn.md), [release checklist](release/RELEASE_CHECKLIST.mn.md)-ийг үзнэ үү. Offline trial нь администраторын өөрчлөлтийн эсрэг серверийн баталгаа биш.
+
+## SRS хэрэгжилт
+
+[Шаардлага бүрийн хэрэгжилт, үлдэгдэл](docs/SRS_TRACEABILITY.mn.md). `Шинжилгээ / SRS` цэсэнд замналын 3 арга бүхий CSV экспорт, литологийн композит, XYZ swath, survey dogleg болон нэг үеийн feed blending LP нэмэгдсэн.

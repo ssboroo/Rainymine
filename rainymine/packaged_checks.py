@@ -40,6 +40,13 @@ def verify_licensing():
 
 def verify(project):
     verify_licensing()
+    from .srs_tools import blend_materials,lithology_composites,swath_rows,survey_doglegs
+    blend=blend_materials([{'id':'low','tonnes':100,'grade':1,'cost_per_tonne':1},
+                           {'id':'high','tonnes':100,'grade':3,'cost_per_tonne':5}],100,2,2)
+    assert blend['feasible'] and abs(blend['total_cost']-300)<1e-6
+    assert lithology_composites(project,10)
+    assert survey_doglegs(project)
+    assert swath_rows([{'xyz':[0,0,0],'grade':2,'support_m':1}],{'blocks':[]})[0]['sample_grade']==2
     from .implicit import implicit_surface
     from .optimization import economic_pit,pit_mesh
     from .estimation import make_blocks

@@ -81,7 +81,10 @@ TEXT = {
 }
 
 
-class WorkspaceWorkbench(AdvancedWorkbench):
+from .srs_ui import SrsTools
+
+
+class WorkspaceWorkbench(SrsTools, AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
         self.labels_visible = False
@@ -134,6 +137,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
     def build_ui(self):
         super().build_ui()
         self.build_ribbon()
+        self.build_srs_menu()
         # Reuse every existing layer/section control instead of replacing behavior.
         original = [dock for dock in self.findChildren(QDockWidget) if dock not in (self.layer_dock, self.support)]
         project_dock, section_dock, table_dock = original[:3]
