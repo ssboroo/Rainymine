@@ -272,7 +272,7 @@ class Window(QMainWindow):
 
 def main(app=None,splash=None):
     import argparse
-    parser=argparse.ArgumentParser();parser.add_argument('--smoke',action='store_true');parser.add_argument('--screenshot');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--smoke',action='store_true');parser.add_argument('--screenshot');parser.add_argument('--language',choices=('mn','en'));args=parser.parse_args()
     app=app or QApplication(sys.argv[:1]);app.setStyle('Fusion');app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
     from PySide6.QtGui import QFont
     app.setFont(QFont('Segoe UI',10))
@@ -280,6 +280,10 @@ def main(app=None,splash=None):
     app.setStyleSheet(THEME)
     asset_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
     if (asset_root/'assets'/'rainymine.ico').exists():app.setWindowIcon(QIcon(str(asset_root/'assets'/'rainymine.ico')))
+    from .i18n import UiLocalizer, set_language
+    from PySide6.QtCore import QSettings
+    app.localizer = UiLocalizer(app)
+    set_language(args.language or QSettings('Rainy Studio', 'RAINYMINE').value('ui/language','mn'), app, persist=False)
     license_manager = None
     if not args.smoke:
         from .licensing import LicenseManager
@@ -301,7 +305,9 @@ def main(app=None,splash=None):
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
     if splash:splash.set_stage('Төслийн өгөгдөл болон ажлын орчныг бэлтгэж байна…')
     from .workspace import WorkspaceWorkbench
-    window=WorkspaceWorkbench();window.show()
+    window=WorkspaceWorkbench()
+    if args.language:window.set_language(args.language, persist=not args.smoke)
+    window.show()
     if args.screenshot:
         window.resize(1440,900);QApplication.processEvents()
     if splash:
@@ -338,6 +344,12 @@ def main(app=None,splash=None):
                 window.refresh()
                 assert window.scene.sources['mesh_0'].GetNumberOfCells()>0
                 assert window.ribbon.count()==6
+                assert len(window.tool_catalog)>=50
+                if args.language=='en':
+                    assert window.ribbon.tabText(0)=='Project'
+                    assert window.block_model.headerData(1,Qt.Orientation.Horizontal)=='Easting (m)'
+                window.toggle_cutaway(True);window.toggle_cutaway(False)
+                window.toggle_coordinate_grid(False);window.toggle_coordinate_grid(True)
                 assert window.project_pages.count()==3
                 assert window.block_model.rowCount()==len(window.project.workspace['block_model']['blocks'])
                 assert window.dockWidgetArea(window.layer_dock)==Qt.DockWidgetArea.LeftDockWidgetArea

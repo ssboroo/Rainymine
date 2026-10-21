@@ -1,3 +1,11 @@
+## 0.9.0
+
+- Adopt the selected geological-strata/drillhole identity in editable SVG, PNG, ICO and a code-native startup screen.
+- Add reversible Mongolian/English display localization, a persisted language selector and reviewed English local-help topics without translating project data or calculation keys.
+- Keep every active ribbon tool reachable through the complete tool library and command search; document the live tool inventory.
+- Render full demo blocks with edges, translucent terrain, a clearly synthetic fault guide, world-coordinate grid, reversible cutaway and linked property inspection.
+- Test both locales, cutaway pick identity, unchanged data, installed English EXE and silent uninstallation in Windows CI.
+
 ## 0.8.0
 
 - Merge current main's startup artwork, native icon system, command search, focus/ribbon controls and selected-hole labeling with the 0.7 workspace, lazy block grid and seven-day trial.

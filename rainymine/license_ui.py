@@ -1,5 +1,6 @@
 """Mongolian evaluation/activation dialog. Expiry never deletes user projects."""
 from datetime import datetime, timezone
+from .i18n import tr
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QFileDialog, QMessageBox
 
@@ -50,9 +51,9 @@ class LicenseDialog(QDialog):
 
     def refresh(self):
         status = self.manager.status()
-        text = status.message
+        text = tr(status.message)
         if status.expires is not None:
-            text += '\nДуусах хугацаа (UTC): ' + datetime.fromtimestamp(status.expires, timezone.utc).strftime('%Y-%m-%d %H:%M')
+            text += '\n'+tr('Дуусах хугацаа (UTC): ') + datetime.fromtimestamp(status.expires, timezone.utc).strftime('%Y-%m-%d %H:%M')
         self.message.setText(text)
         self.start.setVisible(status.kind == 'not_started')
         self.proceed.setEnabled(status.allowed)
@@ -88,7 +89,7 @@ def attach_licensing(window, manager):
         if window._license_locked:
             return
         status = manager.status()
-        label.setText(status.message)
+        label.setText(tr(status.message))
         if not status.allowed:
             window._license_locked = True
             # A modal dialog blocks editing while keeping explicit save available.

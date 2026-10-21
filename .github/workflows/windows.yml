@@ -1,7 +1,7 @@
 name: Windows desktop build
 on:
   push:
-    branches: [main, codex/trial-license-0.6.0]
+    branches: [main, codex/rainymine-0.9]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -49,6 +49,13 @@ jobs:
           if (-not $p.WaitForExit(180000)) { $p.Kill(); throw 'Desktop smoke test timed out' }
           Get-Content smoke-out.log,smoke-err.log
           if ($p.ExitCode -ne 0) { throw "Desktop smoke test failed: $($p.ExitCode)" }
+      - name: English desktop smoke test
+        shell: pwsh
+        run: |
+          $p = Start-Process python -ArgumentList 'main.py','--smoke','--language','en','--screenshot','windows-smoke-en.png' -PassThru -NoNewWindow -RedirectStandardOutput smoke-en-out.log -RedirectStandardError smoke-en-err.log
+          if (-not $p.WaitForExit(180000)) { $p.Kill(); throw 'English desktop timed out' }
+          Get-Content smoke-en-out.log,smoke-en-err.log
+          if ($p.ExitCode -ne 0) { throw 'English desktop failed' }
       - name: Package and test Windows executable
         shell: pwsh
         run: ./scripts/build_windows.ps1
@@ -61,26 +68,33 @@ jobs:
         shell: pwsh
         run: |
           $dest = Join-Path $env:RUNNER_TEMP 'RainymineInstalled'
-          $setup = Start-Process '.\dist\Rainymine-0.8.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
+          $setup = Start-Process '.\dist\Rainymine-0.9.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
           if (-not $setup.WaitForExit(60000)) { $setup.Kill(); throw 'Install timed out' }
           if ($setup.ExitCode -ne 0) { throw 'Install failed' }
           $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
           if (-not $app.WaitForExit(180000)) { $app.Kill(); throw 'Installed app smoke test timed out' }
           if ($app.ExitCode -ne 0) { throw 'Installed app failed' }
+          $english = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke','--language','en' -PassThru
+          if (-not $english.WaitForExit(180000)) { $english.Kill(); throw 'Installed English app timed out' }
+          if ($english.ExitCode -ne 0) { throw 'Installed English app failed' }
+          $remove = Start-Process (Join-Path $dest 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
+          if (-not $remove.WaitForExit(60000)) { $remove.Kill(); throw 'Uninstall timed out' }
+          if ($remove.ExitCode -ne 0 -or (Test-Path (Join-Path $dest 'Rainymine.exe'))) { throw 'Uninstall failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: Rainymine-Windows-x64
           path: |
-            dist/Rainymine-0.8.0-Windows-x64.zip
-            dist/Rainymine-0.8.0-Setup-x64.exe
+            dist/Rainymine-0.9.0-Windows-x64.zip
+            dist/Rainymine-0.9.0-Setup-x64.exe
             windows-smoke.png
+            windows-smoke-en.png
             windows-startup.png
           if-no-files-found: error
       - name: Upload full offline AI portable
         uses: actions/upload-artifact@v4
         with:
           name: Rainymine-AI-Offline-x64
-          path: dist/Rainymine-0.8.0-AI-Offline-x64.zip
+          path: dist/Rainymine-0.9.0-AI-Offline-x64.zip
           compression-level: 0
           if-no-files-found: error
       - name: Assemble checked release kit
@@ -93,6 +107,7 @@ jobs:
           path: |
             *.log
             windows-smoke.png
+            windows-smoke-en.png
             windows-startup.png
             dist/Rainymine/*.log
           if-no-files-found: ignore
@@ -102,14 +117,14 @@ jobs:
         with:
           name: Rainymine-Release-Kit
           path: |
-            dist/Rainymine-0.8.0-Release-Kit.zip
+            dist/Rainymine-0.9.0-Release-Kit.zip
             dist/SHA256SUMS.txt
             dist/release-manifest.json
             dist/package-inventory.json
           if-no-files-found: error
   draft-release:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/trial-license-0.6.0'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/rainymine-0.9'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
