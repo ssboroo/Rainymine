@@ -122,3 +122,20 @@ class EnglishHelpTests(unittest.TestCase):
             self.assertEqual(selected,topic['id'])
             self.assertIn('Source: Rainymine help',text)
             self.assertNotRegex(text,'[А-Яа-яӨөҮү]')
+
+
+class StartupContrastTests(unittest.TestCase):
+    def test_dark_splash_preserves_the_light_upper_stratum(self):
+        from PySide6.QtWidgets import QApplication
+        from rainymine.startup import StartupScreen
+        app=QApplication.instance() or QApplication([])
+        splash=StartupScreen()
+        self.addCleanup(splash.close)
+        self.assertTrue(splash.artwork_loaded)
+        image=splash.pixmap().toImage();w=image.width();h=image.height()
+        light=0
+        for y in range(int(h*.08),int(h*.24)):
+            for x in range(int(w*.44),int(w*.56)):
+                color=image.pixelColor(x,y)
+                light += min(color.red(),color.green(),color.blue())>220
+        self.assertGreater(light,50,'Dark background has erased the upper logo stratum')

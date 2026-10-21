@@ -7,7 +7,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Executable build failed' }
 Copy-Item README.md dist\Rainymine\README.md
 New-Item -ItemType Directory -Path dist\Rainymine\docs,dist\Rainymine\assets -Force | Out-Null
 Copy-Item docs\*.md dist\Rainymine\docs
-Copy-Item assets\brandbook-2026.jpg,assets\rainymine-brand.svg,assets\brandmark.png,assets\splash.svg,assets\splash-new.png dist\Rainymine\assets
+Copy-Item assets\brandbook-2026.jpg,assets\rainymine-brand.svg,assets\brandmark.png,assets\splash.svg,assets\splash-new.png,assets\splash-background.jpg dist\Rainymine\assets
 Copy-Item release dist\Rainymine\release -Recurse -Force
 Copy-Item assets\AI-NOTICES.txt dist\Rainymine\AI-NOTICES.txt
 Copy-Item assets\QWEN_MODEL_LICENSE.txt dist\Rainymine\QWEN_MODEL_LICENSE.txt

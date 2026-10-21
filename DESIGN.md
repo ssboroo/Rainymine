@@ -22,3 +22,7 @@ The visual is decorative branding, not a geological model or measured deposit.
 ## Integrated 0.8.0
 
 The default application uses `rainymine/workspace.py` with the six ribbon categories and lazy block grid. Command search, focus/ribbon controls, labeling and branded startup are preserved from main. `rainymine/presentation.py` remains as the separately tested compatibility presentation. See [Монгол брэндбүүк](docs/BRANDBOOK.mn.md) for the current palette, logo, startup and distribution notes.
+
+## 0.9 startup correction
+
+The dark startup background is generated decorative geology artwork (`assets/splash-background.jpg`): midnight navy negative space, fractured geological strata, restrained copper seams and teal wireframe ore blocks. It contains no baked-in logo, text or progress bar. `StartupScreen` overlays the same canonical `rainymine-brand.svg`, with its navy upper stratum rendered white for dark-background contrast, plus native wordmark/year and the real busy indicator. The logo geometry is shared with the application icon. `splash-new.png` is a runtime preview, not the compositing source.

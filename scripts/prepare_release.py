@@ -75,7 +75,7 @@ def prepare(root, dist):
                 archive.write(path, 'release/' + path.name)
         for name in ('README.md', 'CHANGELOG.md', 'ACCEPTANCE.md', 'MICROMINE_SCOPE.md', 'DESIGN.md', 'docs/BRANDBOOK.mn.md',
                      'assets/brandbook-2026.jpg', 'assets/rainymine-brand.svg', 'assets/brandmark.png',
-                     'assets/splash.svg', 'assets/splash-new.png', 'docs/TOOLS.mn.md'):
+                     'assets/splash.svg', 'assets/splash-new.png', 'assets/splash-background.jpg', 'docs/TOOLS.mn.md'):
             if (root / name).is_file():
                 archive.write(root / name, name)
         for path in sorted(list((root / 'assets').glob('*LICENSE*')) + list((root / 'assets').glob('*NOTICES*'))):

@@ -5,6 +5,7 @@
 - Keep every active ribbon tool reachable through the complete tool library and command search; document the live tool inventory.
 - Render full demo blocks with edges, translucent terrain, a clearly synthetic fault guide, world-coordinate grid, reversible cutaway and linked property inspection.
 - Test both locales, cutaway pick identity, unchanged data, installed English EXE and silent uninstallation in Windows CI.
+- Correct dark-splash logo contrast with the shared reverse mark and generated geological background; keep wordmark, year and real progress separate from the artwork.
 
 ## 0.8.0
 
