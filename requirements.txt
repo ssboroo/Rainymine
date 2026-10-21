@@ -16,3 +16,6 @@ laspy==2.6.1
 lazrs==0.7.0
 rasterio==1.4.3
 pyshp==2.3.1
+
+fiona==1.10.1
+jsonschema==4.23.0

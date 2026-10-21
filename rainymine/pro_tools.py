@@ -11,7 +11,7 @@ class ProTools:
     def build_pro_menu(self):
         self._engineering_tasks=[];self._preview_dialogs=[];self._gizmo=None
         menu=self.menuBar().addMenu('Мэргэжлийн хэрэгсэл')
-        groups=[('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
+        groups=[('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
                 ('Файл / GIS',[('Surpac STR импорт…',self.surpac_import),('Surpac STR экспорт…',self.surpac_export),('Surpac ASCII DTM импорт…',self.surpac_dtm_import),('SHP импорт…',self.shapefile_import),('GeoTIFF DEM импорт…',self.dem_import),('LAS/LAZ шүүлт ба экспорт…',self.lidar_export),('DWG → DXF adapter…',self.dwg_import)]),
                 ('Геологи / Үнэлгээ',[('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
                 ('Уурхайн зураг төсөл',[('Спираль ramp…',self.ramp_dialog),('Шугамаар малталтын сүлжээ…',self.network_dialog),('Өрөмдлөгийн ring / fan…',self.ring_dialog),('Stope box MILP…',self.stope_dialog)]),
@@ -356,3 +356,36 @@ class ProTools:
         if self._gizmo:self._gizmo[2].close()
         for dialog in list(self._preview_dialogs):dialog.close()
         super().closeEvent(event)
+
+    def open_exchange_export(self,kind):
+        from .open_exchange import write_omf,write_geopackage,write_exchange_bundle
+        writer,extension={'omf':(write_omf,'omf'),'gpkg':(write_geopackage,'gpkg'),'bundle':(write_exchange_bundle,'zip')}[kind]
+        title={'omf':'OMF 2.0-beta.1 — хүлээн авагчийн хувилбарыг шалгана','gpkg':'GeoPackage — GIS геометр; блок/interval хүснэгт орохгүй','bundle':'CSV / DXF / OBJ / STL + CRS, нэгж, NULL metadata'}[kind]
+        path=self.destination(title,extension)
+        if path:
+            project=deepcopy(self.project)
+            self.launch_task(title,lambda cancel:writer(path,project,cancel),lambda report:self.show_rows('Солилцооны экспорт',[report]))
+
+    def omf_export(self):self.open_exchange_export('omf')
+    def gpkg_export(self):self.open_exchange_export('gpkg')
+    def exchange_bundle(self):self.open_exchange_export('bundle')
+
+    def gpkg_import(self):
+        import fiona
+        from .open_exchange import read_geopackage
+        from .large_view import LargePreviewFactory
+        path,_=QFileDialog.getOpenFileName(self,'GeoPackage GIS давхарга','','GeoPackage (*.gpkg)')
+        if not path:return
+        layers=[]
+        for name in fiona.listlayers(path):
+            with fiona.open(path,layer=name,enabled_drivers=['GPKG']) as source:
+                if source.schema['geometry'] not in (None,'None'):layers.append(name)
+        index=self.choose('GeoPackage давхарга — polygon hole нь тусдаа marked ring байна',layers)
+        if index is None:return
+        def apply(data):
+            if not self.check_source_crs(data['crs']):return
+            p=deepcopy(self.project);p.workspace.setdefault('strings',[]).extend(data['strings']);p.workspace.setdefault('engineering_runs',[]).append({'tool':'GeoPackage','source':Path(path).name,**{k:v for k,v in data.items() if k!='strings'}});self.commit(p)
+            if data['points']:
+                xyz=np.asarray(data['points']);payload={'kind':'points','xyz':xyz,'source_index':np.arange(len(xyz),dtype=np.int64),'source_points':len(xyz),'matched_before_sampling':len(xyz),'stride':1}
+                LargePreviewFactory.show(self,payload,'GeoPackage · '+data['layer'])
+        self.launch_task('GeoPackage унших…',lambda cancel:read_geopackage(path,layers[index]),apply)
