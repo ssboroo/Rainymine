@@ -89,6 +89,7 @@ class Workbench(Window):
         super().__init__();self.setStyleSheet(LIGHT)
         self.scene.renderer.SetBackground(1,1,1);self.scene.renderer.GradientBackgroundOff()
         self.secondary=Scene(self.vtk2.GetRenderWindow());self.vtk2.Initialize();self.secondary.renderer.SetBackground(1,1,1);self.secondary.renderer.GradientBackgroundOff()
+        for key,check in self.layer_checks.items():check.toggled.connect(lambda value,k=key:self.secondary.visible(k,value))
         self.enrich_demo();self.refresh()
     def enrich_demo(self):
         if not self.project.name.startswith('ЖИШЭЭ'):return
@@ -96,6 +97,7 @@ class Workbench(Window):
             self.project.lithology.extend([Lithology(h.hole_id,0,h.depth*.35,'Хурдас'),Lithology(h.hole_id,h.depth*.35,h.depth*.7,'Хүдэржилт'),Lithology(h.hole_id,h.depth*.7,h.depth,'Боржин')])
         self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[25,25,25],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
         self.project.workspace['block_display']='slices'
+        self.layer_checks['surface'].setChecked(False)
     def build_ui(self):
         super().build_ui()
         for bar in self.findChildren(QToolBar):bar.hide()
@@ -124,8 +126,12 @@ class Workbench(Window):
         edit=self.menuBar().addMenu('Засвар');self.action(edit,'Буцаах',self.undo,'Ctrl+Z');self.action(edit,'Сэргээх',self.redo,'Ctrl+Y')
     def refresh(self):
         super().refresh()
+        for text in (self.scene.legend.GetLabelTextProperty(),self.scene.legend.GetTitleTextProperty()):text.SetColor(.15,.18,.24)
+        self.scene.window.Render()
         if self.secondary:
             self.secondary.mode=self.scene.mode;self.secondary.load(self.project);self.secondary.view('top');self.update_section()
+            for text in (self.secondary.legend.GetLabelTextProperty(),self.secondary.legend.GetTitleTextProperty()):text.SetColor(.15,.18,.24)
+            for key,check in self.layer_checks.items():self.secondary.visible(key,check.isChecked())
         if hasattr(self,'coordinates'):self.coordinates.setText((self.project.crs_code or 'Локал метр')+'  |  X —  Y —  Z —')
     def guard(self,callback):
         before=deepcopy(self.project);result=super().guard(callback)
@@ -242,7 +248,9 @@ class Workbench(Window):
         if path:
             def run():
                 with open(path,encoding='utf-8-sig',newline='') as f:rows=list(csv.DictReader(f))
-                result=evaluate_controls(rows,float(params['Blank limit']),float(params['Duplicate RPD limit']),float(params['Standard Z limit']));self.show_rows('QA/QC — өгөгдөл устгаагүй',result)
+                result=evaluate_controls(rows,float(params['Blank limit']),float(params['Duplicate RPD limit']),float(params['Standard Z limit']))
+                import hashlib
+                p=deepcopy(self.project);p.workspace['qaqc_controls']={'source_sha256':hashlib.sha256(Path(path).read_bytes()).hexdigest(),'limits':params,'results':result};self.commit(p);self.show_rows('QA/QC — өгөгдөл устгаагүй',result)
             self.guard(run)
     def edit_string(self,index=None):
         strings=self.project.workspace.get('strings',[]);old=strings[index] if index is not None else {'name':'Domain / String','points':[],'closed':True}

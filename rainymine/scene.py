@@ -1,5 +1,6 @@
 """VTK 3D scene; all coordinates are shifted around the local origin."""
 import math
+import colorsys
 import vtk
 from .core import Trajectory
 
@@ -15,7 +16,7 @@ class Scene:
         self.lut.SetBelowRangeColor(.4,.45,.55,1);self.lut.UseBelowRangeColorOn()
         for i in range(256):
             t=i/255
-            self.lut.SetTableValue(i,.16+.78*t,.8-.53*t,.65-.37*t,1)
+            self.lut.SetTableValue(i,*colorsys.hsv_to_rgb((1-t)*2/3,.85,.95),1)
         self.lut.Build()
         self.legend=vtk.vtkScalarBarActor();self.legend.SetLookupTable(self.lut);self.legend.SetNumberOfLabels(5)
         self.legend.SetWidth(.11);self.legend.SetHeight(.35);self.legend.SetPosition(.85,.12)
@@ -71,6 +72,11 @@ class Scene:
         cm=vtk.vtkPolyDataMapper();cm.SetInputData(vertices.GetOutput())
         ca=vtk.vtkActor();ca.SetMapper(cm);ca.GetProperty().SetColor(.8,.9,1);ca.GetProperty().SetPointSize(7)
         self.renderer.AddActor(ca);self.actors['collars']=ca
+        if len(project.collars)<=200:
+            for h in project.collars:
+                text=vtk.vtkBillboardTextActor3D();text.SetInput(h.hole_id);p=self.local((h.x,h.y,h.z));text.SetPosition(p[0],p[1],p[2]+4)
+                text.GetTextProperty().SetFontSize(11);text.GetTextProperty().SetColor(.12,.14,.2);text.GetTextProperty().SetOrientation(90)
+                self.renderer.AddActor(text);self.labels.append(text)
         if project.surface:
             sp=vtk.vtkPoints();sp.SetDataTypeToDouble()
             for p in project.surface:sp.InsertNextPoint(*self.local(p))
@@ -129,12 +135,13 @@ class Scene:
                         values.InsertNextValue(b['grade'])
             poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetPolys(faces);poly.GetCellData().SetScalars(values)
             self.add_poly('blocks',poly,(.4,.8,.7),opacity=1.,scalar=True)
+            self.actors['blocks'].SetVisibility(self.mode!='lithology')
 
     def add_poly(self,key,poly,color,opacity=1.,line=False,scalar=False):
         mapper=vtk.vtkPolyDataMapper();mapper.SetInputData(poly)
         if scalar:mapper.SetLookupTable(self.lut);mapper.SetScalarRange(0,self.grade_max);mapper.SetScalarModeToUseCellData()
         else:mapper.ScalarVisibilityOff()
-        actor=vtk.vtkActor();actor.SetMapper(mapper);actor.GetProperty().SetColor(*color);actor.GetProperty().SetOpacity(opacity)
+        actor=vtk.vtkActor();actor.SetMapper(mapper);actor.GetProperty().SetColor(*color);actor.GetProperty().SetOpacity(opacity);actor.GetProperty().SetAmbient(.6);actor.GetProperty().SetDiffuse(.4)
         if line:actor.GetProperty().SetLineWidth(3)
         self.sources[key]=poly;self.actors[key]=actor;self.renderer.AddActor(actor)
 
@@ -152,6 +159,7 @@ class Scene:
     def set_section(self,section,render=True):
         """Clip to a true vertical slab. Angle is normal azimuth north clockwise."""
         self.section=section;self.pipeline=[]
+        for label in self.labels:label.SetVisibility(section is None and self.actors['holes'].GetVisibility())
         for name,poly in self.sources.items():
             mapper=self.actors[name].GetMapper()
             if section is None:mapper.SetInputData(poly);continue
@@ -170,7 +178,9 @@ class Scene:
 
     def visible(self,name,value):
         if name in self.actors:self.actors[name].SetVisibility(value)
-        if name=='holes':self.legend.SetVisibility(value)
+        if name=='holes':
+            self.legend.SetVisibility(value)
+            for label in self.labels:label.SetVisibility(value and self.section is None)
         self.window.Render()
 
     def select(self,hole_id,render=True):
