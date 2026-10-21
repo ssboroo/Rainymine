@@ -82,9 +82,10 @@ TEXT = {
 
 
 from .srs_ui import SrsTools
+from .pro_tools import ProTools
 
 
-class WorkspaceWorkbench(SrsTools, AdvancedWorkbench):
+class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
         self.labels_visible = False
@@ -138,6 +139,7 @@ class WorkspaceWorkbench(SrsTools, AdvancedWorkbench):
         super().build_ui()
         self.build_ribbon()
         self.build_srs_menu()
+        self.build_pro_menu()
         # Reuse every existing layer/section control instead of replacing behavior.
         original = [dock for dock in self.findChildren(QDockWidget) if dock not in (self.layer_dock, self.support)]
         project_dock, section_dock, table_dock = original[:3]
@@ -688,6 +690,10 @@ class WorkspaceWorkbench(SrsTools, AdvancedWorkbench):
                 if title and title not in seen:
                     entries.append((category, title, button.click, button.isEnabled(), button.icon()))
                     seen.add(title)
+        for action in self.findChildren(QAction):
+            category=action.property('toolCategory');title=action.text().replace('&','').strip()
+            if category and title not in seen:
+                entries.append((str(category),title,action.trigger,action.isEnabled(),action.icon()));seen.add(title)
         return entries
 
     def open_tool_library(self):

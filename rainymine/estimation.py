@@ -274,13 +274,15 @@ def experimental_variogram(samples,lag_width=20,lags=15,direction=None,faults=No
     return {'rows':rows,'pair_count':len(distances),'candidate_pair_count':candidate_pairs,'isotropic':direction is None,'pair_sampling_seed':2026,'directional_variogram':direction is not None,'faults':faults,'direction':direction,'lag_width':lag_width,'lags':lags}
 
 
-def fit_variogram(rows):
+def fit_variogram(rows,model="spherical"):
     from scipy.optimize import least_squares
     if len(rows)<3:raise ValueError('Variogram fit-д 3-аас цөөнгүй lag хэрэгтэй.')
     x=np.array([r['distance'] for r in rows]);y=np.array([r['semivariance'] for r in rows]);weights=np.sqrt([r['pairs'] for r in rows]);weights=weights/weights.max()
+    gamma_model(1,0,1,1,model)
+    if not np.isfinite(x).all() or not np.isfinite(y).all() or (x<=0).any() or (y<0).any():raise ValueError('Variogram fit өгөгдөл буруу.')
     initial=[max(1e-9,float(y.min())),max(1e-6,float(y.max())),max(1,float(x.max())/2)]
-    fit=least_squares(lambda p:(gamma_spherical(x,*p)-y)*weights,initial,bounds=([0,1e-12,1e-9],[np.inf,np.inf,np.inf]))
-    return {'nugget':float(fit.x[0]),'partial_sill':float(fit.x[1]),'range_m':float(fit.x[2]),'converged':bool(fit.success),'model':'spherical; isotropic; exploratory fit'}
+    fit=least_squares(lambda p:(gamma_model(x,*p,model)-y)*weights,initial,bounds=([0,1e-12,1e-9],[np.inf,np.inf,np.inf]))
+    return {'nugget':float(fit.x[0]),'partial_sill':float(fit.x[1]),'range_m':float(fit.x[2]),'converged':bool(fit.success),'model':model+'; isotropic; exploratory fit'}
 
 
 def tonnage_grade(model,density,cutoffs):

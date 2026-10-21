@@ -2,6 +2,7 @@
 from copy import deepcopy
 import unittest
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction
 from tests import test_workspace
 from tests.test_scene import NoRenderWindow
 from rainymine.i18n import tr, set_language
@@ -35,7 +36,7 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
         self.assertEqual(window.representation.itemText(0),'Surface')
         self.assertEqual(window.block_model.headerData(1,Qt.Orientation.Horizontal),'Easting (m)')
         self.assertEqual(window.project,before)
-        self.assertEqual(len(window.tool_entries()),len(window.tool_catalog))
+        self.assertEqual(len(window.tool_entries()),len(window.tool_catalog)+len([a for a in window.findChildren(QAction) if a.property('toolCategory')]))
         window.set_language('mn',persist=False)
         self.assertEqual(window.ribbon.tabText(0),original)
         self.assertEqual(window.block_model.headerData(1,Qt.Orientation.Horizontal),'Зүүн (м)')
