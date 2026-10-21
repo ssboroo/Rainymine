@@ -1,3 +1,10 @@
+## 0.8.0
+
+- Merge current main's startup artwork, native icon system, command search, focus/ribbon controls and selected-hole labeling with the 0.7 workspace, lazy block grid and seven-day trial.
+- Preserve installer identity, source/packaged/installed checks, local AI scope and signed device activation; use one 0.8.0 version throughout Windows packaging.
+- Add Mongolian brandbook, reusable SVG brand board and README logo/startup documentation.
+- Reconstruct the conflict resolution with Git CLI in CI and compare the resulting tree before building the Windows installer.
+
 ## 0.7.0
 
 - Implement native 2026 reference workspace: light/teal palette, six ribbon categories, grouped layer tree, viewport modes, lazy block table and visible local assistant.

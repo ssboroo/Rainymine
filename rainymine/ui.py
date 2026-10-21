@@ -270,10 +270,10 @@ class Window(QMainWindow):
         if self.may_discard():self.vtk.Finalize();event.accept()
         else:event.ignore()
 
-def main():
+def main(app=None,splash=None):
     import argparse
     parser=argparse.ArgumentParser();parser.add_argument('--smoke',action='store_true');parser.add_argument('--screenshot');args=parser.parse_args()
-    app=QApplication(sys.argv[:1]);app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
+    app=app or QApplication(sys.argv[:1]);app.setStyle('Fusion');app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
     from PySide6.QtGui import QFont
     app.setFont(QFont('Segoe UI',10))
     from .theme import THEME
@@ -290,15 +290,26 @@ def main():
             QMessageBox.critical(None, 'Лицензийн тохиргоо', str(exc))
             return 1
         if not license_manager.status().allowed:
+            if splash:splash.hide()
             dialog = LicenseDialog(license_manager)
             if dialog.exec() != QDialog.DialogCode.Accepted:
                 return 0
+            if splash:splash.show()
     # VTK may log renderer errors without raising Python exceptions.
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
+    if splash:splash.set_stage('Төслийн өгөгдөл болон ажлын орчныг бэлтгэж байна…')
     from .workspace import WorkspaceWorkbench
     window=WorkspaceWorkbench();window.show()
+    if args.screenshot:
+        window.resize(1440,900);QApplication.processEvents()
+    if splash:
+        splash.set_stage('3D ажлын орчин бэлэн боллоо')
+        if args.smoke:
+            assert splash.artwork_loaded, 'Startup artwork not packaged'
+            if args.screenshot:splash.grab().save(str(Path(args.screenshot).with_name('windows-startup.png')))
+        splash.finish(window)
     if license_manager is not None:
         from .license_ui import attach_licensing
         attach_licensing(window, license_manager)
@@ -306,6 +317,10 @@ def main():
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
+                window.collapse_ribbon();assert window.ribbon_collapsed;window.collapse_ribbon()
+                window.focus_workspace();assert window.focus_active;window.focus_workspace()
+                window.toggle_labels(True);assert window.labels_visible
+                window.toggle_labels(False);assert not window.labels_visible
                 from .packaged_checks import verify
                 from .viewing import named_section
                 window.change_layer('holes',{'opacity':.65})
@@ -337,6 +352,7 @@ def main():
                 window.scene.set_section((90,0,100));window.scene.set_section(None)
                 window.ribbon.setCurrentIndex(0)
                 window.toggle_view()
+                window.update_labels()
                 window.scene.view('iso')
                 window.vtk.GetRenderWindow().Render()
                 if capture is not None:

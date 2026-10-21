@@ -1,4 +1,4 @@
-#define AppVersion "0.7.0"
+#define AppVersion "0.8.0"
 [Setup]
 AppId={{9D7D9D47-CBAB-4076-85B0-4660DF0A9951}
 AppName=RAINYMINE

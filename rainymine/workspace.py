@@ -2,13 +2,16 @@
 from pathlib import Path
 import sys
 from PySide6.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex
-from PySide6.QtGui import QColor, QIcon
+from PySide6.QtGui import QColor, QIcon, QAction
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QDockWidget, QTabWidget, QSplitter, QTableView, QAbstractItemView, QHeaderView,
-    QTreeWidgetItem, QToolButton, QButtonGroup, QScrollArea, QGroupBox)
+    QTreeWidgetItem, QToolButton, QButtonGroup, QScrollArea, QGroupBox, QToolBar,
+    QPushButton, QSizePolicy, QMenu)
 from .advanced import AdvancedWorkbench
 from .workbench import icon
 from .theme import THEME
+from .icons import brand_icon, semantic_icon
+from .presentation import CommandPalette
 
 
 class BlockTableModel(QAbstractTableModel):
@@ -79,6 +82,9 @@ TEXT = {
 class WorkspaceWorkbench(AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
+        self.labels_visible = False
+        self.ribbon_collapsed = False
+        self.focus_active = False
         self._table_sync = False
         super().__init__()
         self.setStyleSheet(THEME)
@@ -97,7 +103,9 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.workspace_split.setSizes([570, 190])
         self.refresh_workspace()
         root = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
-        self.setWindowIcon(QIcon(str(root / 'assets/rainymine-brand.svg')))
+        self.setWindowIcon(brand_icon())
+        self.polish_controls()
+        self.update_labels()
 
     def build_ui(self):
         super().build_ui()
@@ -207,6 +215,8 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         <tr><td valign="top" style="color:#00b7b1;font-size:20px">③</td><td><b>Алдаа засах</b><br/><span style="color:#647b91">Асуултаа бичих эсвэл шууд заавар сонгоно.</span></td></tr>
         </table>""")
         self.support.show()
+
+        self.build_brand_controls()
 
     def build_ribbon(self):
         # Integrate advanced tools into the six categories shown in the reference.
@@ -364,7 +374,10 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self._table_sync = True
         self.block_model.set_blocks(blocks, self.project.grade_unit, self.scene.grade_max)
         self._table_sync = False
-        self.workspace_title.setText(self.project.name)
+        self.workspace_title.setText(f'{len(blocks):,} блок')
+        self.brand_project.setText(self.project.name)
+        self.brand_project.setToolTip(self.project.name)
+        self.update_labels()
         self.data_tabs.setTabText(0, f'Блок загвар · {len(blocks):,}')
         self.project_summary.setText(f'{self.project.name}\n\n{len(self.project.collars):,} цооног\n{len(self.project.assays):,} сорьц\n{len(blocks):,} блок\n\nКоординат: {self.project.crs_code or "Локал метр"}\nАгуулгын нэгж: {self.project.grade_unit}\n\nТөслийн мэдээлэл энэ самбарт локал харагдана. AI модельд төслийн өгөгдөл дамжуулахгүй.\n\nRAINY STUDIO · 90220101')
 
@@ -391,3 +404,153 @@ class WorkspaceWorkbench(AdvancedWorkbench):
                 if row < self.block_model.rowCount():
                     self.block_table.selectRow(row)
                     self.block_table.scrollTo(self.block_model.index(row, 0))
+
+
+    def build_brand_controls(self):
+        """Retain main's branded masthead, keyboard tools and manual guide."""
+        self.masthead = QToolBar('RAINYMINE', self)
+        self.masthead.setObjectName('masthead')
+        self.masthead.setMovable(False)
+        panel = QWidget()
+        panel.setObjectName('mastheadPanel')
+        row = QHBoxLayout(panel)
+        row.setContentsMargins(10, 5, 10, 5)
+        logo = QLabel()
+        logo.setPixmap(brand_icon().pixmap(30, 30))
+        row.addWidget(logo)
+        name = QLabel('RAINYMINE')
+        name.setObjectName('wordmark')
+        row.addWidget(name)
+        year = QLabel('2026')
+        year.setObjectName('projectTitle')
+        row.addWidget(year)
+        self.brand_project = QLabel()
+        self.brand_project.setTextFormat(Qt.TextFormat.PlainText)
+        self.brand_project.setObjectName('projectTitle')
+        self.brand_project.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        row.addWidget(self.brand_project, 1)
+        search = QPushButton('Үйлдэл хайх · Ctrl K')
+        search.setObjectName('commandSearch')
+        search.setIcon(icon('search'))
+        search.clicked.connect(self.command_palette)
+        row.addWidget(search)
+        badge = QLabel('ОФФЛАЙН')
+        badge.setObjectName('offlineBadge')
+        row.addWidget(badge)
+        panel.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.masthead.addWidget(panel)
+        ribbon_bar = next(bar for bar in self.findChildren(QToolBar) if bar.windowTitle() == 'Ribbon')
+        self.insertToolBar(ribbon_bar, self.masthead)
+        self.insertToolBarBreak(ribbon_bar)
+        self.ribbon.tabBarDoubleClicked.connect(lambda index: self.collapse_ribbon())
+        self.ribbon.tabBar().setToolTip('Ctrl+F1: хэрэгслийн мөр хураах / дэлгэх')
+        label_button = QToolButton()
+        label_button.setText('Шошго')
+        label_button.setIcon(icon('label'))
+        label_button.setCheckable(True)
+        label_button.toggled.connect(self.toggle_labels)
+        self.view_buttons['iso'].parentWidget().layout().insertWidget(3, label_button)
+        self.labels_button = label_button
+        self.panels_menu = self.menuBar().addMenu('Самбарууд')
+        for dock in (self.layer_dock, self.support):
+            self.panels_menu.addAction(dock.toggleViewAction())
+        self.data_action = QAction('Өгөгдлийн хүснэгт', self)
+        self.data_action.setCheckable(True)
+        self.data_action.setChecked(True)
+        self.data_action.toggled.connect(self.data_tabs.setVisible)
+        self.panels_menu.addAction(self.data_action)
+        self.action(self.panels_menu, 'Үйлдэл хайх', self.command_palette, 'Ctrl+K')
+        self.action(self.panels_menu, 'Хэрэгслийн мөр хураах / дэлгэх', self.collapse_ribbon, 'Ctrl+F1')
+        self.action(self.panels_menu, '3D төвлөрсөн горим', self.focus_workspace, 'F10')
+        guide = QWidget()
+        guide_layout = QVBoxLayout(guide)
+        for title, description, callback in (
+            ('① Өгөгдөл оруулах', 'Амсар, замнал, сорьцын CSV мэдээллээ импортлоно.', lambda: self.import_data('collars')),
+            ('② Загвар тохируулах', 'Блокийн хэмжээ, домэйн, үнэлгээний параметрээ тохируулна.', self.block_dialog),
+            ('③ Чанар шалгах', 'Сорьцын бүрхэлт, интервалын алдааг шалгана.', self.qaqc)):
+            button = QPushButton(title)
+            button.clicked.connect(lambda checked=False, fn=callback: fn())
+            guide_layout.addWidget(button)
+            note = QLabel(description)
+            note.setWordWrap(True)
+            guide_layout.addWidget(note)
+        guide_layout.addStretch()
+        self.assistant_tabs.addTab(guide, 'Эхлэх')
+
+    def polish_controls(self):
+        for button in self.findChildren(QToolButton):
+            title = button.text().replace('\n', ' ').strip()
+            if title:
+                button.setAccessibleName(title)
+                if not button.toolTip():
+                    button.setToolTip(title)
+                button.setIcon(semantic_icon(button.text(), button.icon()))
+        self.workspace_title.setTextFormat(Qt.TextFormat.PlainText)
+        self.search.setClearButtonEnabled(True)
+        self.search.setAccessibleName('Цооногийн нэрээр хайх')
+        self.search.addAction(icon('search'), self.search.ActionPosition.LeadingPosition)
+
+    def update_labels(self):
+        for scene in (getattr(self, 'scene', None), getattr(self, 'secondary', None)):
+            if scene:
+                visible = scene.actors.get('holes') and scene.actors['holes'].GetVisibility() and scene.section is None
+                for label in scene.labels:
+                    label.SetVisibility(bool(visible and (self.labels_visible or label.GetInput() == scene.selected_hole)))
+                    label.GetTextProperty().SetOrientation(0)
+                scene.window.Render()
+
+    def toggle_labels(self, value):
+        self.labels_visible = value
+        self.update_labels()
+
+    def show_hole(self, name):
+        super().show_hole(name)
+        if self._workspace_ready:
+            self.update_labels()
+
+    def update_section(self, *args):
+        super().update_section(*args)
+        if self._workspace_ready:
+            self.update_labels()
+
+    def change_layer(self, key, changes):
+        super().change_layer(key, changes)
+        if self._workspace_ready:
+            self.update_labels()
+
+    def collapse_ribbon(self):
+        self.ribbon_collapsed = not self.ribbon_collapsed
+        self.ribbon.setFixedHeight(36 if self.ribbon_collapsed else 132)
+
+    def focus_workspace(self):
+        items = (self.layer_dock, self.support, self.data_tabs, self.ribbon)
+        if not self.focus_active:
+            self._focus_visibility = [not item.isHidden() for item in items]
+            for item in items:
+                item.hide()
+        else:
+            for item, visible in zip(items, self._focus_visibility):
+                item.setVisible(visible)
+        self.focus_active = not self.focus_active
+
+    def command_palette(self):
+        entries = []
+        seen = set()
+        for button in self.ribbon.findChildren(QToolButton):
+            title = button.text().replace('\n', ' ').strip()
+            if title and title not in seen:
+                seen.add(title)
+                entries.append((title, button.click, button.isEnabled()))
+        for action in self.findChildren(QAction):
+            title = action.text().replace('&', '').strip()
+            if title and title not in seen and not action.isSeparator():
+                seen.add(title)
+                entries.append((title, action.trigger, action.isEnabled()))
+        CommandPalette(self, entries).exec()
+
+    def createPopupMenu(self):
+        menu = QMenu(self)
+        for dock in (self.layer_dock, self.support):
+            menu.addAction(dock.toggleViewAction())
+        menu.addAction(self.data_action)
+        return menu

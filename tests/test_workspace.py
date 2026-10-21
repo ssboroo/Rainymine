@@ -88,3 +88,37 @@ class WorkspaceLayoutTests(unittest.TestCase):
         self.assertIn('Блок #0', window.picked_info.text())
         window.focus_search()
         self.assertEqual(window.project_pages.currentIndex(), 1)
+
+    def test_brand_controls_preserve_panel_visibility(self):
+        window = self.make_window()
+        self.assertEqual(window.assistant_tabs.count(), 3)
+        self.assertEqual(window.brand_project.text(), window.project.name)
+        self.assertFalse(window.windowIcon().isNull())
+        window.support.hide()
+        window.focus_workspace()
+        self.assertTrue(window.layer_dock.isHidden())
+        self.assertTrue(window.data_tabs.isHidden())
+        window.focus_workspace()
+        self.assertFalse(window.layer_dock.isHidden())
+        self.assertFalse(window.data_tabs.isHidden())
+        self.assertTrue(window.support.isHidden())
+        window.collapse_ribbon()
+        self.assertEqual(window.ribbon.height(), 36)
+        window.collapse_ribbon()
+        self.assertEqual(window.ribbon.height(), 132)
+
+    def test_labels_toggle_matches_scene_and_section(self):
+        window = self.make_window()
+        window.toggle_labels(True)
+        self.assertTrue(window.labels_visible)
+        for label in window.scene.labels:
+            self.assertEqual(bool(label.GetVisibility()),
+                             bool(window.scene.actors['holes'].GetVisibility()))
+        window.change_workspace_view('section')
+        for label in window.scene.labels:
+            self.assertFalse(label.GetVisibility())
+        window.change_workspace_view('iso')
+        window.toggle_labels(False)
+        for label in window.scene.labels:
+            if label.GetInput() != window.scene.selected_hole:
+                self.assertFalse(label.GetVisibility())

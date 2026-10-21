@@ -73,7 +73,8 @@ def prepare(root, dist):
         for path in sorted((root / 'release').glob('*')):
             if path.is_file():
                 archive.write(path, 'release/' + path.name)
-        for name in ('README.md', 'CHANGELOG.md', 'ACCEPTANCE.md', 'MICROMINE_SCOPE.md'):
+        for name in ('README.md', 'CHANGELOG.md', 'ACCEPTANCE.md', 'MICROMINE_SCOPE.md', 'DESIGN.md', 'docs/BRANDBOOK.mn.md',
+                     'assets/brandbook.svg', 'assets/brandmark.png', 'assets/splash.jpg'):
             if (root / name).is_file():
                 archive.write(root / name, name)
         for path in sorted(list((root / 'assets').glob('*LICENSE*')) + list((root / 'assets').glob('*NOTICES*'))):

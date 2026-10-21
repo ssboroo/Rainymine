@@ -2,7 +2,7 @@
 
 ## Автомат баримт
 
-- [ ] 0.7.0-ийн тухайн commit дээр бүх автомат тест амжилттай.
+- [ ] 0.8.0-ийн тухайн commit дээр бүх автомат тест амжилттай.
 - [ ] Source desktop, packaged EXE, installed EXE ба бодит local model smoke тухайн build дээр амжилттай.
 - [ ] Release workflow тухайн commit, tree, run ID, ZIP/EXE бүтэц, model hash-ийг бүртгэж баталсан.
 - [ ] Гурван бинар файл, release kit, SHA256SUMS, manifest draft-д байршсан.
