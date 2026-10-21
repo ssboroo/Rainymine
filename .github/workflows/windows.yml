@@ -45,7 +45,7 @@ jobs:
         shell: pwsh
         run: |
           $dest = Join-Path $env:RUNNER_TEMP 'RainymineInstalled'
-          $setup = Start-Process '.\dist\Rainymine-0.3.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
+          $setup = Start-Process '.\dist\Rainymine-0.4.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
           if (-not $setup.WaitForExit(60000)) { $setup.Kill(); throw 'Install timed out' }
           if ($setup.ExitCode -ne 0) { throw 'Install failed' }
           $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
@@ -55,8 +55,8 @@ jobs:
         with:
           name: Rainymine-Windows-x64
           path: |
-            dist/Rainymine-0.3.0-Windows-x64.zip
-            dist/Rainymine-0.3.0-Setup-x64.exe
+            dist/Rainymine-0.4.0-Windows-x64.zip
+            dist/Rainymine-0.4.0-Setup-x64.exe
             windows-smoke.png
           if-no-files-found: error
       - name: Upload diagnostic logs

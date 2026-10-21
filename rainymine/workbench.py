@@ -95,7 +95,7 @@ class Workbench(Window):
         if not self.project.name.startswith('ЖИШЭЭ'):return
         for h in self.project.collars:
             self.project.lithology.extend([Lithology(h.hole_id,0,h.depth*.35,'Хурдас'),Lithology(h.hole_id,h.depth*.35,h.depth*.7,'Хүдэржилт'),Lithology(h.hole_id,h.depth*.7,h.depth,'Боржин')])
-        self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[25,25,25],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
+        self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[50,50,50],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
         self.project.workspace['block_display']='slices'
         self.layer_checks['surface'].setChecked(False)
     def build_ui(self):
@@ -201,8 +201,8 @@ class Workbench(Window):
             path=self.destination(title,'csv')
             if path:self.guard(lambda:write_records(path,rows,columns))
         dlg.box.accepted.connect(save);dlg.exec()
-    def import_data(self,kind):
-        path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
+    def import_data(self,kind,path=None):
+        if path is None:path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
         if not path:return
         def run():
             headers,preview,delimiter=csv_preview(path);dlg=QDialog(self);dlg.setWindowTitle('Импортын багана тохируулах');dlg.resize(760,520);layout=QVBoxLayout(dlg);form=QFormLayout();selectors={}
@@ -315,9 +315,9 @@ class Workbench(Window):
         meshes=self.project.workspace.get('meshes',[]);i=self.choose('Mesh топологи',[m['name'] for m in meshes])
         if i is not None:self.guard(lambda:self.show_rows('Mesh — self-intersection хараахан шалгахгүй',[mesh_report(meshes[i])]))
     def estimator_params(self):
-        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
+        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging','nearest','simple_kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'IDW power':2,'Nugget':0,'Partial sill':1,'Known mean (SK)':0,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
         if not result:return None
-        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'known_mean':float(result['Known mean (SK)']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
     def block_dialog(self):
         def run():
             parameters=self.estimator_params()

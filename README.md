@@ -1,4 +1,16 @@
-# RAINYMINE 0.3.0 — Монгол оффлайн 3D уул уурхайн workbench
+# RAINYMINE 0.4 — шинэ боломжууд
+
+Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
+
+`Загвар / оновчлол` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
+
+- **RBF:** композитын агуулгын linear RBF interpolation + cutoff isosurface. 4–10000 support, 5–60 grid resolution; сонгосон bounds дотор extrapolation хийнэ. Fault, stratigraphy, signed-distance constraint болон автомат геологийн solid баталгаа байхгүй.
+- **Pit:** undiscounted maximum closure-ийг HiGHS binary MILP solver-оор бодно. Блок бүрийн олборлолтын зардал, боловсруулах зардал, recovery, price болон налуугийн precedence орно. Price = нэг project grade-unit × тонн тутмын мөнгө; хувь, g/t хөрвүүлэлт автоматаар хийхгүй. 5000 хүртэл ижил хэмжээтэй, бүрэн тэгш өнцөгт parent grid; бүх grade шаардлагатай. Conservative square next-level slope stencil; model-ийн гаднах stripping орохгүй. Ramps/pushbacks, scheduling/NPV болон Whittle benchmark биш.
+- **Excel:** `.xlsx`, sheet нэр, багана mapping; formula/error cell-ийг татгалзана. `.xls`, `.xlsm` дэмжихгүй.
+- **STL:** ASCII/binary triangle import, double-precision ASCII export. STL-д CRS/нэгжийн metadata байхгүй; project metre гэж хэрэглэгч шалгана. Binary STL эх координат float32 нарийвчлалтай.
+- **Geobank SQL:** Windows ODBC + integrated authentication; site-specific canonical views ба snapshot transaction. [Тохиргоо](GEOBANK_SQL.md). Интернэт шаардлагагүй; SQL сервер тухайн сүлжээнд хүртээмжтэй байна. Бодит байгууллагын серверийн acceptance тест хүлээгдэж байгаа.
+
+# RAINYMINE 0.4.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэл, API key шаардахгүй. Суулгасан EXE нь Python шаардахгүй. Эх кодын dependency таталт болон Windows build-д интернэт хэрэгтэй.
 
@@ -8,10 +20,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.3.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.4.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх амжилттай 0.1.0 artifact нь шинэ 0.3.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх амжилттай 0.1.0 artifact нь шинэ 0.4.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 

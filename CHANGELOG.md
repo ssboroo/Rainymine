@@ -1,3 +1,15 @@
+## 0.4.0
+
+- RBF grade isosurface, economic maximum-closure pit, exposed voxel envelope; UI, project persistence.
+- XLSX mapping workflow; ASCII/binary STL; read-only SQL Server canonical-view adapter.
+- Windows source/frozen/installed smoke exercises RBF, HiGHS, Excel, STL, pyodbc load and actual 3D meshes.
+- Geobank live server, proprietary mining formats, fault-aware solid, engineering optimization benchmark remain external acceptance gates.
+
+## Геостатистикийн нэмэлт (хөгжүүлэлт)
+
+- Nearest Neighbour, spherical covariance Simple Kriging; SK known mean-ийг хэрэглэгч тодорхойлно.
+- Point-support тооцоо; нөөцийн ангилал, мэргэжлийн баталгаажуулалт агуулаагүй.
+
 # Өөрчлөлтийн түүх
 
 ## 0.3.0 — 2026-10-21

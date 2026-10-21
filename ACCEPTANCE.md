@@ -1,3 +1,11 @@
+## 0.4 external acceptance
+
+- RBF analytic symmetric-plane test, maximum closure exhaustive subset comparison, stripping/lateral-slope tests, Excel/STL round-trip and SQL transaction tests are automated.
+- Windows source, packaged and installed app smoke must exercise RBF/HiGHS/Excel/STL/pyodbc; this is CI VM evidence, not physical-device certification.
+- Site Geobank database: pending DBA views, DSN, snapshot isolation and anonymized reference export (see GEOBANK_SQL.md).
+- DWG/Datamine/Surpac/Vulcan binary adapters are not implemented. Vendor specs/licensing and representative files remain required; no extension-only import claim.
+- RBF grade isosurface is not a fault-constrained geological solid. Pit scenario is not a certified engineering design or Whittle/LG product implementation.
+
 # RAINYMINE — хүлээн авах шалгалтын төлөв
 
 ## Автомат шалгалт

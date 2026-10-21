@@ -44,7 +44,10 @@ class Estimator:
         self.radii=radii;self.origin=self.xyz[0];self.tree=cKDTree((self.xyz-self.origin)/radii)
         self.k=int(params.get('neighbors',12));self.minimum=int(params.get('minimum',3));self.method=params.get('method','idw');self.power=float(params.get('power',2))
         finite(self.power)
-        if self.method not in ('idw','kriging') or not 1<=self.minimum<=self.k<=64 or self.power<=0:raise ValueError('Estimator тохиргоо буруу.')
+        if self.method not in ('idw','kriging','nearest','simple_kriging') or not 1<=self.minimum<=self.k<=64 or self.power<=0:raise ValueError('Estimator тохиргоо буруу.')
+        self.mean=float(params.get('known_mean',0))
+        finite(self.mean)
+        if self.method=='simple_kriging' and 'known_mean' not in params:raise ValueError('Simple kriging-д хараат бусаар тогтоосон known_mean шаардлагатай.')
         self.variogram=(float(params.get('nugget',0)),float(params.get('partial_sill',1)),float(params.get('range_m',100)))
         gamma_spherical(1,*self.variogram)
 
@@ -53,13 +56,30 @@ class Estimator:
         if point.shape!=(3,) or not np.isfinite(point).all():raise ValueError('Target цэг буруу.')
         candidate=self.tree.query_ball_point((point-self.origin)/self.radii,1.)
         candidate=[i for i in candidate if i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
-        candidate=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point)/self.radii)),i))[:self.k]
+        candidate=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point)/(1 if self.method=='nearest' else self.radii))),i))[:self.k]
         if len(candidate)<self.minimum:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
         xyz=self.xyz[candidate];values=self.values[candidate];d=np.linalg.norm(xyz-point,axis=1)
         exact=np.flatnonzero(d<1e-9)
-        if len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method=='kriging' else None,'neighbors':len(candidate),'status':'exact_sample'}
-        if self.method=='idw':
+        if len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method in ('kriging','simple_kriging') else None,'neighbors':len(candidate),'status':'exact_sample'}
+        if self.method=='nearest':
+            # Search uses ellipsoid distance; nearest grade uses physical metres.
+            nearest=min(candidate,key=lambda i:(float(np.linalg.norm(self.xyz[i]-point)),i))
+            grade=float(self.values[nearest]);variance=None
+        elif self.method=='idw':
             weights=(d.min()/d)**self.power;grade=float(np.dot(weights,values)/weights.sum());variance=None
+        elif self.method=='simple_kriging':
+            distances=np.linalg.norm(xyz[:,None,:]-xyz[None,:,:],axis=2);n=len(candidate)
+            sill=sum(self.variogram[:2])
+            covariance=sill-gamma_spherical(distances,*self.variogram)
+            rhs=sill-gamma_spherical(d,*self.variogram)
+            try:
+                if np.linalg.cond(covariance)>1e12:raise np.linalg.LinAlgError('ill-conditioned')
+                weights=np.linalg.solve(covariance,rhs)
+            except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,'status':'singular_kriging_system'}
+            grade=float(self.mean+np.dot(weights,values-self.mean))
+            variance=float(sill-np.dot(weights,rhs))
+            if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,'status':'invalid_variance'}
+            variance=max(0.,variance)
         else:
             distances=np.linalg.norm(xyz[:,None,:]-xyz[None,:,:],axis=2);n=len(candidate)
             matrix=np.ones((n+1,n+1));matrix[:n,:n]=gamma_spherical(distances,*self.variogram);matrix[n,n]=0
