@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QDockWidget,QWidget,QVBoxLayout,QHBoxLayout,QLabel
 from .local_engine import LocalEngine,default_paths,install_assets
 from .local_support import answer,candidates,OUT_OF_SCOPE
 from .support_knowledge import TOPICS
+from .i18n import language
+from .local_support import out_of_scope
 
 
 class SupportWorker(QThread):
@@ -71,21 +73,21 @@ class SupportDock(QDockWidget):
         if not index:return
         from .local_support import render_selection
         import json
-        topic=TOPICS[index-1];text,self.previous=render_selection(json.dumps({'topic_ids':[topic['id']]}),[topic])
+        topic=TOPICS[index-1];text,self.previous=render_selection(json.dumps({'topic_ids':[topic['id']]}),[topic],language())
         self.append('Rainymine заавар',text)
     def ask(self):
         if self.busy():return
         question=self.question.text().strip()
         if not question:return
         self.question.clear();self.append('Та',question)
-        if not candidates(question,self.previous):self.append('Туслах',OUT_OF_SCOPE);return
+        if not candidates(question,self.previous):self.append('Assistant' if language()=='en' else 'Туслах',out_of_scope(language()));return
         if self.engine is None:self.engine=LocalEngine(self.engine_path,self.model_path)
-        engine=self.engine;previous=self.previous
+        engine=self.engine;previous=self.previous;locale=language()
         def run(worker):
             worker.progress.emit('Local model ачаалж байна…');engine.start(worker.cancelled.is_set)
             if worker.cancelled.is_set():raise RuntimeError('AI асуултыг цуцаллаа.')
             worker.progress.emit('Rainymine-ийн тохирох зааврыг сонгож байна…')
-            return answer(question,engine,previous)
+            return answer(question,engine,previous,locale)
         def done(result):
             text,self.previous=result;self.append('Local AI туслах',text);self.status.setText('Local model ажиллаж байна. Зогсоох товч RAM чөлөөлнө.')
         self.start_worker(run,done)

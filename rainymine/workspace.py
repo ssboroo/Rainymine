@@ -1,17 +1,19 @@
 """Native 2026 workspace: live layers, viewport modes, block grid and local assistant."""
 from pathlib import Path
 import sys
-from PySide6.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex
+from PySide6.QtCore import Qt, QSize, QAbstractTableModel, QModelIndex, QSettings, QTimer
 from PySide6.QtGui import QColor, QIcon, QAction
 from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QDockWidget, QTabWidget, QSplitter, QTableView, QAbstractItemView, QHeaderView,
     QTreeWidgetItem, QToolButton, QButtonGroup, QScrollArea, QGroupBox, QToolBar,
+    QComboBox, QDialog, QListWidget, QListWidgetItem, QLineEdit, QFormLayout,
     QPushButton, QSizePolicy, QMenu)
 from .advanced import AdvancedWorkbench
 from .workbench import icon
 from .theme import THEME
 from .icons import brand_icon, semantic_icon
 from .presentation import CommandPalette
+from .i18n import tr, language, set_language, UiLocalizer
 
 
 class BlockTableModel(QAbstractTableModel):
@@ -38,8 +40,8 @@ class BlockTableModel(QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal:
-                return ['Дугаар', 'Зүүн (м)', 'Хойд (м)', 'Өндөр (м)',
-                        'Агуулга (' + self.unit + ')', 'Нягт (т/м³)', 'Чулуулаг'][section]
+                return tr(['Дугаар', 'Зүүн (м)', 'Хойд (м)', 'Өндөр (м)',
+                        'Агуулга (' + self.unit + ')', 'Нягт (т/м³)', 'Чулуулаг'][section])
             return str(section + 1)
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
@@ -88,7 +90,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self._table_sync = False
         super().__init__()
         self.setStyleSheet(THEME)
-        self.setMinimumSize(1180, 740)
+        self.setMinimumSize(1080, 720)
         screen = QApplication.primaryScreen()
         available = screen.availableGeometry() if screen else None
         self.resize(min(1600, max(1180, available.width()-24)) if available else 1600,
@@ -97,15 +99,36 @@ class WorkspaceWorkbench(AdvancedWorkbench):
             scene.renderer.SetBackground(.82, .90, .95)
             scene.renderer.SetBackground2(.97, .99, 1.)
             scene.renderer.GradientBackgroundOn()
+        for scene in (self.scene, self.secondary):
+            scene.configure_presentation()
         self._workspace_ready = True
         self.support.show()
-        self.resizeDocks([self.layer_dock, self.support], [255, 320], Qt.Orientation.Horizontal)
+        self.resizeDocks([self.layer_dock, self.support], [235, 285], Qt.Orientation.Horizontal)
         self.workspace_split.setSizes([570, 190])
         self.refresh_workspace()
         root = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
         self.setWindowIcon(brand_icon())
+        self.tool_catalog = {b.property('commandSource'): b for i in range(self.ribbon.count()) for b in self.ribbon.widget(i).findChildren(QToolButton) if b.property('commandSource')}
         self.polish_controls()
         self.update_labels()
+        if self.project.name.startswith('ЖИШЭЭ'):
+            self.display_buttons['Тасалж харах'].setChecked(True)
+            self.toggle_cutaway(True)
+        self.localizer = UiLocalizer(self)
+        self.set_language(QSettings('Rainy Studio', 'RAINYMINE').value('ui/language', 'mn'), persist=False)
+
+    def enrich_demo(self):
+        super().enrich_demo()
+        if self.project.name.startswith('ЖИШЭЭ'):
+            from .domains import fault_patch
+            model = self.project.workspace['block_model']
+            self.project.workspace['block_display'] = 'blocks'
+            self.layer_checks['surface'].setChecked(True)
+            bounds = model['bounds']
+            fault = {'name': 'DEMO F1', 'point': [(bounds[i]+bounds[i+3])/2 for i in range(3)],
+                     'normal': [1., .35, .15]}
+            self.project.workspace.setdefault('meshes', []).append(fault_patch(fault, 240))
+            # This plane is a visual example, not a fault constraint on estimated grades.
 
     def build_ui(self):
         super().build_ui()
@@ -125,8 +148,8 @@ class WorkspaceWorkbench(AdvancedWorkbench):
             self.removeDockWidget(dock)
             self.project_pages.addTab(panel, title)
         self.layer_dock.setWidget(self.project_pages)
-        self.layer_dock.setWindowTitle('ТӨСЛИЙН ДАВХАРГУУД')
-        self.layer_dock.setMinimumWidth(245)
+        self.layer_dock.setWindowTitle('Төслийн өгөгдөл')
+        self.layer_dock.setMinimumWidth(215)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.layer_dock)
         self.layer_list.setHeaderLabels(['Давхарга', 'Элемент'])
         self.layer_list.header().setStretchLastSection(False)
@@ -155,7 +178,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.view_group = QButtonGroup(self)
         self.view_group.setExclusive(True)
         self.view_buttons = {}
-        for mode, title in (('iso', 'Гурван хэмжээст'), ('section', 'Огтлол'), ('top', 'Төлөвлөгөө')):
+        for mode, title in (('iso', '3D'), ('section', 'Огтлол'), ('top', 'Төлөвлөгөө')):
             button = QToolButton()
             button.setText(title)
             button.setCheckable(True)
@@ -201,8 +224,8 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.project_summary.setMargin(15)
         self.assistant_tabs.addTab(self.project_summary, 'Төсөл')
         self.support.setWidget(self.assistant_tabs)
-        self.support.setWindowTitle('ХИЙМЭЛ ОЮУНЫ ТУСЛАХ')
-        self.support.setMinimumWidth(295)
+        self.support.setWindowTitle('Локал туслах')
+        self.support.setMinimumWidth(270)
         self.support.setMaximumWidth(420)
         note = help_panel.layout().itemAt(0).widget()
         note.setToolTip(note.text())
@@ -217,6 +240,8 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.support.show()
 
         self.build_brand_controls()
+        self.build_inspector()
+        self.build_view_tools()
 
     def build_ribbon(self):
         # Integrate advanced tools into the six categories shown in the reference.
@@ -270,6 +295,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         old.deleteLater()
         for button in self.ribbon.findChildren(QToolButton):
             button.setText(TEXT.get(button.text(), button.text()))
+            button.setProperty('commandSource', button.text())
         for group in self.ribbon.findChildren(QGroupBox):
             group.setTitle({'DTM / Solid': 'Гадарга / Биет', 'Загварын prototype': 'Туршилтын загвар'}.get(group.title(), group.title()))
         # Horizontal scrolling retains every tool on narrow screens.
@@ -343,7 +369,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.layer_list.clear()
         groups = {}
         for title in ('Төслийн өгөгдөл', 'Цооногууд', 'Блок загвар', 'Геометр / Уурхай'):
-            group = QTreeWidgetItem([title, ''])
+            group = QTreeWidgetItem([tr(title), ''])
             self.layer_list.addTopLevelItem(group)
             groups[title] = group
         current = None
@@ -352,7 +378,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
                 continue
             name = 'Цооногууд' if key in ('holes', 'collars') else 'Блок загвар' if key == 'blocks' else 'Төслийн өгөгдөл' if key == 'surface' else 'Геометр / Уурхай'
             source = self.scene.sources.get(key)
-            item = QTreeWidgetItem([self.layer_name(key), str(source.GetNumberOfCells() if source else 0)])
+            item = QTreeWidgetItem([tr(self.layer_name(key)), str(source.GetNumberOfCells() if source else 0)])
             item.setData(0, Qt.ItemDataRole.UserRole, key)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(0, Qt.CheckState.Checked if actor.GetVisibility() else Qt.CheckState.Unchecked)
@@ -374,11 +400,15 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self._table_sync = True
         self.block_model.set_blocks(blocks, self.project.grade_unit, self.scene.grade_max)
         self._table_sync = False
-        self.workspace_title.setText(f'{len(blocks):,} блок')
+        self.workspace_title.setText(tr(f'{len(blocks):,} блок'))
         self.brand_project.setText(self.project.name)
         self.brand_project.setToolTip(self.project.name)
         self.update_labels()
-        self.data_tabs.setTabText(0, f'Блок загвар · {len(blocks):,}')
+        self.apply_view_preferences()
+        if language()=='en':self.update_english_summary()
+        if hasattr(self, 'localizer'):
+            self.localizer.apply(self)
+        self.data_tabs.setTabText(0, tr(f'Блок загвар · {len(blocks):,}'))
         self.project_summary.setText(f'{self.project.name}\n\n{len(self.project.collars):,} цооног\n{len(self.project.assays):,} сорьц\n{len(blocks):,} блок\n\nКоординат: {self.project.crs_code or "Локал метр"}\nАгуулгын нэгж: {self.project.grade_unit}\n\nТөслийн мэдээлэл энэ самбарт локал харагдана. AI модельд төслийн өгөгдөл дамжуулахгүй.\n\nRAINY STUDIO · 90220101')
 
     def block_row_selected(self, index):
@@ -388,6 +418,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.picked_info.setText(f'Блок #{index.row()}\nX {block["x"]:,.2f}  Y {block["y"]:,.2f}\nZ {block["z"]:,.2f}\nАгуулга: {block.get("grade")} {self.project.grade_unit}')
         self.active_layer = 'blocks'
         self.refresh_layers()
+        self.show_block_properties(index.row())
 
     def on_click(self, obj, event):
         super().on_click(obj, event)
@@ -402,6 +433,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
             if info and 'block_index' in info:
                 row = info['block_index']
                 if row < self.block_model.rowCount():
+                    self.show_block_properties(row)
                     self.block_table.selectRow(row)
                     self.block_table.scrollTo(self.block_model.index(row, 0))
 
@@ -418,7 +450,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         logo = QLabel()
         logo.setPixmap(brand_icon().pixmap(30, 30))
         row.addWidget(logo)
-        name = QLabel('RAINYMINE')
+        name = QLabel('RAINY<span style="color:#00a8ad">MINE</span>')
         name.setObjectName('wordmark')
         row.addWidget(name)
         year = QLabel('2026')
@@ -426,6 +458,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         row.addWidget(year)
         self.brand_project = QLabel()
         self.brand_project.setTextFormat(Qt.TextFormat.PlainText)
+        self.brand_project.setProperty('userText', True)
         self.brand_project.setObjectName('projectTitle')
         self.brand_project.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         row.addWidget(self.brand_project, 1)
@@ -434,6 +467,15 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         search.setIcon(icon('search'))
         search.clicked.connect(self.command_palette)
         row.addWidget(search)
+        self.language_combo = QComboBox()
+        self.language_combo.setObjectName('languageSelector')
+        self.language_combo.setAccessibleName('Language / Хэл')
+        self.language_combo.addItem('Монгол', 'mn');self.language_combo.addItem('English', 'en')
+        self.language_combo.activated.connect(lambda index: self.set_language(self.language_combo.itemData(index)))
+        row.addWidget(self.language_combo)
+        all_tools = QPushButton('Бүх хэрэгсэл')
+        all_tools.setIcon(icon('grid'));all_tools.clicked.connect(self.open_tool_library)
+        row.addWidget(all_tools)
         badge = QLabel('ОФФЛАЙН')
         badge.setObjectName('offlineBadge')
         row.addWidget(badge)
@@ -454,6 +496,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.panels_menu = self.menuBar().addMenu('Самбарууд')
         for dock in (self.layer_dock, self.support):
             self.panels_menu.addAction(dock.toggleViewAction())
+        self.action(self.panels_menu, 'Бүх хэрэгсэл', self.open_tool_library, 'Ctrl+Shift+P')
         self.data_action = QAction('Өгөгдлийн хүснэгт', self)
         self.data_action.setCheckable(True)
         self.data_action.setChecked(True)
@@ -554,3 +597,140 @@ class WorkspaceWorkbench(AdvancedWorkbench):
             menu.addAction(dock.toggleViewAction())
         menu.addAction(self.data_action)
         return menu
+
+    def build_inspector(self):
+        # The assistant remains live; the inspector uses the same selected block as the grid.
+        panel = QWidget()
+        layout = QVBoxLayout(panel);layout.setContentsMargins(0,0,0,0)
+        layout.addWidget(self.assistant_tabs, 3)
+        group = QGroupBox('Сонгосон блокийн шинж')
+        self.inspector_form = QFormLayout(group)
+        self.inspector_values = {}
+        for key, title in (('index','Дугаар'),('x','Зүүн (м)'),('y','Хойд (м)'),
+                           ('z','Өндөр (м)'),('grade','Агуулга'),('density','Нягт (т/м³)'),
+                           ('domain','Домэйн'),('dimensions','Тор')):
+            value = QLabel('—');value.setTextFormat(Qt.TextFormat.PlainText)
+            value.setProperty('userText', True);value.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+            self.inspector_values[key] = value
+            self.inspector_form.addRow(title, value)
+        layout.addWidget(group, 1)
+        self.support.setWidget(panel)
+
+    def show_block_properties(self, row):
+        if not 0 <= row < self.block_model.rowCount():
+            return
+        block = self.block_model.blocks[row]
+        fields = dict(block, index=row+1,
+                      dimensions=' × '.join(f'{block.get(k, 0):g}' for k in ('dx','dy','dz'))+' m')
+        for key, label in self.inspector_values.items():
+            value = fields.get(key)
+            label.setText('—' if value is None else f'{value:,.3f}' if isinstance(value,(int,float)) and key!='index' else str(value))
+
+    def build_view_tools(self):
+        bar = self.view_buttons['iso'].parentWidget().layout()
+        self.display_buttons = {}
+        for text, kind, callback in (
+            ('Тор', 'grid', self.toggle_coordinate_grid),
+            ('Тасалж харах', 'section', self.toggle_cutaway),
+            ('Блокийн ирмэг', 'cube', self.toggle_block_edges),
+            ('Камер сэргээх', 'expand', lambda value=False: self.scene.reset())):
+            button = QToolButton();button.setText(text);button.setToolTip(text)
+            button.setIcon(icon(kind));button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
+            button.setCheckable(text != 'Камер сэргээх')
+            button.setChecked(text in ('Тор','Блокийн ирмэг'))
+            button.clicked.connect(callback)
+            bar.insertWidget(bar.count()-1, button)
+            self.display_buttons[text] = button
+            self.action(self.panels_menu, text, button.click)
+        self.status_contact = QLabel('RAINY STUDIO · 90220101')
+        self.statusBar().addPermanentWidget(self.status_contact)
+
+    def toggle_coordinate_grid(self, value):
+        for scene in (self.scene,self.secondary):
+            if scene and scene.coordinate_grid:
+                scene.coordinate_grid.SetVisibility(value);scene.window.Render()
+
+    def toggle_cutaway(self, value):
+        for scene in (self.scene,self.secondary):
+            if scene:scene.set_cutaway(value)
+
+    def toggle_block_edges(self, value):
+        for scene in (self.scene,self.secondary):
+            if scene and 'blocks' in scene.actors:
+                scene.actors['blocks'].GetProperty().SetEdgeVisibility(value);scene.window.Render()
+
+    def tool_entries(self):
+        entries = [];seen=set()
+        for index in range(self.ribbon.count()):
+            category = self.ribbon.tabText(index)
+            for button in self.ribbon.widget(index).findChildren(QToolButton):
+                title = button.text().replace('\n',' ').strip()
+                if title and title not in seen:
+                    entries.append((category, title, button.click, button.isEnabled(), button.icon()))
+                    seen.add(title)
+        return entries
+
+    def open_tool_library(self):
+        dialog = QDialog(self);dialog.setWindowTitle(tr('Бүх хэрэгсэл'));dialog.resize(760,620)
+        layout = QVBoxLayout(dialog)
+        search = QLineEdit();search.setPlaceholderText(tr('Үйлдэл хайх'));layout.addWidget(search)
+        tools = QListWidget();layout.addWidget(tools,1)
+        entries = self.tool_entries()
+        for index,(category,title,callback,enabled,tool_icon) in enumerate(entries):
+            item = QListWidgetItem(tool_icon, category+'  /  '+title)
+            item.setData(Qt.ItemDataRole.UserRole,index)
+            if not enabled:item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
+            tools.addItem(item)
+        def filter_items(query):
+            for i in range(tools.count()):
+                tools.item(i).setHidden(query.casefold() not in tools.item(i).text().casefold())
+        search.textChanged.connect(filter_items)
+        def launch(item):
+            callback=entries[item.data(Qt.ItemDataRole.UserRole)][2]
+            dialog.accept();QTimer.singleShot(0,callback)
+        tools.itemActivated.connect(launch)
+        dialog.exec()
+
+    def set_language(self, code, persist=True):
+        if code not in ('mn','en'):code='mn'
+        set_language(code, self, persist=persist)
+        from .support_knowledge import TOPICS
+        from .support_knowledge_en import localize
+        for index,topic in enumerate(TOPICS,1):self.support.manual.setItemText(index,localize(topic,code)['title'])
+        self.support.manual.setItemText(0,tr('Зааврыг шууд үзэх — модель шаардахгүй'))
+        self.language_combo.setCurrentIndex(self.language_combo.findData(code))
+        self.block_model.headerDataChanged.emit(Qt.Orientation.Horizontal,0,6)
+        self.refresh_layers()
+        if self._workspace_ready:self.refresh_workspace()
+        # The initial reviewed guide is static; user conversations are never rewritten.
+        if not self.support.previous:
+            self.support.chat.setPlainText(
+                'Welcome to RAINYMINE.\n\n1. Import collars → surveys → assays.\n2. Check coordinates and units before estimation.\n3. Use All tools or Ctrl+K to find any command.\n\nLocal assistant: application support only. No project data is sent to a cloud service.'
+                if code=='en' else
+                'RAINYMINE-д тавтай морил.\n\n1. Амсар → замнал → сорьц дарааллаар импортлоно.\n2. Үнэлгээний өмнө координат, нэгжээ шалгана.\n3. Бүх хэрэгсэл эсвэл Ctrl+K-ээр хэрэгслээ хайна.\n\nЛокал туслах зөвхөн программын заавар өгнө. Төслийн өгөгдлийг үүлэн үйлчилгээ рүү илгээхгүй.')
+        if code=='en':
+            blocks=self.project.workspace.get('block_model',{}).get('blocks',[])
+            self.project_summary.setText(f'{self.project.name}\n\n{len(self.project.collars):,} drillholes\n{len(self.project.assays):,} assays\n{len(blocks):,} blocks\n\nCRS: {self.project.crs_code or "Local metres"}\nGrade unit: {self.project.grade_unit}\n\nProject data stays local and is never passed to the assistant model.\n\nRAINY STUDIO · 90220101')
+        for scene in (self.scene,self.secondary):
+            if scene:
+                scene.legend.SetTitle(('Grade ' if code=='en' else 'Агуулга ')+self.project.grade_unit)
+                scene.window.Render()
+
+    def apply_view_preferences(self):
+        if not hasattr(self, 'display_buttons'):
+            return
+        grid = self.display_buttons['Тор'].isChecked()
+        edges = self.display_buttons['Блокийн ирмэг'].isChecked()
+        for scene in (self.scene, self.secondary):
+            if not scene:continue
+            if scene.coordinate_grid:scene.coordinate_grid.SetVisibility(grid)
+            if 'blocks' in scene.actors:scene.actors['blocks'].GetProperty().SetEdgeVisibility(edges)
+
+    def layer_selected(self, item, *args):
+        if item is None or item.data(0, Qt.ItemDataRole.UserRole) is None:
+            return
+        super().layer_selected(item, *args)
+
+    def update_english_summary(self):
+        blocks=self.project.workspace.get('block_model',{}).get('blocks',[])
+        self.project_summary.setText(f'{self.project.name}\n\n{len(self.project.collars):,} drillholes\n{len(self.project.assays):,} assays\n{len(blocks):,} blocks\n\nCRS: {self.project.crs_code or "Local metres"}\nGrade unit: {self.project.grade_unit}\n\nProject data stays local. The assistant receives no project data.\n\nRAINY STUDIO · 90220101')

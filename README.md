@@ -1,12 +1,20 @@
-# RAINYMINE 2026 · 0.8.0
+# RAINYMINE 2026 · 0.9.0
 
 **RAINY STUDIO · Лиценз ба дэмжлэг: 90220101**
 
-![RAINYMINE брэндбүүк](assets/brandbook.svg)
+![RAINYMINE брэндбүүк](assets/brandbook-2026.jpg)
 
 [Монгол брэндбүүк](docs/BRANDBOOK.mn.md) · [Суулгах заавар](release/QUICK_START.mn.md) · [7 хоногийн лиценз](release/LICENSING.mn.md) · [Хязгаар ба шалгах хуудас](release/RELEASE_CHECKLIST.mn.md)
 
-Main-ийн брэндинг/эхлэл/удирдлага болон 7 хоногийн лицензтэй шинэ ажлын талбарыг нэгтгэсэн Windows x64 хувилбар.
+Сонгосон брэндбүүкийн цайвар ажлын орчин, шинэ газрын давхарга/өрөмдлөгийн тэмдэг, Монгол / English хэлний сонголттой Windows x64 хувилбар.
+
+**[Бүх хэрэгслийн жагсаалт](docs/TOOLS.mn.md)** — зурагт харагдаагүй импорт/экспорт, QA/QC, үнэлгээ, суб-блок, хагарал, вариограмм, benchmark, зам/тээвэр, MILP, RBF, SQL, огтлолын хэрэгслүүд зургаан таб болон «Бүх хэрэгсэл», Ctrl+K дотор байна.
+
+3D нь бодит өгөгдөл: блокийн ирмэг, тунгалаг гадаргын тор, өнгөт fault guide, дэлхийн координаттай тор, буцааж сэргээх cutaway, linked picking ба сонгосон блокийн шинж. Тасалж харах нь source блок/агуулгыг өөрчлөхгүй. Эхлэх жишээний хагарал нь зөвхөн зохиомол display guide, үнэлгээний fault constraint биш.
+
+Хэлийг дээд мөрөөс сольж хадгална. English сонголт нь удирдлага, таб, толгой, үндсэн диалог болон шалгасан туслахын зааварт үйлчилнэ. Төслийн нэр/геологийн нэр/оруулах параметрийн утга, CSV талбаруудыг автоматаар орчуулахгүй. Зарим нарийвчилсан validation/solver-ийн текст эх хэлээрээ байна.
+
+Доорх брэндбүүк нь баталсан загварын reference зураг. `windows-smoke.png` / `windows-smoke-en.png` нь тухайн CI build-ийн бодит интерфэйс, framebuffer-ийг харуулна.
 
 - Зургаан ангилалтай native хэрэгслийн мөр; зүүнд давхарга/цооног/огтлол, төвд бодит 3D ба lazy блокийн хүснэгт, баруунд локал туслах.
 - Лого, хэрэгслийн вектор icon, Монгол эхлэх дэлгэц. Эхлэл нь VTK импортлохоос өмнө харагдана; зохиомол ачааллын хувь, зориудын саатал байхгүй.
@@ -17,16 +25,16 @@ Main-ийн брэндинг/эхлэл/удирдлага болон 7 хоно
 
 | Багц | Хэрэглээ |
 |---|---|
-| `Rainymine-0.8.0-Setup-x64.exe` | Ердийн Windows суулгагч; Python шаардахгүй |
-| `Rainymine-0.8.0-Windows-x64.zip` | Бүрэн задалж ажиллуулах portable |
-| `Rainymine-0.8.0-AI-Offline-x64.zip` | AI загвар дотроо багтсан offline portable |
-| `Rainymine-0.8.0-Release-Kit.zip` | Монгол заавар, checksum, бүртгэл, хязгаар |
+| `Rainymine-0.9.0-Setup-x64.exe` | Ердийн Windows суулгагч; Python шаардахгүй |
+| `Rainymine-0.9.0-Windows-x64.zip` | Бүрэн задалж ажиллуулах portable |
+| `Rainymine-0.9.0-AI-Offline-x64.zip` | AI загвар дотроо багтсан offline portable |
+| `Rainymine-0.9.0-Release-Kit.zip` | Монгол заавар, checksum, бүртгэл, хязгаар |
 
 Татах холбоосуудыг [GitHub Releases](https://github.com/ssboroo/Rainymine/releases)-ээс авна. Эдгээр нэр нь build-ийн гаралт; бодит бэлэн байдлыг тухайн build/release-ийн asset жагсаалтаар шалгана. Программын нэгдсэн код main-д орсон нь шинжлэх ухаан, лиценз, тоон гарын үсгийн бүх acceptance дууссан гэсэн үг биш.
 
 ### Эхлэх дэлгэц
 
-![RAINYMINE эхлэх дэлгэц](assets/splash.jpg)
+![RAINYMINE эхлэх дэлгэц](assets/splash-new.png)
 
 Дэлгэрэнгүй өнгө, логоны зай, icon болон screenshot ашиглах дүрэм: **[Монгол брэндбүүк](docs/BRANDBOOK.mn.md)**.
 
@@ -53,10 +61,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.8.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.9.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь 0.8.0-ийн нэгдсэн боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь 0.9.0-ийн нэгдсэн боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 
@@ -211,7 +219,7 @@ Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL
 - Setup болон inference background thread-д ажиллана. Зогсоох товч model process-ийг хааж RAM чөлөөлнө. Программ хаахад мөн хаана. Чат файлд хадгалахгүй; Clear нь харагдах түүх ба follow-up ID-г цэвэрлэнэ.
 - Модельгүй үед зааврын dropdown нь оффлайнаар шууд ажиллана; энэ нь generative AI ажилласан гэсэн үг биш. CPU хурд/RAM-аас model startup/response хамаарна. Энэ model нь Mongolian general reasoning/геологийн мэргэжлийн чадвараар баталгаажуулагдаагүй; reviewed help routing-д л ашиглана.
 
-Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.8.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.
+Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.9.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.
 
 ## 0.6.0 — 7 хоногийн туршилт
 

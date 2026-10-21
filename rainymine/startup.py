@@ -10,8 +10,12 @@ from . import __version__
 class StartupScreen(QSplashScreen):
     def __init__(self):
         root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
-        image=QPixmap(str(root/'assets'/'splash.jpg'))
-        self.artwork_loaded=not image.isNull()
+        from PySide6.QtSvg import QSvgRenderer
+        from PySide6.QtGui import QPainter
+        image=QPixmap(1200,660);image.fill(Qt.GlobalColor.transparent)
+        renderer=QSvgRenderer(str(root/'assets'/'splash.svg'))
+        painter=QPainter(image);renderer.render(painter);painter.end()
+        self.artwork_loaded=renderer.isValid()
         if image.isNull():image=QPixmap(960,540);image.fill(QColor('#152937'))
         screen=QApplication.primaryScreen().availableGeometry()
         width=min(960,int(screen.width()*.82))
@@ -24,7 +28,8 @@ class StartupScreen(QSplashScreen):
     def showEvent(self,event):super().showEvent(event);self.timer.start()
     def hideEvent(self,event):self.timer.stop();super().hideEvent(event)
     def set_stage(self,text):
-        self.stage=text;self.repaint();QApplication.processEvents()
+        from .i18n import tr
+        self.stage=tr(text);self.repaint();QApplication.processEvents()
     def drawContents(self,painter):
         w,h=self.width(),self.height()
         painter.fillRect(0,h-80,w,80,QColor(9,25,37,150))

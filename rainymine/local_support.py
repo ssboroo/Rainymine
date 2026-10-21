@@ -36,7 +36,7 @@ def support_messages(question,topics,previous=None):
     return [{'role':'system','content':SYSTEM},{'role':'user','content':json.dumps({'question':question,'previous_topic':previous,'reviewed_topics':choices},ensure_ascii=False)}]
 
 
-def render_selection(raw,topics):
+def render_selection(raw,topics,locale="mn"):
     try:
         result=json.loads(raw);ids=result['topic_ids']
         if not isinstance(ids,list) or len(ids)>2 or any(not isinstance(i,str) for i in ids):raise ValueError()
@@ -44,16 +44,21 @@ def render_selection(raw,topics):
         if len(set(ids))!=len(ids) or any(i not in allowed for i in ids):raise ValueError()
     except (ValueError,TypeError,KeyError):
         raise ValueError('Local model-ийн хариу зөв help ID агуулаагүй. Дахин асуух эсвэл заавраас сонгоно уу.')
-    if not ids:return OUT_OF_SCOPE,None
+    if not ids:return out_of_scope(locale),None
     sections=[]
     for topic_id in ids:
-        topic=allowed[topic_id]
-        sections.append(topic['title']+'\n'+'\n'.join(f'{i}. {text}' for i,text in enumerate(topic['steps'],1))+f'\nЭх сурвалж: Rainymine тусламж [{topic_id}]')
+        from .support_knowledge_en import localize
+        topic=localize(allowed[topic_id],locale)
+        sections.append(topic['title']+'\n'+'\n'.join(f'{i}. {text}' for i,text in enumerate(topic['steps'],1))+(f'\nSource: Rainymine help [{topic_id}]' if locale=='en' else f'\nЭх сурвалж: Rainymine тусламж [{topic_id}]'))
     return '\n\n'.join(sections),ids[0]
 
 
-def answer(question,engine,previous=None):
+def answer(question,engine,previous=None,locale="mn"):
     topics=candidates(question,previous)
-    if not topics:return OUT_OF_SCOPE,None
+    if not topics:return out_of_scope(locale),None
     raw=engine.complete(support_messages(question,topics,previous))
-    return render_selection(raw,topics)
+    return render_selection(raw,topics,locale)
+
+
+def out_of_scope(locale='mn'):
+    return ('I can only help with RAINYMINE operation, setup, imports and troubleshooting. Which part of the application needs help?' if locale=='en' else OUT_OF_SCOPE)

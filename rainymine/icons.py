@@ -56,17 +56,7 @@ def semantic_icon(text,fallback):
     return fallback
 
 def brand_icon():
-    svg='''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-    <path d="M7 5h19l22 15-17 10L7 14z" fill="#101c2c"/>
-    <path d="M7 18h17l18 12-17 10L7 27z" fill="#00bfc0"/>
-    <path d="m7 32 17 0 23 14-17 10L7 41z" fill="#122334"/>
-    <path d="M7 43l15 9v11L7 55z" fill="#b87333"/>
-    <path d="m7 43 15 9-15 3z" fill="#e9a759"/>
-    <path d="m43 22 14 9-26 18-15-10z" fill="#c7d0d7" stroke="#f4f6f8" stroke-width="2"/>
-    <path d="m31 49 13-9v15l-13 9z" fill="#183547"/>
-    <path d="m47 39 12-8v31l-12-9z" fill="#b87333"/>
-    <path d="m47 39 12-8v18z" fill="#e4a65d"/>
-    <path d="m31 49 0 15M31 49l-9-6" stroke="#f4f6f8" stroke-width="2"/>
-    </svg>'''
-    pix=QPixmap(80,80);pix.fill(Qt.GlobalColor.transparent)
-    painter=QPainter(pix);QSvgRenderer(QByteArray(svg.encode())).render(painter);painter.end();return QIcon(pix)
+    from pathlib import Path
+    import sys
+    root = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
+    return QIcon(str(root / 'assets' / 'rainymine-brand.svg'))

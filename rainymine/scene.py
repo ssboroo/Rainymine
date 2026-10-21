@@ -30,7 +30,7 @@ class Scene:
         self.legend.GetLabelTextProperty().SetColor(.8,.86,.94)
         self.legend.GetTitleTextProperty().SetColor(.8,.86,.94)
         self.renderer.AddActor2D(self.legend)
-        self.marker=None
+        self.marker=None;self.cutaway=False;self.cutaway_pipeline=[];self.coordinate_grid=None;self.presentation_enabled=False
 
     def local(self,p):return tuple(p[i]-self.origin[i] for i in range(3))
 
@@ -101,7 +101,7 @@ class Scene:
             axes=vtk.vtkAxesActor();self.marker=vtk.vtkOrientationMarkerWidget();self.marker.SetOrientationMarker(axes)
             self.marker.SetInteractor(self.window.GetInteractor());self.marker.SetViewport(0,0,.18,.18);self.marker.EnabledOn();self.marker.InteractiveOff()
         self.base_properties={key:{'color':list(actor.GetProperty().GetColor()),'opacity':actor.GetProperty().GetOpacity()} for key,actor in self.actors.items()}
-        self.set_section(None,render=False);self.apply_styles();self.reset()
+        self.set_section(None,render=False);self.apply_styles();self.update_presentation();self.reset()
 
     def add_workspace(self,workspace):
         for index,s in enumerate(workspace.get('strings',[])):
@@ -117,7 +117,7 @@ class Scene:
                 faces.InsertNextCell(3)
                 for i in face:faces.InsertCellPoint(i)
             poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetPolys(faces)
-            self.add_poly('mesh_'+str(index),poly,(.52,.65,.83),opacity=.45)
+            self.add_poly('mesh_'+str(index),poly,(.92,.24,.42) if m.get('role')=='fault_guide' else (.52,.65,.83),opacity=.25 if m.get('role')=='fault_guide' else .45)
         model=workspace.get('block_model')
         if model:
             basis=model_basis(model);pivot=np.asarray(model.get('grid_origin',model['bounds'][:3]))
@@ -176,6 +176,7 @@ class Scene:
             mapper=self.actors[name].GetMapper()
             if section is None:mapper.SetInputData(poly);continue
             mapper.SetInputConnection(self.clip_poly(poly,section).GetOutputPort())
+        self.apply_cutaway()
         self.select(self.selected_hole,render=False)
         if render:self.window.Render()
 
@@ -251,3 +252,86 @@ class Scene:
     def export_vtp(self,path):
         writer=vtk.vtkXMLPolyDataWriter();writer.SetFileName(str(path));writer.SetInputData(self.sources['holes'])
         if writer.Write()!=1:raise OSError('VTP файл бичиж чадсангүй.')
+
+    def configure_presentation(self, enabled=True):
+        """Rendering preferences only: source geometry and estimation results are untouched."""
+        self.presentation_enabled = enabled
+        self.update_presentation()
+
+    def update_presentation(self):
+        if not self.presentation_enabled:
+            return
+        self.renderer.SetBackground(.85, .91, .95)
+        self.renderer.SetBackground2(.98, .99, 1.)
+        self.renderer.GradientBackgroundOn()
+        for prop in (self.legend.GetLabelTextProperty(), self.legend.GetTitleTextProperty()):
+            prop.SetColor(.08, .16, .25)
+        self.legend.SetPosition(.86, .62)
+        self.legend.SetWidth(.12)
+        self.legend.SetHeight(.30)
+        blocks = self.actors.get('blocks')
+        if blocks:
+            blocks.GetProperty().EdgeVisibilityOn()
+            blocks.GetProperty().SetEdgeColor(.25, .48, .52)
+            blocks.GetProperty().SetLineWidth(.5)
+        surface = self.actors.get('surface')
+        if surface:
+            surface.GetProperty().SetColor(.64, .72, .78)
+            surface.GetProperty().SetOpacity(.20)
+            surface.GetProperty().EdgeVisibilityOn()
+            surface.GetProperty().SetEdgeColor(.79, .85, .89)
+        if self.coordinate_grid:
+            self.renderer.RemoveActor(self.coordinate_grid)
+        if not self.sources:
+            return
+        bounds = [poly.GetBounds() for poly in self.sources.values() if poly.GetNumberOfPoints()]
+        if not bounds:
+            return
+        extent = [min(b[i] for b in bounds) if i % 2 == 0 else max(b[i] for b in bounds) for i in range(6)]
+        grid = vtk.vtkCubeAxesActor()
+        grid.SetBounds(*extent)
+        grid.SetCamera(self.renderer.GetActiveCamera())
+        grid.SetFlyModeToOuterEdges()
+        grid.SetXTitle('E (m)');grid.SetYTitle('N (m)');grid.SetZTitle('Z (m)')
+        for axis, (low, high) in enumerate(((0,1),(2,3),(4,5))):
+            getattr(grid, ('SetXAxisRange','SetYAxisRange','SetZAxisRange')[axis])(
+                extent[low]+self.origin[axis], extent[high]+self.origin[axis])
+            grid.GetTitleTextProperty(axis).SetColor(.19,.28,.38)
+            grid.GetLabelTextProperty(axis).SetColor(.24,.33,.43)
+            grid.GetTitleTextProperty(axis).SetFontSize(12)
+            grid.GetLabelTextProperty(axis).SetFontSize(10)
+            getattr(grid, ('GetXAxesGridlinesProperty','GetYAxesGridlinesProperty','GetZAxesGridlinesProperty')[axis])().SetColor(.73,.81,.86)
+        grid.DrawXGridlinesOn();grid.DrawYGridlinesOn();grid.DrawZGridlinesOff()
+        grid.XAxisMinorTickVisibilityOff();grid.YAxisMinorTickVisibilityOff();grid.ZAxisMinorTickVisibilityOff()
+        grid.PickableOff()
+        self.coordinate_grid = grid
+        self.renderer.AddActor(grid)
+
+    def set_cutaway(self, enabled):
+        self.cutaway = bool(enabled)
+        self.set_section(self.section)
+
+    def apply_cutaway(self):
+        self.cutaway_pipeline = []
+        if not self.cutaway or 'blocks' not in self.actors or not self.sources['blocks'].GetNumberOfCells():
+            return
+        mapper = self.actors['blocks'].GetMapper()
+        bounds = self.sources['blocks'].GetBounds()
+        dx,dy,dz = [bounds[i+1]-bounds[i] for i in (0,2,4)]
+        if min(dx,dy,dz) <= 0:
+            return
+        box = vtk.vtkBox()
+        # Excise a front upper quadrant so the interior becomes inspectable.
+        box.SetBounds((bounds[0]+bounds[1])/2, bounds[1]+dx,
+                      bounds[2]-dy, (bounds[2]+bounds[3])/2,
+                      (bounds[4]+bounds[5])/2, bounds[5]+dz)
+        clipped = vtk.vtkClipPolyData();clipped.SetClipFunction(box)
+        connection = mapper.GetInputConnection(0,0)
+        # Retain an existing section pipeline when one is active.
+        if self.section and connection:
+            clipped.SetInputConnection(connection)
+        else:
+            clipped.SetInputData(self.sources['blocks'])
+        clipped.InsideOutOff();clipped.SetValue(0)
+        mapper.SetInputConnection(clipped.GetOutputPort())
+        self.cutaway_pipeline = [box, clipped]
