@@ -276,12 +276,23 @@ def main():
     app=QApplication(sys.argv[:1]);app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
     from PySide6.QtGui import QFont
     app.setFont(QFont('Segoe UI',10))
+    asset_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
+    if (asset_root/'assets'/'rainymine.ico').exists():app.setWindowIcon(QIcon(str(asset_root/'assets'/'rainymine.ico')))
+    # VTK may log renderer errors without raising Python exceptions.
+    # Smoke tests must fail on these errors rather than accepting a blank viewport.
+    capture=vtk.vtkStringOutputWindow() if args.smoke else None
+    if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
     window=Window();window.show()
     if args.smoke:
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
                 window.scene.view('top');window.scene.set_section((90,0,100));window.scene.set_section(None)
+                window.vtk.GetRenderWindow().Render()
+                if capture is not None:
+                    output=capture.GetOutput()
+                    if 'ERROR' in output.upper() or 'ERR|' in output.upper():
+                        raise RuntimeError('VTK rendering failed: '+output[-2000:])
                 if args.screenshot:window.grab().save(args.screenshot)
                 window.dirty=False;window.close();app.exit(0)
             except Exception:

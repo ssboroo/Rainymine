@@ -63,6 +63,8 @@ class DataTests(unittest.TestCase):
         with self.assertRaises(ValueError):Project.from_dict({'format':'other'})
     def test_surface_duplicate(self):
         with self.assertRaises(ValueError):Project(surface=[[0,0,1],[0,0,2],[1,1,1]]).validate()
+    def test_collinear_surface(self):
+        with self.assertRaises(ValueError):Project(surface=[[0,0,1],[1,1,2],[2,2,3]]).validate()
     def test_composite_support_and_gaps(self):
         p=self.project();p.assays=[Assay('A',0,2,1),Assay('A',2,5,3),Assay('A',7,10,4)];rows=composite_assays(p,5)
         self.assertAlmostEqual(rows[0]['grade'],2.2);self.assertEqual(rows[0]['coverage'],1)

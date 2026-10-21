@@ -23,9 +23,10 @@ jobs:
       - name: Desktop smoke test
         shell: pwsh
         run: |
-          $p = Start-Process python -ArgumentList 'main.py','--smoke','--screenshot','windows-smoke.png' -PassThru
+          $p = Start-Process python -ArgumentList 'main.py','--smoke','--screenshot','windows-smoke.png' -PassThru -NoNewWindow -RedirectStandardOutput smoke-out.log -RedirectStandardError smoke-err.log
           if (-not $p.WaitForExit(60000)) { $p.Kill(); throw 'Desktop smoke test timed out' }
-          if ($p.ExitCode -ne 0) { throw 'Desktop smoke test failed' }
+          Get-Content smoke-out.log,smoke-err.log
+          if ($p.ExitCode -ne 0) { throw "Desktop smoke test failed: $($p.ExitCode)" }
       - name: Package and test Windows executable
         shell: pwsh
         run: ./scripts/build_windows.ps1
@@ -52,3 +53,13 @@ jobs:
             dist/Rainymine-0.1.0-Setup-x64.exe
             windows-smoke.png
           if-no-files-found: error
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics
+          path: |
+            *.log
+            windows-smoke.png
+            dist/Rainymine/*.log
+          if-no-files-found: ignore

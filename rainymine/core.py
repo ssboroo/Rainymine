@@ -93,7 +93,12 @@ class Project:
             key=(p[0],p[1])
             if key in seen:raise ValueError('Гадаргын XY координат давхардсан.')
             seen.add(key)
-        if self.surface and len(self.surface)<3:raise ValueError('Гадаргад 3-аас олон цэг хэрэгтэй.')
+        if self.surface and len(self.surface)<3:raise ValueError('Гадаргад 3-аас цөөнгүй цэг хэрэгтэй.')
+        if self.surface:
+            a,b=self.surface[:2];dx,dy=b[0]-a[0],b[1]-a[1]
+            extent=max(max(p[i] for p in self.surface)-min(p[i] for p in self.surface) for i in (0,1))
+            if max(abs(dx*(p[1]-a[1])-dy*(p[0]-a[0])) for p in self.surface)<=1e-12*max(1,extent**2):
+                raise ValueError('Гадаргын бүх цэг нэг шулуунд байна. TIN үүсгэх боломжгүй.')
         return self
 
     def to_dict(self):
