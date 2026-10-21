@@ -77,6 +77,14 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
         self.assertEqual(window.scene.coordinate_grid.GetXAxisLabelVisibility(),0)
         self.assertIn('E:',window.scene.coordinate_text.GetInput())
 
+    def test_cutaway_retains_selected_only_label_policy(self):
+        window=self.make_window();window.toggle_labels(False)
+        for value in (False,True):
+            window.toggle_cutaway(value)
+            for label in window.scene.labels:
+                if label.GetInput()!=window.scene.selected_hole:
+                    self.assertFalse(label.GetVisibility())
+
 
 class CutawayTests(unittest.TestCase):
     def test_cutaway_preserves_source_block_ids_and_restores_full_mesh(self):

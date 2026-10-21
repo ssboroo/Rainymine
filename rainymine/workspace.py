@@ -235,6 +235,10 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         note = help_panel.layout().itemAt(0).widget()
         note.setToolTip(note.text())
         note.setText('Программ ашиглах, тохируулах, алдаа засах локал туслах.')
+        help_panel.layout().setContentsMargins(8,6,8,6)
+        help_panel.layout().setSpacing(3)
+        self.support.cancel_button.setText('Зогсоох')
+        self.support.cancel_button.setToolTip('Зогсоох / Санах ой чөлөөлөх')
         self.support.status.setText('Шууд заавар сонгох эсвэл асуултаа бичнэ үү.')
         self.support.chat.setHtml("""
         <table cellspacing="4" cellpadding="2">
@@ -664,6 +668,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
     def toggle_cutaway(self, value):
         for scene in (self.scene,self.secondary):
             if scene:scene.set_cutaway(value)
+        self.update_labels()
 
     def toggle_block_edges(self, value):
         for scene in (self.scene,self.secondary):
