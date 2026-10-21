@@ -15,6 +15,6 @@ if sys.platform=='win32' and os.environ.get('RAINYMINE_SOFTWARE')=='1':
     for name in ('libglapi.dll','libgallium_wgl.dll','opengl32.dll'):
         _mesa_handles.append(ctypes.WinDLL(str(drivers/name)))
 
-from rainymine.ui import main
+from rainymine.startup import launch
 if __name__=='__main__':
-    raise SystemExit(main())
+    raise SystemExit(launch())

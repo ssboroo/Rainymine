@@ -1,3 +1,10 @@
+## 0.6.0
+
+- Native 2026 workspace based on user reference: grouped layer tree, offline guide, block/holes table tabs, command palette, focus/collapsed ribbon modes.
+- Navy/teal/copper vector M brand, application/installer icon, coherent controls and readable numeric grids.
+- Startup artwork shown before heavy VTK imports, real stage messages and busy indicator; no artificial delay.
+- Existing scientific computation and external acceptance gates remain unchanged.
+
 ## 0.4.0
 
 - RBF grade isosurface, economic maximum-closure pit, exposed voxel envelope; UI, project persistence.

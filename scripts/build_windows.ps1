@@ -21,12 +21,12 @@ Copy-Item examples dist\Rainymine\examples -Recurse -Force
 $proc = Start-Process -FilePath '.\dist\Rainymine\Rainymine.exe' -ArgumentList '--smoke' -PassThru
 if (-not $proc.WaitForExit(180000)) { $proc.Kill(); throw 'Packaged app smoke test timed out' }
 if ($proc.ExitCode -ne 0) { throw "Packaged app smoke test failed: $($proc.ExitCode)" }
-Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-0.5.0-Windows-x64.zip -Force
-Write-Host 'Portable package ready: dist\Rainymine-0.5.0-Windows-x64.zip'
+Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-0.6.0-Windows-x64.zip -Force
+Write-Host 'Portable package ready: dist\Rainymine-0.6.0-Windows-x64.zip'
 
 if (Test-Path ai\models) {
     Copy-Item ai\models dist\Rainymine\ai\models -Recurse -Force
-    Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-0.5.0-AI-Offline-x64.zip -CompressionLevel Fastest -Force
+    Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-0.6.0-AI-Offline-x64.zip -CompressionLevel Fastest -Force
     Remove-Item dist\Rainymine\ai\models -Recurse -Force
     Write-Host 'Full offline AI portable package ready.'
 }
