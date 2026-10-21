@@ -14,7 +14,7 @@ def fixture():
     p.crs_code='EPSG:32648';p.grade_unit='%';p.surface=[[500000,5300000,1400],[500010,5300010,1401],[500020,5300000,1402]]
     bounds=[500000,5300000,1400,500015,5300020,1410];angles=[35,-10,15]
     blocks=make_blocks(bounds,[10,10,10],grid_angles=angles)
-    blocks[0]['grade']=0.;blocks[1]['grade']=None
+    blocks[0]['grade']=0.;blocks[1]['grade']=None;blocks[0]['note']='';blocks[1]['note']=None
     p.workspace={'block_model':{'bounds':bounds,'size':[10,10,10],'grid_origin':bounds[:3],'grid_angles':angles,'blocks':blocks},
                  'strings':[{'name':'Монгол хил','closed':True,'points':[[500000,5300000,1400],[500020,5300000,1401],[500020,5300020,1402]]}],
                  'meshes':[{'name':'UTM','vertices':[[500000.000123,5300000,1400],[500010,5300000,1401],[500010,5300010,1402]],'faces':[[0,1,2]]}]}
@@ -90,7 +90,7 @@ class OpenExchange(unittest.TestCase):
             with zipfile.ZipFile(path) as z:
                 manifest=json.loads(z.read('manifest.json'));self.assertEqual(manifest['crs'],'EPSG:32648');self.assertEqual(manifest['block_model']['grid_angles'],[35,-10,15])
                 for name,entry in manifest['files'].items():self.assertEqual(hashlib.sha256(z.read(name)).hexdigest(),entry['sha256'])
-                rows=list(csv.DictReader(io.StringIO(z.read('blocks.csv').decode('utf-8-sig'))));self.assertEqual(rows[0]['grade'],'0');self.assertEqual(rows[1]['grade'],'')
+                rows=list(csv.DictReader(io.StringIO(z.read('blocks.csv').decode('utf-8-sig'))));self.assertEqual(rows[0]['grade'],'0');self.assertEqual(rows[1]['grade'],'');self.assertEqual(rows[0]['note'],'');self.assertEqual(rows[1]['note'],'');self.assertNotIn(0,manifest['files']['blocks.csv']['columns']['note']['null_rows']);self.assertIn(1,manifest['files']['blocks.csv']['columns']['note']['null_rows'])
                 collars=list(csv.DictReader(io.StringIO(z.read('collars.csv').decode('utf-8-sig'))));self.assertEqual(float(collars[0]['x']),p.collars[0].x)
                 from rainymine.geometry import read_obj
                 obj=Path(folder)/'mesh.obj';obj.write_bytes(z.read('mesh-0001.obj'));self.assertEqual(read_obj(obj)['vertices'],p.workspace['meshes'][0]['vertices'])

@@ -163,7 +163,11 @@ def write_geopackage(path,project,cancel=None):
     def layer(target,name,geometry,properties,records):
         nonlocal count
         with fiona.open(str(target),'w',driver='GPKG',layer=name,crs_wkt=meta['crs_wkt'],schema={'geometry':'3D '+geometry,'properties':properties},SPATIAL_INDEX='NO') as output:
-            for record in records:_cancel(cancel);output.write(record);count+=1
+            def checked():
+                nonlocal count
+                for record in records:
+                    _cancel(cancel);count+=1;yield record
+            output.writerecords(checked())
     def feature(kind,coordinates,properties):return {'geometry':{'type':kind,'coordinates':coordinates},'properties':properties}
     with atomic_destination(path) as temp:
         # GDAL must create the file rather than opening an empty SQLite placeholder.
@@ -225,7 +229,7 @@ def write_exchange_bundle(path,project,cancel=None):
     from .data_tools import SCHEMAS
     from .geometry import write_dxf,write_obj
     from .exchange import write_stl
-    meta=contract(project);files={};manifest={**meta,'files':{},'geometry_limit':'DXF/OBJ/STL carry geometry; scientific attributes are CSV/metadata only'}
+    meta=contract(project);files={};manifest={**meta,'files':{},'csv_null_row_index':'zero-based data rows, excluding header; null_rows distinguishes NULL from empty text','geometry_limit':'DXF/OBJ/STL carry geometry; scientific attributes are CSV/metadata only'}
     def add(name,data):files[name]=data;manifest['files'][name]={'sha256':hashlib.sha256(data).hexdigest(),'bytes':len(data)}
     def table(name,rows,fields=None):
         fields=list(fields or sorted(set().union(*(r.keys() for r in rows))))
@@ -233,7 +237,7 @@ def write_exchange_bundle(path,project,cancel=None):
         for row in rows:
             _cancel(cancel);writer.writerow({k:('' if row.get(k) is None else json.dumps(row[k],ensure_ascii=False,allow_nan=False) if isinstance(row[k],(dict,list,tuple)) else format(row[k],'.17g') if isinstance(row[k],float) else row[k]) for k in fields})
         add(name,output.getvalue().encode('utf-8-sig'))
-        manifest['files'][name]['columns']={k:{'types':sorted({type(r[k]).__name__ for r in rows if r.get(k) is not None}),'nullable':any(r.get(k) is None for r in rows)} for k in fields}
+        manifest['files'][name]['columns']={k:{'types':sorted({type(r[k]).__name__ for r in rows if r.get(k) is not None}),'nullable':any(r.get(k) is None for r in rows),'null_rows':[i for i,r in enumerate(rows) if r.get(k) is None]} for k in fields}
     for kind in ('collars','surveys','assays','lithology','structure','geotech','surface'):
         rows=[dict(zip('xyz',r)) if kind=='surface' else asdict(r) for r in getattr(project,kind,[])];table(kind+'.csv',rows,SCHEMAS[kind])
     model=project.workspace.get('block_model')
