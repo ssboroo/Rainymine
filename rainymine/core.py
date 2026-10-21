@@ -152,10 +152,23 @@ def direction(azimuth,dip):
     a,d=map(math.radians,(azimuth,dip))
     return (math.cos(d)*math.sin(a),math.cos(d)*math.cos(a),math.sin(d))
 
-def displacement(length,u,v):
+def displacement(length,u,v,method="minimum_curvature"):
     """Minimum-curvature interval displacement (metres)."""
+    if method not in ("minimum_curvature", "balanced_tangential", "radius_of_curvature"):
+        raise ValueError("Замналын арга буруу.")
+    if method=="balanced_tangential":return tuple(length*(a+b)/2 for a,b in zip(u,v))
     cosine=max(-1.,min(1.,dot(u,v)));theta=math.acos(cosine)
     if theta>math.pi-1e-5:raise ValueError('180° эргэлтийг тооцох боломжгүй.')
+    if method=="radius_of_curvature":
+        # Radius-of-curvature: separate azimuth and inclination average factors.
+        d1=math.asin(max(-1.,min(1.,u[2])));d2=math.asin(max(-1.,min(1.,v[2])))
+        a1=math.atan2(u[0],u[1]);a2=math.atan2(v[0],v[1])
+        da=(a2-a1+math.pi)%(2*math.pi)-math.pi;dd=d2-d1
+        sinc=lambda x:1. if abs(x)<1e-10 else math.sin(x)/x
+        horizontal=math.cos((d1+d2)/2)*sinc(dd/2)
+        return (length*horizontal*math.sin(a1+da/2)*sinc(da/2),
+                length*horizontal*math.cos(a1+da/2)*sinc(da/2),
+                length*math.sin((d1+d2)/2)*sinc(dd/2))
     rf=1. if theta<1e-8 else 2*math.tan(theta/2)/theta
     return tuple(length*(a+b)*rf/2 for a,b in zip(u,v))
 
@@ -166,7 +179,9 @@ def slerp(u,v,t):
     return tuple((math.sin((1-t)*theta)*a+math.sin(t*theta)*b)/math.sin(theta) for a,b in zip(u,v))
 
 class Trajectory:
-    def __init__(self,collar,surveys):
+    def __init__(self,collar,surveys,method="minimum_curvature"):
+        if method not in ("minimum_curvature","balanced_tangential","radius_of_curvature"):raise ValueError("Замналын арга буруу.")
+        self.method=method
         self.collar=collar
         self.stations=sorted([s for s in surveys if s.hole_id==collar.hole_id],key=lambda s:s.depth)
         if not self.stations:self.stations=[Survey(collar.hole_id,0,collar.azimuth,collar.dip)]
@@ -175,7 +190,7 @@ class Trajectory:
         self.depths=[s.depth for s in self.stations]
         self.positions=[(collar.x,collar.y,collar.z)]
         for a,b in zip(self.stations,self.stations[1:]):
-            d=displacement(b.depth-a.depth,direction(a.azimuth,a.dip),direction(b.azimuth,b.dip))
+            d=displacement(b.depth-a.depth,direction(a.azimuth,a.dip),direction(b.azimuth,b.dip),self.method)
             self.positions.append(tuple(x+y for x,y in zip(self.positions[-1],d)))
 
     def at(self,depth):
@@ -186,7 +201,11 @@ class Trajectory:
         a,b=self.stations[i:i+2]
         u=direction(a.azimuth,a.dip);v=direction(b.azimuth,b.dip)
         t=(depth-a.depth)/(b.depth-a.depth)
-        d=displacement(depth-a.depth,u,slerp(u,v,t))
+        if self.method=="minimum_curvature":end_direction=slerp(u,v,t)
+        else:
+            da=(b.azimuth-a.azimuth+180)%360-180
+            end_direction=direction(a.azimuth+t*da,a.dip+t*(b.dip-a.dip))
+        d=displacement(depth-a.depth,u,end_direction,self.method)
         return tuple(x+y for x,y in zip(self.positions[i],d))
 
     def sample(self,start=0,end=None,step=5):
@@ -236,12 +255,13 @@ def read_surveys(path):return [Survey(**r) for r in read_rows(path,('hole_id','d
 def read_assays(path):return [Assay(**r) for r in read_rows(path,('hole_id','from_m','to_m','grade'))]
 def read_surface(path):return [[r[k] for k in ('x','y','z')] for r in read_rows(path,('x','y','z'))]
 
-def export_trajectories(path,project):
+def export_trajectories(path,project,method="minimum_curvature"):
+    project.validate()
     out=io.StringIO(newline='');w=csv.writer(out);w.writerow(('hole_id','depth','x','y','z'))
     surveys={}
     for station in project.surveys:surveys.setdefault(station.hole_id,[]).append(station)
     for h in project.collars:
-        for depth,p in Trajectory(h,surveys.get(h.hole_id,[])).sample():w.writerow((h.hole_id,depth,*p))
+        for depth,p in Trajectory(h,surveys.get(h.hole_id,[]),method).sample():w.writerow((h.hole_id,depth,*p))
     atomic_write(path,'\ufeff'+out.getvalue())
 
 def composite_assays(project,length=5):

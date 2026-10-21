@@ -1,3 +1,11 @@
+# SRS additions — 2026-10-22
+
+- Analytical balanced tangential / radius-of-curvature trajectory CSV exports; primary 3D remains minimum curvature.
+- Lithology-boundary composites with explicit assay coverage.
+- Weighted XYZ swath chart/CSV and true 3D survey dogleg reporting.
+- Minimum-cost single-period feed blending LP, strict capacity/grade validation and explicit infeasibility.
+- Native SRS analysis menu and requirement-by-requirement traceability with unimplemented scope.
+
 ## 0.9.0
 
 - Adopt the selected geological-strata/drillhole identity in editable SVG, PNG, ICO and a code-native startup screen.
