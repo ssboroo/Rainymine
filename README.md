@@ -1,5 +1,7 @@
 # RAINYMINE 0.4 — шинэ боломжууд
 
+Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
+
 `Загвар / оновчлол` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
 
 - **RBF:** композитын агуулгын linear RBF interpolation + cutoff isosurface. 4–10000 support, 5–60 grid resolution; сонгосон bounds дотор extrapolation хийнэ. Fault, stratigraphy, signed-distance constraint болон автомат геологийн solid баталгаа байхгүй.

@@ -14,6 +14,12 @@ from .geometry import validate_mesh_data
 
 
 def xlsx_to_csv(source,destination,sheet):
+    try:return _xlsx_to_csv(source,destination,sheet)
+    except (ValueError,OSError):raise
+    except Exception:raise ValueError('XLSX бүтэц эвдэрсэн эсвэл дэмжигдэхгүй байна.') from None
+
+
+def _xlsx_to_csv(source,destination,sheet):
     from openpyxl import load_workbook
     source=Path(source)
     if source.stat().st_size>32_000_000:raise ValueError('XLSX хэмжээ 32 MB-аас их.')
@@ -40,6 +46,7 @@ def xlsx_to_csv(source,destination,sheet):
 
 def read_stl(path):
     import struct
+    if Path(path).stat().st_size>32_000_000:raise ValueError('STL хэмжээ 32 MB-аас их.')
     data=Path(path).read_bytes()
     if len(data)>32_000_000:raise ValueError('STL хэмжээ 32 MB-аас их.')
     vertices=[];faces=[];ids={}

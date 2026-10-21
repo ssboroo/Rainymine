@@ -95,7 +95,7 @@ class Workbench(Window):
         if not self.project.name.startswith('ЖИШЭЭ'):return
         for h in self.project.collars:
             self.project.lithology.extend([Lithology(h.hole_id,0,h.depth*.35,'Хурдас'),Lithology(h.hole_id,h.depth*.35,h.depth*.7,'Хүдэржилт'),Lithology(h.hole_id,h.depth*.7,h.depth,'Боржин')])
-        self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[25,25,25],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
+        self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[50,50,50],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
         self.project.workspace['block_display']='slices'
         self.layer_checks['surface'].setChecked(False)
     def build_ui(self):

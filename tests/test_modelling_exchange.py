@@ -20,9 +20,11 @@ class ModellingTests(unittest.TestCase):
         self.assertLess(max(abs(p[0]-500005) for p in mesh['vertices']),1e-4)
         self.assertFalse(meta['geological_review'])
         self.assertGreater(meta['mesh_report']['open_edges'],0)
+        self.assertEqual(meta['mesh_report']['degenerate_faces'],0)
         p=Project();p.workspace['meshes']=[mesh]
         with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'RBF.rmine';save_project(path,p);self.assertEqual(load_project(path).workspace['meshes'],[mesh])
+            write_stl(Path(d)/'RBF.stl',mesh)
     def test_rbf_rejects_duplicates_cutoff_and_resolution(self):
         samples=[{'xyz':[0,0,0],'grade':0}]*4
         with self.assertRaises(ValueError):implicit_surface(samples,[0,0,0,10,10,10],.5)
@@ -75,6 +77,10 @@ class ExchangeTests(unittest.TestCase):
             self.assertEqual(rows[0]['hole_id'],'MN-01');self.assertEqual(report['rejected'],0)
             ws['B2']='=1+2';wb.save(source)
             with self.assertRaises(ValueError):xlsx_to_csv(source,target,'Амсар')
+    def test_corrupt_excel_has_actionable_error(self):
+        with tempfile.TemporaryDirectory() as d:
+            path=Path(d)/'bad.xlsx';path.write_bytes(b'not a spreadsheet')
+            with self.assertRaises(ValueError):xlsx_to_csv(path,Path(d)/'out.csv','Sheet1')
     def test_ascii_stl_double_precision_roundtrip(self):
         mesh={'vertices':[[500000.123456,5300000,100],[500010,5300000,100],[500000,5300010,100]],'faces':[[0,1,2]]}
         with tempfile.TemporaryDirectory() as d:

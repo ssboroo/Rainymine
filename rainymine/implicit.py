@@ -37,14 +37,28 @@ def implicit_surface(samples, bounds, cutoff, resolution=31, smoothing=0., neigh
     image.SetSpacing(*[(bounds[i+3]-bounds[i])/(resolution-1) for i in range(3)])
     scalars=numpy_to_vtk(field,deep=True);scalars.SetName('RBF grade');image.GetPointData().SetScalars(scalars)
     contour=vtk.vtkFlyingEdges3D();contour.SetInputData(image);contour.SetValue(0,cutoff);contour.Update()
-    poly=contour.GetOutput()
+    # A contour passing exactly through grid vertices can emit coincident points
+    # and zero-area triangles (including platform-dependent rounding cases).
+    cleaner=vtk.vtkCleanPolyData();cleaner.SetInputConnection(contour.GetOutputPort())
+    cleaner.ToleranceIsAbsoluteOn();cleaner.SetAbsoluteTolerance(scale*1e-10)
+    triangles=vtk.vtkTriangleFilter();triangles.SetInputConnection(cleaner.GetOutputPort())
+    triangles.PassLinesOff();triangles.PassVertsOff();triangles.Update()
+    poly=triangles.GetOutput()
     if poly.GetNumberOfCells()==0:raise ValueError('Bounds дотор cutoff гадарга олдсонгүй.')
     vertices=[(np.asarray(poly.GetPoint(i))+origin).tolist() for i in range(poly.GetNumberOfPoints())]
-    faces=[[int(poly.GetCell(i).GetPointId(j)) for j in range(3)] for i in range(poly.GetNumberOfCells())]
+    faces=[]
+    for i in range(poly.GetNumberOfCells()):
+        face=[int(poly.GetCell(i).GetPointId(j)) for j in range(3)]
+        if len(set(face))!=3:continue
+        a,b,c=[np.asarray(vertices[j]) for j in face]
+        if np.linalg.norm(np.cross(b-a,c-a))<=scale**2*1e-14:continue
+        faces.append(face)
+    if not faces:raise ValueError('RBF contour бүх гурвалжин талбайгүй байна.')
     mesh={'name':f'RBF grade iso {cutoff:g}','vertices':vertices,'faces':faces,'role':'implicit_grade'}
     validate_mesh_data(mesh)
     metadata={'algorithm':'local linear RBF grade isosurface','cutoff':cutoff,'bounds':list(bounds),
               'resolution':resolution,'smoothing':smoothing,'neighbors':min(neighbors,len(xyz)),
               'sample_count':len(samples),'extrapolation':'unconstrained inside user bounds',
+              'removed_degenerate_triangles':contour.GetOutput().GetNumberOfCells()-len(faces),
               'fault_constraints':False,'geological_review':False,'mesh_report':mesh_report(mesh)}
     return mesh,metadata
