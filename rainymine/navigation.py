@@ -26,10 +26,12 @@ class NavigationWorkbench(Workbench):
         self.layer_dock.setWidget(panel);self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.layer_dock)
         page=QWidget();buttons=QHBoxLayout(page)
         for title,kind,callback in [('Давхаргын\nсамбар','grid',self.toggle_layers),('Огтлол\nхадгалах','file',self.save_section),('Огтлол\nнээх','surface',self.open_section),('Өмнөх\nогтлол','undo',lambda:self.step_section(-1)),('Дараах\nогтлол','surface',lambda:self.step_section(1)),('X / Y / Z\nзүсэлт','cube',self.slice_dialog)]:
-            button=QToolButton();button.setIcon(icon(kind));button.setIconSize(QSize(29,29));button.setText(title);button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon);button.clicked.connect(lambda checked=False,cb=callback:cb());buttons.addWidget(button)
+            from .ribbon import RibbonButton
+            button=RibbonButton();button.setIcon(icon(kind));button.setIconSize(QSize(24,24));button.setText(title);button.clicked.connect(lambda checked=False,cb=callback:cb());buttons.addWidget(button)
         from .support_ui import SupportDock
         self.support=SupportDock(self);self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea,self.support);self.support.hide()
-        help_button=QToolButton();help_button.setIcon(icon('gear'));help_button.setText('Local AI\nТуслах');help_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon);help_button.clicked.connect(lambda:self.support.setVisible(not self.support.isVisible()));buttons.addWidget(help_button)
+        from .ribbon import RibbonButton
+        help_button=RibbonButton();help_button.setIcon(icon('gear'));help_button.setText('Local AI\nТуслах');help_button.clicked.connect(lambda:self.support.setVisible(not self.support.isVisible()));buttons.addWidget(help_button)
         buttons.addStretch();self.ribbon.addTab(page,'3D хэрэгслүүд')
         menu=self.menuBar().addMenu('Огтлол');self.action(menu,'Өмнөх огтлол',lambda:self.step_section(-1),'PgUp');self.action(menu,'Дараах огтлол',lambda:self.step_section(1),'PgDown');self.action(menu,'Огтлол хадгалах',self.save_section)
     def refresh(self):

@@ -276,7 +276,8 @@ def main(app=None,splash=None):
     app=app or QApplication(sys.argv[:1]);app.setStyle('Fusion');app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
     from PySide6.QtGui import QFont
     app.setFont(QFont('Segoe UI',10))
-    from .theme import THEME
+    from .theme import THEME, apply_light_palette
+    apply_light_palette(app)
     app.setStyleSheet(THEME)
     asset_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
     if (asset_root/'assets'/'rainymine.ico').exists():app.setWindowIcon(QIcon(str(asset_root/'assets'/'rainymine.ico')))

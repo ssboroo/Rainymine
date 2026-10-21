@@ -94,7 +94,8 @@ class Workbench(Window):
             for title,actions in groups:
                 group=QGroupBox(title);items=QHBoxLayout(group);items.setContentsMargins(4,0,4,18);items.setSpacing(0)
                 for label,kind,fn in actions:
-                    b=QToolButton();b.setIcon(icon(kind));b.setIconSize(QSize(29,29));b.setText(label);b.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon);b.setMinimumWidth(68);b.clicked.connect(lambda checked=False,f=fn:f());items.addWidget(b)
+                    from .ribbon import RibbonButton
+                    b=RibbonButton();b.setIcon(icon(kind));b.setIconSize(QSize(24,24));b.setText(label);b.clicked.connect(lambda checked=False,f=fn:f());items.addWidget(b)
                 row.addWidget(group)
             row.addStretch();self.ribbon.addTab(page,name)
         tab('Төсөл',[('Файл',[('Шинэ\nтөсөл','file',self.new),('Төсөл\nнээх','file',self.open),('Хадгалах','file',self.save)]),('Өгөгдөл',[('Багана\nтохируулах','grid',lambda:self.import_data('collars')),('CRS\nхөрвүүлэх','pick',self.crs_dialog),('Хүснэгт\nзасвар','grid',self.edit_grid)]),('Түүх',[('Буцаах','undo',self.undo),('Сэргээх','undo',self.redo),('Тохиргоо','gear',self.settings)])])

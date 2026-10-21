@@ -1,7 +1,7 @@
 """Native local support dock; background setup/inference and reviewed help rendering."""
 import threading
 from PySide6.QtCore import Qt,QThread,Signal,QSettings
-from PySide6.QtWidgets import QDockWidget,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QTextEdit,QLineEdit,QFileDialog,QComboBox
+from PySide6.QtWidgets import QDockWidget,QWidget,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QTextEdit,QLineEdit,QFileDialog,QComboBox,QSizePolicy
 from .local_engine import LocalEngine,default_paths,install_assets
 from .local_support import answer,candidates,OUT_OF_SCOPE
 from .support_knowledge import TOPICS
@@ -27,13 +27,18 @@ class SupportDock(QDockWidget):
         self.engine_path=self.settings.value('local_ai/engine',str(engine));self.model_path=self.settings.value('local_ai/model',str(model))
         panel=QWidget();layout=QVBoxLayout(panel);self.setWidget(panel);self.setMinimumWidth(340)
         note=QLabel('Зөвхөн Rainymine ашиглах, тохируулах, алдаа засах туслах.\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.');note.setWordWrap(True);layout.addWidget(note)
-        row=QHBoxLayout();self.setup_button=QPushButton('Анх тохируулах · 1.28 GB');self.setup_button.clicked.connect(self.setup)
+        row=QHBoxLayout();self.setup_button=QPushButton('AI бэлтгэх');self.setup_button.setToolTip('Анх тохируулах · 1.28 GB');self.setup_button.clicked.connect(self.setup)
         self.files_button=QPushButton('Файл сонгох');self.files_button.clicked.connect(self.choose_files);row.addWidget(self.setup_button);row.addWidget(self.files_button);layout.addLayout(row)
         self.status=QLabel('Локал загвар бэлэн бол асуултаа бичнэ. Анх татахад интернэт хэрэгтэй.');self.status.setWordWrap(True);layout.addWidget(self.status)
         self.chat=QTextEdit();self.chat.setReadOnly(True);self.chat.setAcceptRichText(False);layout.addWidget(self.chat,1)
         self.question=QLineEdit();self.question.setMaxLength(2000);self.question.setPlaceholderText('Жишээ: CSV импортын алдааг яаж засах вэ?');self.question.returnPressed.connect(self.ask);layout.addWidget(self.question)
-        row=QHBoxLayout();self.ask_button=QPushButton('Асуух');self.ask_button.clicked.connect(self.ask);self.cancel_button=QPushButton('Зогсоох / Санах ой чөлөөлөх');self.cancel_button.clicked.connect(self.cancel);row.addWidget(self.ask_button);row.addWidget(self.cancel_button);layout.addLayout(row)
+        row=QHBoxLayout();self.ask_button=QPushButton('Асуух');self.ask_button.clicked.connect(self.ask);self.cancel_button=QPushButton('Зогсоох');self.cancel_button.setToolTip('Зогсоох / Санах ой чөлөөлөх');self.cancel_button.clicked.connect(self.cancel);row.addWidget(self.ask_button);row.addWidget(self.cancel_button);layout.addLayout(row)
         self.manual=QComboBox();self.manual.addItem('Зааврыг шууд үзэх — модель шаардахгүй');self.manual.addItems([t['title'] for t in TOPICS]);self.manual.activated.connect(self.show_manual);layout.addWidget(self.manual)
+        self.manual.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+        self.manual.setMinimumContentsLength(12)
+        self.manual.setSizePolicy(QSizePolicy.Policy.Ignored,QSizePolicy.Policy.Fixed)
+        self.manual.currentTextChanged.connect(self.manual.setToolTip)
+        self.manual.setToolTip(self.manual.currentText())
         clear=QPushButton('Чат цэвэрлэх');clear.clicked.connect(self.clear);layout.addWidget(clear)
     def append(self,who,text):
         self._conversation_started=True

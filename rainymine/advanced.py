@@ -21,7 +21,8 @@ class AdvancedWorkbench(NavigationWorkbench):
                  ('Pit\nоновчлол','pit',self.optimize_dialog),('Excel\nимпорт','grid',self.excel_dialog),
                  ('STL\nимпорт','cube',self.stl_import),('STL\nэкспорт','cube',self.stl_export),
                  ('Geobank / SQL\nунших','file',self.database_dialog)]:
-            b=QToolButton();b.setText(text);b.setIcon(icon(kind));b.setIconSize(QSize(29,29))
+            from .ribbon import RibbonButton
+            b=RibbonButton();b.setText(text);b.setIcon(icon(kind));b.setIconSize(QSize(24,24))
             b.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
             b.clicked.connect(lambda checked=False,cb=callback:cb());row.addWidget(b)
         row.addStretch();self.ribbon.addTab(page,'Загвар / оновчлол')

@@ -1,3 +1,10 @@
+# Readable workspace — 2026-10-22
+
+- Full Mongolian/English command captions in a measured two-row ribbon; horizontal overflow preserves access on narrow/high-DPI screens.
+- Explicit light text/background palette, readable 13px UI text and installed Unicode fonts for Mongolian VTK annotations.
+- Stable scrollable data columns, full layer-name tooltips, scrollable view controls and collapsible empty block properties.
+- Caption-fit, narrow-window reachability, larger-font, native click and dark-palette regression checks.
+
 # DH CSV bundles
 
 - Recognize DH file selection in ordinary CSV import and route to a dedicated bundle workflow.

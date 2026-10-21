@@ -138,3 +138,56 @@ QGroupBox#blockInspector {border:1px solid #d4e4ee;border-radius:4px;margin:2px 
 QGroupBox#blockInspector::title {subcontrol-origin:margin;subcontrol-position:top left;left:10px;top:5px;font-weight:600;color:#101c2c;}
 QGroupBox#blockInspector QLabel {font-size:11px;min-height:16px;}
 '''
+
+# Explicit foregrounds and measured controls keep Windows dark-mode palettes
+# from turning text white on our light scientific workspace.
+THEME += '''
+QWidget {font-size:13px;color:#172b40;}
+QLabel,QAbstractItemView {color:#172b40;}
+QLabel#muted {color:#52697a;}
+QLineEdit,QTextEdit,QPlainTextEdit,QSpinBox,QDoubleSpinBox,QComboBox {
+    color:#172b40;background:#ffffff;selection-color:#ffffff;selection-background-color:#00777b;
+}
+QTreeWidget,QTableView,QTableWidget,QListWidget {color:#172b40;}
+QHeaderView::section {color:#294257;font-size:12px;padding:8px;}
+QToolButton#ribbonCommand {padding:0;color:#172b40;text-align:left;}
+QToolButton#ribbonCommand:hover {background:#e2f3f2;border-color:#9acbc8;}
+QToolButton#ribbonCommand:checked {background:#d2efeb;color:#123e43;}
+QToolButton#ribbonCommand:disabled {color:#657789;}
+QGroupBox#ribbonGroup {border:0;border-right:1px solid #ccdce5;padding:0;margin:0;}
+QGroupBox#ribbonGroup::title {color:#425e72;font-size:11px;padding:3px 6px;}
+QScrollBar:horizontal {height:14px;}
+QScrollBar:vertical {width:12px;}
+QTabBar::tab {padding:8px 10px;}
+QStatusBar {font-size:11px;color:#425e72;}
+QLabel#selectionInfo,QLabel#pickedInfo {color:#294257;}
+QGroupBox#blockInspector QLabel {font-size:12px;min-height:18px;}
+'''
+
+
+def apply_light_palette(app):
+    """Define all text/background pairs, including disabled and inactive windows."""
+    from PySide6.QtGui import QColor, QPalette
+    palette = QPalette()
+    roles = {
+        QPalette.ColorRole.Window: '#f4f8fb',
+        QPalette.ColorRole.WindowText: '#172b40',
+        QPalette.ColorRole.Base: '#ffffff',
+        QPalette.ColorRole.AlternateBase: '#f2f8fc',
+        QPalette.ColorRole.Text: '#172b40',
+        QPalette.ColorRole.Button: '#f9fcfe',
+        QPalette.ColorRole.ButtonText: '#172b40',
+        QPalette.ColorRole.ToolTipBase: '#101c2c',
+        QPalette.ColorRole.ToolTipText: '#ffffff',
+        QPalette.ColorRole.Highlight: '#00777b',
+        QPalette.ColorRole.HighlightedText: '#ffffff',
+        QPalette.ColorRole.PlaceholderText: '#5c6d7f',
+        QPalette.ColorRole.Link: '#006d74',
+        QPalette.ColorRole.BrightText: '#ffffff',
+    }
+    for role, color in roles.items():
+        palette.setColor(role, QColor(color))
+    for role in (QPalette.ColorRole.WindowText, QPalette.ColorRole.Text,
+                 QPalette.ColorRole.ButtonText):
+        palette.setColor(QPalette.ColorGroup.Disabled, role, QColor('#657789'))
+    app.setPalette(palette)

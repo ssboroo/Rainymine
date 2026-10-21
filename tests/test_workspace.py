@@ -102,10 +102,12 @@ class WorkspaceLayoutTests(unittest.TestCase):
         self.assertFalse(window.layer_dock.isHidden())
         self.assertFalse(window.data_tabs.isHidden())
         self.assertTrue(window.support.isHidden())
+        expanded = window.ribbon.height()
         window.collapse_ribbon()
-        self.assertEqual(window.ribbon.height(), 36)
+        self.assertLess(window.ribbon.height(), expanded)
+        self.assertGreaterEqual(window.ribbon.height(), window.ribbon.tabBar().sizeHint().height())
         window.collapse_ribbon()
-        self.assertEqual(window.ribbon.height(), 132)
+        self.assertEqual(window.ribbon.height(), expanded)
 
     def test_labels_toggle_matches_scene_and_section(self):
         window = self.make_window()
