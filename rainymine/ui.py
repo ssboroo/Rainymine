@@ -288,6 +288,8 @@ def main():
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
+                from .packaged_checks import verify
+                verify(window.project)
                 assert window.ribbon.count()>=6
                 assert window.project.workspace.get('block_model')
                 assert window.scene.sources['blocks'].GetNumberOfCells()>0
