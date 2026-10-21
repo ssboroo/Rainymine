@@ -1,3 +1,11 @@
+# DH CSV bundles
+
+- Recognize DH file selection in ordinary CSV import and route to a dedicated bundle workflow.
+- Join collar IDs/names, infer supported GDA94/MGA CRS from source metadata and report equivalent 360→0 azimuth normalization.
+- Explicit one-analyte/unit projection; keep censored/missing results out by default; hold out overlapping/orphan intervals. No invented downhole surveys.
+- Embed SHA-256-checked original CSV bytes in a bounded portable archive, page raw tables and export byte-exact originals.
+- Preserve No-data sentinels, malformed rows and auxiliary attributes; docs/DH_IMPORT.mn.md lists scope.
+
 # Open exchange
 
 - Atomic OMF 2.0-beta.1 export: rotated sparse/freeform leaf blocks, attributes with NULLs, trajectories, strings and surfaces; pinned offline GMG schema validation.
