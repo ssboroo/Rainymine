@@ -48,10 +48,11 @@ class Scene:
         self.lut.SetTableRange(0,self.grade_max);self.legend.SetTitle(project.grade_unit)
         points=vtk.vtkPoints();points.SetDataTypeToDouble();lines=vtk.vtkCellArray();scalars=vtk.vtkFloatArray();scalars.SetName('grade')
         collars=vtk.vtkPoints();collars.SetDataTypeToDouble()
-        assays={}
+        assays={};surveys={}
+        for station in project.surveys:surveys.setdefault(station.hole_id,[]).append(station)
         for a in project.assays:assays.setdefault(a.hole_id,[]).append(a)
         for h in project.collars:
-            tr=Trajectory(h,project.surveys);self.paths[h.hole_id]=tr
+            tr=Trajectory(h,surveys.get(h.hole_id,[]));self.paths[h.hole_id]=tr
             collars.InsertNextPoint(*self.local((h.x,h.y,h.z)))
             previous=0
             for a in sorted(assays.get(h.hole_id,[]),key=lambda a:a.from_m):

@@ -30,7 +30,9 @@ Qt 6 / PySide6 + VTK ашигласан жинхэнэ native desktop хэрэг
 3. ZIP-ийг задалж `Rainymine-0.1.0-Setup-x64.exe` ажиллуулна. Эсвэл portable ZIP-ийг задалж **хавтсыг бүхлээр нь** хадгалан `Rainymine.exe` нээнэ.
 4. Программ жишээ төсөлтэй нээгдэнэ. `Файл → Шинэ төсөл` сонгож өөрийн CSV-г импортлоно.
 
-**Build ногоон болсны дараа л artifact бэлэн болно.** GitHub workflow нь тест, native UI smoke test, EXE бүтээлт, packaged EXE smoke test, суулгагч бүтээлт болон суулгасан EXE smoke test хийдэг. EXE нь одоогоор кодын тоон гарын үсэггүй.
+**Build ногоон болсны дараа л artifact бэлэн болно.** GitHub workflow нь тест, native UI smoke test, EXE бүтээлт, packaged EXE smoke test, суулгагч бүтээлт болон суулгасан EXE smoke test хийдэг. EXE нь одоогоор кодын тоон гарын үсэггүй. Windows runner нь GPU-гүй учир software renderer ашиглан UI-г шалгана.
+
+**3D цонх нээгдэхгүй/хар байвал:** `Rainymine-Software.bat` эсвэл Start цэсний `RAINYMINE - CPU rendering`-ийг ашиглана. Багцад оффлайн Mesa/llvmpipe драйвер дагалдана. Энэ горим GPU шаардлагыг багасгах боловч CPU дээр ажиллах тул том өгөгдөлд удаан байж болно. Системийн драйверийг солихгүй.
 
 Зорилтот орчин: Windows 10/11 x64; OpenGL 3.2+ дэмждэг графикийн драйвер. Энэ хувилбарын шалгалт нь Windows runner болон зохиомол жишээ өгөгдлөөр хийгдэнэ; бүх төрлийн уурхайн том өгөгдөл, бүх компьютерийн драйвер дээр баталгаажуулсан гэсэн үг биш.
 
@@ -53,6 +55,8 @@ EXE өөрөө бүтээх бол:
 .venv\Scripts\Activate.ps1
 .\scripts\build_windows.ps1
 ```
+
+CPU renderer дагалдуулах бол эхлээд `scripts/prepare_mesa.ps1` ажиллуулна (таталтад интернэт хэрэгтэй).
 
 Суулгагч бүтээхэд Inno Setup 6 шаардлагатай: `ISCC.exe installer\Rainymine.iss`.
 

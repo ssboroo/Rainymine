@@ -211,8 +211,10 @@ def read_surface(path):return [[r[k] for k in ('x','y','z')] for r in read_rows(
 
 def export_trajectories(path,project):
     out=io.StringIO(newline='');w=csv.writer(out);w.writerow(('hole_id','depth','x','y','z'))
+    surveys={}
+    for station in project.surveys:surveys.setdefault(station.hole_id,[]).append(station)
     for h in project.collars:
-        for depth,p in Trajectory(h,project.surveys).sample():w.writerow((h.hole_id,depth,*p))
+        for depth,p in Trajectory(h,surveys.get(h.hole_id,[])).sample():w.writerow((h.hole_id,depth,*p))
     atomic_write(path,'\ufeff'+out.getvalue())
 
 def composite_assays(project,length=5):
@@ -231,9 +233,9 @@ def composite_assays(project,length=5):
         for i in range(math.ceil(h.depth/length)):
             start=i*length;end=min(h.depth,start+length);support=weighted=0.
             while cursor<len(assays) and assays[cursor].to_m<=start:cursor+=1
-            for a in assays[cursor:]:
-                if a.from_m>=end:break
-                overlap=max(0.,min(end,a.to_m)-max(start,a.from_m));support+=overlap;weighted+=overlap*a.grade
+            j=cursor
+            while j<len(assays) and assays[j].from_m<end:
+                a=assays[j];overlap=max(0.,min(end,a.to_m)-max(start,a.from_m));support+=overlap;weighted+=overlap*a.grade;j+=1
             if support:result.append({'hole_id':h.hole_id,'from_m':start,'to_m':end,'grade':weighted/support,'support_m':support,'coverage':support/(end-start)})
     return result
 
