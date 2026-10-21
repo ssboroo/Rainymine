@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760">
+<rect width="1440" height="760" fill="#f4f8fb"/>
+<g font-family="Segoe UI,Arial,sans-serif" fill="#101c2c">
+<text x="40" y="61" font-size="35" font-weight="700">RAINYMINE</text><text x="330" y="60" font-size="24" fill="#008f92">БРЭНДИЙН ЗАГВАР / 2026</text>
+<text x="40" y="94" font-size="16" fill="#647b91">RAINY STUDIO · 90220101 · Монгол геологи, уурхайн ажлын орчин</text>
+<rect x="32" y="120" width="410" height="600" rx="18" fill="white" stroke="#d5e4ed"/>
+<text x="58" y="158" font-size="17" font-weight="600">01 / ҮНДСЭН ТЭМДЭГ</text>
+<g transform="translate(122 192) scale(3)">
+    <path d="M7 5h19l22 15-17 10L7 14z" fill="#101c2c"/>
+    <path d="M7 18h17l18 12-17 10L7 27z" fill="#00bfc0"/>
+    <path d="m7 32 17 0 23 14-17 10L7 41z" fill="#122334"/>
+    <path d="M7 43l15 9v11L7 55z" fill="#b87333"/>
+    <path d="m7 43 15 9-15 3z" fill="#e9a759"/>
+    <path d="m43 22 14 9-26 18-15-10z" fill="#c7d0d7" stroke="#f4f6f8" stroke-width="2"/>
+    <path d="m31 49 13-9v15l-13 9z" fill="#183547"/>
+    <path d="m47 39 12-8v31l-12-9z" fill="#b87333"/>
+    <path d="m47 39 12-8v18z" fill="#e4a65d"/>
+    <path d="m31 49 0 15M31 49l-9-6" stroke="#f4f6f8" stroke-width="2"/>
+    </g>
+<text x="76" y="454" font-size="40" font-weight="800">RAINYMINE</text>
+<text x="180" y="491" font-size="23" letter-spacing="6" fill="#00a8a9">2026</text>
+<path d="M62 531H410" stroke="#dce7ed"/>
+<text x="62" y="568" font-size="16" font-weight="600">Логоны хамгаалалтын зай</text>
+<text x="62" y="598" font-size="15" fill="#647b91">Тэмдгийн өргөний 1/4-өөс багагүй.</text>
+<text x="62" y="628" font-size="15" fill="#647b91">Харьцаа, өнгө, бичвэрийг хадгална.</text>
+<text x="62" y="674" font-size="15">RAINY STUDIO · 90220101</text>
+<rect x="466" y="120" width="942" height="251" rx="18" fill="white" stroke="#d5e4ed"/>
+<text x="492" y="158" font-size="17" font-weight="600">02 / ӨНГӨНИЙ ХОСЛОЛ</text>
+<circle cx="550" cy="229" r="39" fill="#101C2C" stroke="#d2dfe8"/><text x="502" y="303" font-size="16" font-family="Consolas,monospace">#101C2C</text><text x="502" y="332" font-size="15" fill="#647b91">Шөнийн хөх</text><circle cx="725" cy="229" r="39" fill="#19C6B3" stroke="#d2dfe8"/><text x="677" y="303" font-size="16" font-family="Consolas,monospace">#19C6B3</text><text x="677" y="332" font-size="15" fill="#647b91">Оюу ногоон</text><circle cx="900" cy="229" r="39" fill="#F4F8FB" stroke="#d2dfe8"/><text x="852" y="303" font-size="16" font-family="Consolas,monospace">#F4F8FB</text><text x="852" y="332" font-size="15" fill="#647b91">Сүүн цагаан</text><circle cx="1075" cy="229" r="39" fill="#9AA6B2" stroke="#d2dfe8"/><text x="1027" y="303" font-size="16" font-family="Consolas,monospace">#9AA6B2</text><text x="1027" y="332" font-size="15" fill="#647b91">Ган саарал</text><circle cx="1250" cy="229" r="39" fill="#B87333" stroke="#d2dfe8"/><text x="1202" y="303" font-size="16" font-family="Consolas,monospace">#B87333</text><text x="1202" y="332" font-size="15" fill="#647b91">Зэс хүрэн</text>
+<rect x="466" y="395" width="942" height="325" rx="18" fill="white" stroke="#d5e4ed"/>
+<text x="492" y="432" font-size="17" font-weight="600">03 / АЖЛЫН ТАЛБАРЫН БҮТЭЦ</text>
+<rect x="494" y="450" width="577" height="240" rx="7" fill="#f7fbfd" stroke="#cbdde8"/>
+<rect x="494" y="450" width="577" height="35" rx="5" fill="#e6f3f7"/>
+<path d="M503 485h559M615 485v195M937 485v195M615 621h322" fill="none" stroke="#b7d2df"/>
+<text x="510" y="473" font-size="12">Төсөл · Өрөмдлөг · Геологи · Блок · Уурхай · Харагдац</text>
+<text x="512" y="516" font-size="13" font-weight="600">Давхаргууд</text><text x="512" y="550" font-size="12" fill="#647b91">Гадарга</text><text x="512" y="578" font-size="12" fill="#647b91">Цооногууд</text><text x="512" y="606" font-size="12" fill="#647b91">Блок загвар</text>
+<text x="694" y="530" font-size="16" font-weight="600" fill="#008f92">Бодит 3D өгөгдөл</text>
+<path d="m698 567 67-24 71 28-69 27zM698 567v22l69 27 69-23v-22M767 598v18" fill="#d6f1ed" stroke="#19c6b3" stroke-width="2"/>
+<text x="700" y="660" font-size="13">Блок / цооногийн хүснэгт</text>
+<text x="949" y="517" font-size="13" font-weight="600">AI туслах</text><text x="949" y="551" font-size="12" fill="#647b91">Заавар</text><text x="949" y="579" font-size="12" fill="#647b91">Төслийн тойм</text>
+<text x="1101" y="487" font-size="20" font-weight="700">Aa Өө Үү</text>
+<text x="1101" y="521" font-size="15">Segoe UI</text><text x="1101" y="554" font-size="14" fill="#647b91">Монгол кирилл</text>
+<text x="1101" y="605" font-size="17" font-family="Consolas,monospace">0123456789</text>
+<text x="1101" y="635" font-size="14" fill="#647b91">Consolas · тоон утга</text>
+<text x="1101" y="676" font-size="13" fill="#647b91">Бүтцийн схем</text>
+</g></svg>

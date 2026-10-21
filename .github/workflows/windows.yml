@@ -1,7 +1,7 @@
 name: Windows desktop build
 on:
   push:
-    branches: [main]
+    branches: [main, codex/trial-license-0.6.0]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -15,10 +15,14 @@ jobs:
       GALLIUM_DRIVER: llvmpipe
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
+      - name: Verify merge resolution with Git CLI
+        run: python scripts/verify_merge_resolution.py
       - name: Install dependencies
         run: python -m pip install -r requirements.txt pyinstaller==6.12.0
       - name: Cache pinned local AI assets
@@ -57,7 +61,7 @@ jobs:
         shell: pwsh
         run: |
           $dest = Join-Path $env:RUNNER_TEMP 'RainymineInstalled'
-          $setup = Start-Process '.\dist\Rainymine-0.6.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
+          $setup = Start-Process '.\dist\Rainymine-0.8.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
           if (-not $setup.WaitForExit(60000)) { $setup.Kill(); throw 'Install timed out' }
           if ($setup.ExitCode -ne 0) { throw 'Install failed' }
           $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
@@ -67,8 +71,8 @@ jobs:
         with:
           name: Rainymine-Windows-x64
           path: |
-            dist/Rainymine-0.6.0-Windows-x64.zip
-            dist/Rainymine-0.6.0-Setup-x64.exe
+            dist/Rainymine-0.8.0-Windows-x64.zip
+            dist/Rainymine-0.8.0-Setup-x64.exe
             windows-smoke.png
             windows-startup.png
           if-no-files-found: error
@@ -76,9 +80,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Rainymine-AI-Offline-x64
-          path: dist/Rainymine-0.6.0-AI-Offline-x64.zip
+          path: dist/Rainymine-0.8.0-AI-Offline-x64.zip
           compression-level: 0
           if-no-files-found: error
+      - name: Assemble checked release kit
+        run: python scripts/prepare_release.py --dist dist
       - name: Upload diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,3 +96,40 @@ jobs:
             windows-startup.png
             dist/Rainymine/*.log
           if-no-files-found: ignore
+
+      - name: Upload release documents and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rainymine-Release-Kit
+          path: |
+            dist/Rainymine-0.8.0-Release-Kit.zip
+            dist/SHA256SUMS.txt
+            dist/release-manifest.json
+            dist/package-inventory.json
+          if-no-files-found: error
+  draft-release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/codex/trial-license-0.6.0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: Rainymine-Windows-x64
+          path: release-dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: Rainymine-AI-Offline-x64
+          path: release-dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: Rainymine-Release-Kit
+          path: release-dist
+      - name: Verify checksums and create draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/create_draft_release.py --dist release-dist

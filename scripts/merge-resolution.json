@@ -1,0 +1,46 @@
+{
+  "parents": [
+    "ee8f65ce197f8c926750e7c2dbcc12e306658d32",
+    "28819468a23b308eb12f453b51aff6c9f4b79f8b"
+  ],
+  "expected_conflicts": [
+    ".github/workflows/windows.yml",
+    "CHANGELOG.md",
+    "README.md",
+    "assets/rainymine.ico",
+    "installer/Rainymine.iss",
+    "rainymine/__init__.py",
+    "rainymine/theme.py",
+    "rainymine/ui.py",
+    "rainymine/workbench.py",
+    "scripts/build_windows.ps1"
+  ],
+  "resolution_paths": [
+    ".github/workflows/windows.yml",
+    "CHANGELOG.md",
+    "DESIGN.md",
+    "README.md",
+    "assets/brandbook.svg",
+    "assets/rainymine.ico",
+    "docs/BRANDBOOK.mn.md",
+    "installer/Rainymine.iss",
+    "rainymine/__init__.py",
+    "rainymine/icons.py",
+    "rainymine/theme.py",
+    "rainymine/ui.py",
+    "rainymine/workbench.py",
+    "rainymine/workspace.py",
+    "release/KNOWN_ISSUES.mn.md",
+    "release/LICENSING.mn.md",
+    "release/OWNER_DECISIONS.mn.md",
+    "release/QUICK_START.mn.md",
+    "release/RELEASE_CHECKLIST.mn.md",
+    "release/RELEASE_NOTES.mn.md",
+    "release/config.json",
+    "scripts/build_windows.ps1",
+    "scripts/merge-resolution.json",
+    "scripts/prepare_release.py",
+    "scripts/verify_merge_resolution.py",
+    "tests/test_workspace.py"
+  ]
+}

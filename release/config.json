@@ -1,0 +1,27 @@
+{
+  "product": "RAINYMINE 2026",
+  "version": "0.8.0",
+  "tag": "v0.8.0-preview.2",
+  "title": "RAINYMINE 2026 — 0.8.0 · Нэгдсэн ажлын орчин · 7 хоногийн туршилт",
+  "source_commit": "CURRENT_BUILD",
+  "source_tree": null,
+  "source_run_id": null,
+  "source_run_url": null,
+  "files": [
+    "Rainymine-0.8.0-Setup-x64.exe",
+    "Rainymine-0.8.0-Windows-x64.zip",
+    "Rainymine-0.8.0-AI-Offline-x64.zip"
+  ],
+  "draft": true,
+  "prerelease": true,
+  "code_signing": "not_configured",
+  "owner_distribution_license": "pending_owner_decision",
+  "independent_deposit_validation": "pending",
+  "brandbook_implementation": "native_workspace_logo_icons_splash_command_palette_labels_and_brandbook_implemented",
+  "physical_windows_device_validation": "pending",
+  "trial_days": 7,
+  "license_signing_key": "pending_owner_configuration",
+  "trial_protection": "Windows DPAPI and two local per-user anchors; not a server entitlement",
+  "publisher": "RAINY STUDIO",
+  "support_phone": "90220101"
+}

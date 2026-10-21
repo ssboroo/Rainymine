@@ -265,7 +265,7 @@ class Window(QMainWindow):
             atomic_write(path,text)
         self.guard(run)
     def help(self):
-        QMessageBox.information(self,'RAINYMINE — Ашиглах заавар','1. Цооногийн амсар CSV импортлоно.\n2. Survey CSV, дараа нь сорьц CSV импортлоно.\n3. Гадаргын XYZ CSV импортлож TIN үүсгэнэ.\n4. 3D цонхыг эргүүлж, хүснэгтээс цооног сонгоно.\n5. Огтлолын нормал, шилжилт, зузааныг тохируулна.\n6. .rmine файлд төслөө хадгална.\n\nБүх координат нэг метрийн системд байна. X зүүн, Y хойд, Z дээш. Азимут хойноос цагийн зүүний дагуу. Dip −90 босоо доош.\n\nSurvey: minimum curvature; сүүлийн станцаас мөргөцөг хүртэл чиглэл тогтмол. Survey байхгүй бол амсрын чиглэлээр шулуун.\n\nЭнэ хувилбарт: блок модель, кригинг, нөөцийн ангилал, уурхайн оновчлол, Micromine форматын импорт ороогүй. Жишээ нь бодит орд биш.\n\nREADME.md болон examples хавтсаас форматыг харна уу.')
+        QMessageBox.information(self,'RAINYMINE — Ашиглах заавар','1. Төсөл табаас шинэ төсөл нээх, хадгалах, оруулах, гаргах үйлдлийг сонгоно.\n2. Өрөмдлөг табаас амсар → замнал → сорьц/литологи дарааллаар импортлоно.\n3. Геологи табаас гадарга, шугам, биетээ удирдана.\n4. Блок загвар табаас үнэлгээ, домэйн, хагарал, харьцуулалтыг тохируулна.\n5. Уурхайн төлөвлөлт табаас зам/тээвэр ба оновчлолын сценарий үүсгэнэ.\n6. Харагдац табаас огтлол, давхарга, камер, экспортын хэрэгслүүдийг ашиглана.\n\nЗүүн талд давхарга/цооног/огтлол, төвд бодит 3D геометр, доор блок/цооногийн хүснэгт, баруунд локал хиймэл оюуны туслах байрлана. AI модель төслийн өгөгдөл авахгүй.\n\n7 хоногийн туршилтыг Лиценз цэснээс шалгана. Төслөө .rmine файлд хадгална. Жишээ нь бодит орд биш. Инженерийн хязгааруудыг README болон release/KNOWN_ISSUES.mn.md-ээс уншина.\n\nRAINY STUDIO · 90220101')
     def closeEvent(self,event):
         if self.may_discard():self.vtk.Finalize();event.accept()
         else:event.ignore()
@@ -276,18 +276,33 @@ def main(app=None,splash=None):
     app=app or QApplication(sys.argv[:1]);app.setStyle('Fusion');app.setApplicationName('RAINYMINE');app.setOrganizationName('Rainy Studio')
     from PySide6.QtGui import QFont
     app.setFont(QFont('Segoe UI',10))
+    from .theme import THEME
+    app.setStyleSheet(THEME)
     asset_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
     if (asset_root/'assets'/'rainymine.ico').exists():app.setWindowIcon(QIcon(str(asset_root/'assets'/'rainymine.ico')))
+    license_manager = None
+    if not args.smoke:
+        from .licensing import LicenseManager
+        from .license_ui import LicenseDialog
+        try:
+            license_manager = LicenseManager()
+        except (OSError, ValueError) as exc:
+            QMessageBox.critical(None, 'Лицензийн тохиргоо', str(exc))
+            return 1
+        if not license_manager.status().allowed:
+            if splash:splash.hide()
+            dialog = LicenseDialog(license_manager)
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                return 0
+            if splash:splash.show()
     # VTK may log renderer errors without raising Python exceptions.
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
     if splash:splash.set_stage('Төслийн өгөгдөл болон ажлын орчныг бэлтгэж байна…')
-    from .presentation import PresentationWorkbench
-    window=PresentationWorkbench();window.show()
+    from .workspace import WorkspaceWorkbench
+    window=WorkspaceWorkbench();window.show()
     if args.screenshot:
-        # Explicit post-show size gives review screenshots a useful desktop
-        # canvas even on a small CI monitor. Normal startup follows the screen.
         window.resize(1440,900);QApplication.processEvents()
     if splash:
         splash.set_stage('3D ажлын орчин бэлэн боллоо')
@@ -295,14 +310,17 @@ def main(app=None,splash=None):
             assert splash.artwork_loaded, 'Startup artwork not packaged'
             if args.screenshot:splash.grab().save(str(Path(args.screenshot).with_name('windows-startup.png')))
         splash.finish(window)
+    if license_manager is not None:
+        from .license_ui import attach_licensing
+        attach_licensing(window, license_manager)
     if args.smoke:
         def verify():
             try:
                 assert window.scene.sources['holes'].GetNumberOfCells()>0
                 window.collapse_ribbon();assert window.ribbon_collapsed;window.collapse_ribbon()
                 window.focus_workspace();assert window.focus_active;window.focus_workspace()
-                assert window.block_table.rowCount()>0
-                window.show_ai_guide();assert window.guide_tabs.currentIndex()==2;window.guide_tabs.setCurrentIndex(0)
+                window.toggle_labels(True);assert window.labels_visible
+                window.toggle_labels(False);assert not window.labels_visible
                 from .packaged_checks import verify
                 from .viewing import named_section
                 window.change_layer('holes',{'opacity':.65})
@@ -319,12 +337,20 @@ def main(app=None,splash=None):
                 window.project.workspace.setdefault('meshes',[]).extend(meshes)
                 window.refresh()
                 assert window.scene.sources['mesh_0'].GetNumberOfCells()>0
-                assert window.ribbon.count()>=6
+                assert window.ribbon.count()==6
+                assert window.project_pages.count()==3
+                assert window.block_model.rowCount()==len(window.project.workspace['block_model']['blocks'])
+                assert window.dockWidgetArea(window.layer_dock)==Qt.DockWidgetArea.LeftDockWidgetArea
+                assert window.dockWidgetArea(window.support)==Qt.DockWidgetArea.RightDockWidgetArea
+                assert window.support.isVisible()
+                window.change_workspace_view('section');assert window.slab.isChecked()
+                window.change_workspace_view('top');assert not window.slab.isChecked()
+                window.change_workspace_view('iso')
                 assert window.project.workspace.get('block_model')
                 assert window.scene.sources['blocks'].GetNumberOfCells()>0
                 window.toggle_view();window.show_hole(window.project.collars[0].hole_id)
                 window.scene.set_section((90,0,100));window.scene.set_section(None)
-                window.ribbon.setCurrentIndex(3)
+                window.ribbon.setCurrentIndex(0)
                 window.toggle_view()
                 window.update_labels()
                 window.scene.view('iso')

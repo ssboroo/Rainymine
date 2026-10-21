@@ -29,6 +29,17 @@ PATHS={
  'chevron':'<path d="m8 9 4 4 4-4"/>',
 }
 
+PATHS.update({
+ 'layers':'<path d="m2 7 10-5 10 5-10 5zM2 12l10 5 10-5M2 17l10 5 10-5"/>',
+ 'section':'<path d="M7 2 3 22h15l4-20zM3 14l19-7M14 1l-3 22"/>',
+ 'measure':'<path d="m3 18 15-15 4 4-15 15zM8 13l3 3M12 9l3 3M16 5l3 3"/>',
+ 'pan':'<path d="M8 13V5a2 2 0 0 1 4 0v7V3a2 2 0 0 1 4 0v9-6a2 2 0 0 1 4 0v10c0 5-4 7-8 7-3 0-4-2-6-5l-4-6q1-3 4-1l2 3"/>',
+ 'rotate':'<path d="M21 8A9 9 0 1 0 21 17M21 2v7h-7"/>',
+ 'zoom':'<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6M7 10h6M10 7v6"/>'
+})
+PATHS['import']=PATHS['download']
+PATHS['export']=PATHS['upload']
+
 def icon(kind,color='#142a43'):
     svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="'+color+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+PATHS.get(kind,PATHS['gear'])+'</g></svg>'
     pix=QPixmap(64,64);pix.fill(Qt.GlobalColor.transparent)

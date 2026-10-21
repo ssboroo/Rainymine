@@ -1,18 +1,42 @@
-# RAINYMINE 0.6 — 2026 ажлын орчин
+# RAINYMINE 2026 · 0.8.0
 
-Хэрэглэгчийн Монгол brand board-д тулгуурласан цайвар scientific workspace, navy/teal/copper M тэмдэг, шинэ native vector icons. Зүүнд бүлэглэсэн давхаргууд, төвд 3D ба өгөгдлийн хүснэгт, баруунд ажилладаг оффлайн туслах самбар.
+**RAINY STUDIO · Лиценз ба дэмжлэг: 90220101**
 
-- Шинэ эхлэл дэлгэц нь VTK импортлохоос өмнө гарна. Хөдөлгөөнт busy зурвас ба бодит ачаалж буй үеийн мэдээлэлтэй; зориуд хүлээлгэх хугацаагүй. Хэрэглэгчийн reference-д тулгуурлан imagegen-ээр бүтээсэн artwork нь `assets/splash.jpg` дотор, интернэтгүй багцлагдана.
-- Ctrl+K: үйлдэл хайх; Ctrl+F1: ribbon хураах/дэлгэх; F10: 3D төвлөрсөн горим. Самбарууд цэснээс нуусан самбараа сэргээнэ.
-- Давхаргын нэр, төрлийн vector icon, харагдах байдал, тунгалагшил, дүрслэл. Анх зөвхөн сонгосон цооногийн нэр харагдана; Шошго товч бүх нэрийг харуулна.
-- Доод хэсэгт блок/цооногийн хүснэгт; агуулгын өнгө ба 1000 мөрийн paging. Бүх блокийг экспортлох өмнөх үйлдэл хэвээр.
-- Баруун туслах нь оффлайн заавар, шууд нээх хэрэгслүүд болон Local AI табтай. Main дээрх Qwen3 / llama.cpp туслахыг хадгалсан; зөвхөн программын хянагдсан зааварт хариулна.
+![RAINYMINE брэндбүүк](assets/brandbook.svg)
 
-# RAINYMINE 0.6.0 — Монгол оффлайн 3D уул уурхайн workbench
+[Монгол брэндбүүк](docs/BRANDBOOK.mn.md) · [Суулгах заавар](release/QUICK_START.mn.md) · [7 хоногийн лиценз](release/LICENSING.mn.md) · [Хязгаар ба шалгах хуудас](release/RELEASE_CHECKLIST.mn.md)
+
+Main-ийн брэндинг/эхлэл/удирдлага болон 7 хоногийн лицензтэй шинэ ажлын талбарыг нэгтгэсэн Windows x64 хувилбар.
+
+- Зургаан ангилалтай native хэрэгслийн мөр; зүүнд давхарга/цооног/огтлол, төвд бодит 3D ба lazy блокийн хүснэгт, баруунд локал туслах.
+- Лого, хэрэгслийн вектор icon, Монгол эхлэх дэлгэц. Эхлэл нь VTK импортлохоос өмнө харагдана; зохиомол ачааллын хувь, зориудын саатал байхгүй.
+- **Ctrl+K**: үйлдэл хайх · **Ctrl+F1**: хэрэгслийн мөр хураах/дэлгэх · **F10**: төвлөрсөн горим · **Шошго**: бүх цооногийн нэр.
+- Бодит өгөгдөл, хадгалалт, local Qwen3/llama.cpp туслах, 168 цагийн trial ба гарын үсэгтэй төхөөрөмжийн лицензийн шалгалтыг хадгалсан.
+
+### Windows багцууд
+
+| Багц | Хэрэглээ |
+|---|---|
+| `Rainymine-0.8.0-Setup-x64.exe` | Ердийн Windows суулгагч; Python шаардахгүй |
+| `Rainymine-0.8.0-Windows-x64.zip` | Бүрэн задалж ажиллуулах portable |
+| `Rainymine-0.8.0-AI-Offline-x64.zip` | AI загвар дотроо багтсан offline portable |
+| `Rainymine-0.8.0-Release-Kit.zip` | Монгол заавар, checksum, бүртгэл, хязгаар |
+
+Татах холбоосуудыг [GitHub Releases](https://github.com/ssboroo/Rainymine/releases)-ээс авна. Эдгээр нэр нь build-ийн гаралт; бодит бэлэн байдлыг тухайн build/release-ийн asset жагсаалтаар шалгана. Программын нэгдсэн код main-д орсон нь шинжлэх ухаан, лиценз, тоон гарын үсгийн бүх acceptance дууссан гэсэн үг биш.
+
+### Эхлэх дэлгэц
+
+![RAINYMINE эхлэх дэлгэц](assets/splash.jpg)
+
+Дэлгэрэнгүй өнгө, логоны зай, icon болон screenshot ашиглах дүрэм: **[Монгол брэндбүүк](docs/BRANDBOOK.mn.md)**.
+
+---
+
+## Геологи ба уурхайн тооцооны боломжууд
 
 Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
 
-`Загвар / оновчлол` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
+`Геологи / Өрөмдлөг / Уурхайн төлөвлөлт` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
 
 - **RBF:** композитын агуулгын linear RBF interpolation + cutoff isosurface. 4–10000 support, 5–60 grid resolution; сонгосон bounds дотор extrapolation хийнэ. Fault, stratigraphy, signed-distance constraint болон автомат геологийн solid баталгаа байхгүй.
 - **Pit:** undiscounted maximum closure-ийг HiGHS binary MILP solver-оор бодно. Блок бүрийн олборлолтын зардал, боловсруулах зардал, recovery, price болон налуугийн precedence орно. Price = нэг project grade-unit × тонн тутмын мөнгө; хувь, g/t хөрвүүлэлт автоматаар хийхгүй. 5000 хүртэл ижил хэмжээтэй, бүрэн тэгш өнцөгт parent grid; бүх grade шаардлагатай. Conservative square next-level slope stencil; model-ийн гаднах stripping орохгүй. Ramps/pushbacks, scheduling/NPV болон Whittle benchmark биш.
@@ -29,14 +53,14 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.6.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.8.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь шинэ 0.6.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь 0.8.0-ийн нэгдсэн боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 
-- **3D хэрэгслүүд** таб: давхаргын Properties, огтлол хадгалах/нээх, өмнөх/дараах огтлол (`PageUp` / `PageDown`), X/Y/Z зүсэлтийн байрлал.
+- **Харагдац** таб: давхаргын Properties, огтлол хадгалах/нээх, өмнөх/дараах огтлол (`PageUp` / `PageDown`), X/Y/Z зүсэлтийн байрлал.
 - 3D дээр дарсан цооногийг хүснэгттэй холбоотой сонгож, блокийн индекс/координат/агуулга/variance-г Properties-д харуулна. Хэмжилтийн горим идэвхтэй үед сонголт өөрчлөхгүй.
 - Давхарга бүрийг нуух/харуулах, opacity, RGB өнгө эсвэл агуулгын өнгө, solid/wireframe/points сонголттой. Хоёр viewport ижил тохиргоог хэрэглэнэ.
 - Давхаргын тохиргоо, нэртэй огтлол, блокийн зүсэлтийн координат `.rmine` файлд хадгалагдана; undo/redo ажиллана.
@@ -51,8 +75,8 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 
 - **Төсөл:** нээх/хадгалах, CSV mapping, CRS, хүснэгт, undo/redo.
 - **Өрөмдлөг:** collar/survey/assay/lithology, coverage, QA/QC controls, композит.
-- **Геологи / DTM:** string/polygon засвар, constrained TIN, mesh topology, DXF/OBJ.
-- **Блок модель:** grid/domain, IDW/ordinary kriging, variogram, cross-validation, tonnage-grade.
+- **Геологи:** string/polygon засвар, constrained TIN, mesh topology, DXF/OBJ.
+- **Блок загвар:** grid/domain, IDW/ordinary kriging, variogram, cross-validation, tonnage-grade.
 - **Уурхай:** bench prototype, шулуун underground drive, capacity schedule.
 - **Харагдац:** камер, хоёр viewport, литологийн өнгө, зай/координат, PNG/VTP.
 
@@ -79,7 +103,7 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 2. Project тохиргоогоор grade unit (%, g/t, ppm) сонгоно. Нэгж солих нь тоон утгыг хөрвүүлэхгүй.
 3. `Өрөмдлөг → Амсар` сонгож CSV багануудыг зураглана. Дараа нь Survey, Сорьц, Литологи.
 4. Өөр CRS-тай бол **геометр/блок модель үүсгэхийн өмнө** explicit source/target CRS-тай хөрвүүлнэ.
-5. `Геологи / DTM`-д XYZ, strings/polygons, OBJ/DXF импортлоно.
+5. `Геологи`-д XYZ, strings/polygons, OBJ/DXF импортлоно.
 6. `Блок модель үүсгэх`-д арга, search, variogram, composite coverage, bounds, cell size, domain тохируулна. Progress/cancel нь model тооцоонд ажиллана. Цуцлахад өмнөх model солигдохгүй.
 7. Cross-validation, variogram, coverage/QAQC-г шалгаж дараа нь density/cutoff тайлан гаргана.
 8. `.rmine` төсөлд хадгална. Хадгалах замтай өөрчлөгдсөн төсөлд 2 минут тутам `.autosave` үүснэ. Нөөцийг хуулж `.rmine` өргөтгөлтэй болгоод сэргээнэ.
@@ -166,7 +190,7 @@ EXE: `pip install pyinstaller==6.12.0`, дараа нь `scripts/build_windows.p
 
 Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL/Commercial, VTK BSD, NumPy/SciPy BSD, PROJ/pyproj болон ezdxf-ийн upstream licenses. Dynamic Qt libraries-ийг багцад хэвээр хадгална. Micromine native file compatibility амлаагүй.
 
-## 0.6.0 — Sub-block / Fault / Haul / MILP / Reference workflow
+## 0.5.0 — Sub-block / Fault / Haul / MILP / Reference workflow
 
 - **Sub-block levels 0–3:** finest-cell centre-үүдийг world XY polygon ба fault zone-оор ангилна; ижил ангилалтай найман sibling-ийг нэгтгэнэ. Adaptive output нь geometry clipping биш; нимгэн заагийг finest resolution-оос доош барихгүй. 200000 хүртэл finest sample, 50000 output cell. Grid minimum pivot ба rotation хэвээр.
 - **Fault Plane:** point + normal бүхий 8 хүртэл infinite planar barrier. Estimation, cross-validation, variogram нь fault-ийн эсрэг талын sample/pair-ийг холихгүй. Харагдах patch-ийн extent нь зөвхөн guide; barrier infinite. On-plane point нь + тал. Fault throw, displacement restoration, curved faults, implicit stratigraphy дэмжихгүй.
@@ -176,7 +200,7 @@ Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL
 
 ## 0.5 — Зөвхөн Rainymine-ийн local туслах
 
-**3D хэрэгслүүд → Local AI Туслах** самбар монголоор программын ажиллагаа, тохиргоо, CSV импорт, алдаа засах зааврыг сонгож өгнө. Ерөнхий чат, геологийн шийдвэр/нөөцийн баталгаа, код үүсгэх, автоматаар үйлдэл хийхгүй.
+**Харагдац → Хиймэл оюуны туслах** самбар монголоор программын ажиллагаа, тохиргоо, CSV импорт, алдаа засах зааврыг сонгож өгнө. Ерөнхий чат, геологийн шийдвэр/нөөцийн баталгаа, код үүсгэх, автоматаар үйлдэл хийхгүй.
 
 - CPU engine: pinned llama.cpp b11796; model: Qwen3-1.7B Q4_K_M, 1,282,439,264 bytes (~1.28 GB download), pinned revision/SHA256. Model/runtime лиценз: assets/AI-NOTICES.txt, assets/QWEN_MODEL_LICENSE.txt. Суулгасан багцын root-д эдгээр лиценз мөн байна.
 - **Rainymine-AI-Offline-x64 artifact доторх AI Offline portable ZIP** моделийг дотроо агуулна. Бүх ZIP-ийг задлаад Rainymine.exe нээнэ. Engine/model-д тусдаа installation, интернэт, Ollama, API key шаардахгүй.
@@ -187,4 +211,8 @@ Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL
 - Setup болон inference background thread-д ажиллана. Зогсоох товч model process-ийг хааж RAM чөлөөлнө. Программ хаахад мөн хаана. Чат файлд хадгалахгүй; Clear нь харагдах түүх ба follow-up ID-г цэвэрлэнэ.
 - Модельгүй үед зааврын dropdown нь оффлайнаар шууд ажиллана; энэ нь generative AI ажилласан гэсэн үг биш. CPU хурд/RAM-аас model startup/response хамаарна. Энэ model нь Mongolian general reasoning/геологийн мэргэжлийн чадвараар баталгаажуулагдаагүй; reviewed help routing-д л ашиглана.
 
-Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.6.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.
+Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.8.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.
+
+## 0.6.0 — 7 хоногийн туршилт
+
+168 цагийн offline trial болон төхөөрөмжид холбосон, Ed25519 гарын үсэгтэй лицензийн шалгалт нэмэгдсэн. Эзэмшигчийн public key тохируулаагүй тул одоогийн build арилжааны лиценз хүлээн авахад хараахан бэлэн биш. [Монгол лицензийн заавар](release/LICENSING.mn.md), [release checklist](release/RELEASE_CHECKLIST.mn.md)-ийг үзнэ үү. Offline trial нь администраторын өөрчлөлтийн эсрэг серверийн баталгаа биш.
