@@ -46,6 +46,10 @@ class Scene:
         for actor in self.labels:self.renderer.RemoveActor(actor)
         self.actors={};self.sources={};self.labels=[];self.paths={}
         coords=[(h.x,h.y,h.z) for h in project.collars]+[tuple(p) for p in project.surface]
+        if not coords:
+            coords=[(b['x'],b['y'],b['z']) for b in project.workspace.get('block_model',{}).get('blocks',[])]
+            coords.extend(p for mesh in project.workspace.get('meshes',[]) for p in mesh['vertices'])
+            coords.extend(p for string in project.workspace.get('strings',[]) for p in string['points'])
         self.origin=tuple(sum(p[i] for p in coords)/len(coords) for i in range(3)) if coords else (0,0,0)
         rock_codes={name:i+1 for i,name in enumerate(sorted({a.rock for a in project.lithology}))}
         self.grade_max=max(1,len(rock_codes)) if self.mode=='lithology' else max(1,max((a.grade for a in project.assays),default=1))
@@ -122,8 +126,12 @@ class Scene:
         if model:
             basis=model_basis(model);pivot=np.asarray(model.get('grid_origin',model['bounds'][:3]))
             pts=vtk.vtkPoints();pts.SetDataTypeToDouble();faces=vtk.vtkCellArray();values=vtk.vtkFloatArray();values.SetName('grade');block_ids=vtk.vtkIntArray();block_ids.SetName('block_index')
+            exposed=None
+            if workspace.get('block_display')=='exposed':
+                from .engineering import exposed_block_faces
+                exposed=exposed_block_faces(model['blocks'])
             for block_index,b in enumerate(model['blocks']):
-                if b.get('grade') is None:continue
+                if b.get('grade') is None or (exposed is not None and not exposed[block_index]):continue
                 world=np.array([b['x'],b['y'],b['z']]);grid_center=pivot+(world-pivot)@basis
                 center=self.local(world);dims=[b['dx'],b['dy'],b['dz']]
                 if workspace.get('block_display','slices')=='slices':
@@ -141,7 +149,8 @@ class Scene:
                     for x,y,z in ((-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)):
                         offset=np.array([x*b['dx']/2,y*b['dy']/2,z*b['dz']/2])@basis.T
                         pts.InsertNextPoint(*(np.asarray(center)+offset))
-                    for face in ((0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)):
+                    for face_index,face in enumerate(((0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7))):
+                        if exposed is not None and face_index not in exposed[block_index]:continue
                         faces.InsertNextCell(4)
                         for i in face:faces.InsertCellPoint(start+i)
                         values.InsertNextValue(b['grade']);block_ids.InsertNextValue(block_index)

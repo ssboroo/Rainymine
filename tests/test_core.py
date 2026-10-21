@@ -32,7 +32,7 @@ class DataTests(unittest.TestCase):
     def project(self):return Project(collars=[Collar('A',0,0,10,100)])
     def test_validation_rejects_bad_values(self):
         h=self.project().collars[0]
-        for bad in [replace(h,x=float('nan')),replace(h,depth=-1),replace(h,azimuth=360),replace(h,dip=1),replace(h,x=True)]:
+        for bad in [replace(h,x=float('nan')),replace(h,depth=-1),replace(h,azimuth=360),replace(h,dip=91),replace(h,x=True)]:
             with self.assertRaises(ValueError):Project(collars=[bad]).validate()
         with self.assertRaises(ValueError):Project(collars=[h,h]).validate()
     def test_interval_errors(self):

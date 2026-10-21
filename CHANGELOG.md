@@ -1,3 +1,13 @@
+# SRS v2 engineering — 2026-10-22
+
+- RTC block-only origin fix, stable curvature series and upward holes.
+- Version 3 project schema: Structure/Geotech; backward v1/v2 reads and typed CSV mapping.
+- VAL-01…10 preflight, explicit assay-tag policy, oriented-core and density-weighted composites.
+- Exponential/Gaussian estimation covariance, support-aware KE/SoR.
+- Atomic Morton-sorted Zstd Parquet, Arrow SoA filter scanning and bounded desktop import.
+- Optional regular-grid exposed-face surface extraction with original VTK block IDs.
+- Frozen Windows dependency checks and engineering acceptance/limitations documentation.
+
 # SRS additions — 2026-10-22
 
 - Analytical balanced tangential / radius-of-curvature trajectory CSV exports; primary 3D remains minimum curvature.

@@ -1,5 +1,7 @@
 # Mining Platform SRS — хэрэгжилтийн мөрдөх хүснэгт
 
+Шинэчилсэн нарийвчилсан хэрэгжилт: [SRS v2 инженерийн нэмэлт](SRS_V2_ENGINEERING.mn.md). Доорх суурь матрицын өөрчлөгдсөн зүйлсийг тэр баримттай хамт уншина.
+
 2026-10-22. Эх: хэрэглэгчийн `Pasted markdown(6).md` техникийн шаардлага.
 Энэ баримт нь гүйцэтгэлийн баталгаа, нөөцийн гэрчилгээ биш. Одоогийн архитектур:
 Qt 6 / PySide6 desktop, C++ VTK OpenGL, NumPy/SciPy native тооцоолол, оффлайн .rmine JSON.
@@ -8,7 +10,7 @@ Python UI-г бүхэлд нь C++/Rust болгох, веб сервер нэм
 | SRS | Одоогийн хэрэгжилт / нотлох код | Үлдэгдэл / хүлээн авах шалгуур |
 |---|---|---|
 | MOD-01 CSV/TXT/XLSX | CSV багана mapping, delimiter, transaction validation; XLSX values (`data_tools`, `exchange`) | Ерөнхий TXT grammar тодорхойгүй; Access, DWG, SHP, LAS, GeoTIFF, DM, STR тусгай уншигч дутуу. DWG/DM SDK болон бодит fixture шаардлагатай. |
-| MOD-01 schema | Collar, Survey, Assay, Lithology тусдаа хүснэгт, метр, CRS, нэг grade unit | Олон элемент Au/Cu зэрэг хадгалах schema, Status, Alpha/Beta structural log дутуу. Одоогийн scalar grade-г чимээгүй олон элемент гэж тайлбарлахгүй. |
+| MOD-01 schema | Collar, Survey, Assay, Lithology тусдаа хүснэгт, метр, CRS, нэг grade unit | Structure/Geotech хамгийн бага typed schema нэмэгдсэн (v3 project). Олон элемент Au/Cu зэрэг хадгалах schema, Status/бүх лабораторийн атрибут дутуу. Одоогийн scalar grade-г чимээгүй олон элемент гэж тайлбарлахгүй. |
 | MOD-01 desurvey | Minimum curvature 3D үндсэн замнал; balanced tangential / radius of curvature сонголттой CSV экспорт (`core`, `srs_ui`) | Экспортын өөр арга 3D/үнэлгээний үндсэн замналыг өөрчлөхгүй. Бүх pipeline-д арга сонгох бол metadata/cache migration хэрэгтэй. |
 | MOD-01 validation | Missing collar, давхардал, интервал overlap/гүн/тоон утга, QA/QC coverage; 3D dogleg degrees/30m босгын тайлан | Алдаатай эх файлыг автоматаар засахгүй. Нэгдсэн олон алдааны import issue grid бүрэн биш. |
 | MOD-02 view | Ортографик/перспектив, хоёр viewport, absolute XYZ ба дурын slab, давхаргын style, жинхэнэ picking (`scene`, `navigation`, `viewing`, `workspace`) | Vertex/interval picking, transform gizmo дутуу. 1M цэг 60 FPS, 5M блокийн GPU instancing батлагдаагүй; өнөөгийн 32 MB/100k row/5000 collar хязгаар хэвээр. |
@@ -24,7 +26,7 @@ Python UI-г бүхэлд нь C++/Rust болгох, веб сервер нэм
 | MOD-06 survey | Delaunay TIN, mesh эзэлхүүн/тайлан | Surface-to-surface exact cut/fill, Z slice integration, LAS/UAV streaming дутуу. |
 | MOD-07 schedule | Capacity/precedence greedy, optional economic MILP, route/fleet scenarios | Gantt editor, multi-period blending/mining coupled optimum дутуу. |
 | MOD-07 blend | HiGHS LP: тонн тэнцэл, grade interval, feed availability, хамгийн бага feed cost; infeasible үед partial хольцгүй (`srs_tools`) | Нэг үеийн тасралтгүй feed; олборлолтын precedence, discrete blocks, recovery, олон элемент орохгүй. |
-| Storage | Atomic .rmine JSON, undo/redo, backup, lazy Qt block grid | DuckDB/Parquet store, spatial persistent index, streaming, schema migration дутуу. JSON-г нэр солиод Parquet гэж үзэхгүй. |
+| Storage | Atomic .rmine JSON, undo/redo, backup, lazy Qt block grid | Morton/Zstd Parquet exchange ба Arrow batch scanner нэмэгдсэн. DuckDB, full project external store, spatial persistent index, stream-native renderer дутуу. JSON-г нэр солиод Parquet гэж үзэхгүй. |
 | Platform | Windows source/frozen/installed EXE smoke CI, software rendering fallback, portable offline AI | Физик GPU/Windows hardware acceptance, million-block frame-time benchmark, signed installer certificate дутуу. |
 
 ## Шинэ хэрэгслүүдийг ашиглах

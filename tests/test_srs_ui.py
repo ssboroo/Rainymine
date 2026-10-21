@@ -15,7 +15,7 @@ class SrsMenuTests(unittest.TestCase):
     def test_commands_and_chart_preserve_project(self):
         window=test_workspace.WorkspaceLayoutTests.make_window(self);before=deepcopy(window.project)
         menu=next(a.menu() for a in window.menuBar().actions() if a.text()=='Шинжилгээ / SRS')
-        self.assertEqual(len(menu.actions()),5)
+        self.assertEqual(len(menu.actions()),14)
         with patch.object(window,'params',return_value={'Урт, м':5}),patch.object(window,'show_rows') as show:
             window.lithology_composite_report();self.assertTrue(show.call_args.args[1])
         with patch.object(window,'params',return_value={'Босго, градус / 30 м':10}),patch.object(window,'show_rows') as show:

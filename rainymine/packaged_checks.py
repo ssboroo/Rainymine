@@ -40,6 +40,20 @@ def verify_licensing():
 
 def verify(project):
     verify_licensing()
+    from .engineering import rtc_buffer,morton_codes,oriented_core,density_composites
+    from .block_store import write_block_parquet,read_block_model,scan_block_batches
+    from .validation import validate_tables
+    assert abs(float(rtc_buffer([[500000.001,5300000.001,1400]],[500000,5300000,1400])[0,0])-.001)<1e-8
+    assert int(morton_codes([[1,1,1]])[0])==7
+    assert abs(oriented_core(0,-90,45,0)['dip']-45)<1e-8
+    assert density_composites([{'from_m':0,'to_m':1,'grade':2,'density':3}],1)[0]['grade']==2
+    assert isinstance(validate_tables({}),list)
+    with TemporaryDirectory() as folder:
+        store=Path(folder)/'Монгол.parquet'
+        write_block_parquet(store,project.workspace['block_model'],project.crs_code,project.grade_unit)
+        restored,info=read_block_model(store)
+        assert len(restored['blocks'])==len(project.workspace['block_model']['blocks'])
+        assert sum(batch.num_rows for batch in scan_block_batches(store,columns=['row_id']))==len(restored['blocks'])
     from .srs_tools import blend_materials,lithology_composites,swath_rows,survey_doglegs
     blend=blend_materials([{'id':'low','tonnes':100,'grade':1,'cost_per_tonne':1},
                            {'id':'high','tonnes':100,'grade':3,'cost_per_tonne':5}],100,2,2)

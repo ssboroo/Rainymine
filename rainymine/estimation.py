@@ -37,6 +37,16 @@ def gamma_spherical(distance,nugget,partial_sill,range_m):
     return np.where(d<=1e-12,0.,nugget+partial_sill*(1.5*h-.5*h**3))
 
 
+def gamma_model(distance,nugget,partial_sill,range_m,model='spherical'):
+    if model=='spherical':return gamma_spherical(distance,nugget,partial_sill,range_m)
+    if model not in ('exponential','gaussian'):raise ValueError('Variogram model буруу.')
+    finite(nugget,partial_sill,range_m)
+    if nugget<0 or partial_sill<=0 or range_m<=0:raise ValueError('Variogram параметр буруу.')
+    d=np.asarray(distance,dtype=float)
+    if not np.isfinite(d).all() or np.any(d<0):raise ValueError('Variogram зай буруу.')
+    h=d/range_m
+    return np.where(d<=1e-12,0.,nugget+partial_sill*(-np.expm1(-3*(h if model=='exponential' else h*h))))
+
 
 class Estimator:
     def __init__(self,samples,params):
@@ -68,6 +78,8 @@ class Estimator:
         self.mean=float(params.get('known_mean',0))
         finite(self.mean)
         if self.method=='simple_kriging' and 'known_mean' not in params:raise ValueError('Simple kriging-д хараат бусаар тогтоосон known_mean шаардлагатай.')
+        self.variogram_model=params.get('variogram_model','spherical')
+        gamma_model(1,0,1,1,self.variogram_model)
         self.variogram=(float(params.get('nugget',0)),float(params.get('partial_sill',1)),float(params.get('range_m',100)))
         if self.minimum_holes>self.k:raise ValueError('Minimum holes нь neighbors-оос их байж болохгүй.')
         self._within_cache={}
@@ -81,9 +93,9 @@ class Estimator:
 
     def semivariance(self,delta):
         if self.covariance_ranges is None:
-            return gamma_spherical(np.linalg.norm(delta,axis=-1),*self.variogram)
+            return gamma_model(np.linalg.norm(delta,axis=-1),*self.variogram,self.variogram_model)
         distance=np.linalg.norm((np.asarray(delta)@self.covariance_basis)/self.covariance_ranges,axis=-1)
-        return gamma_spherical(distance,self.variogram[0],self.variogram[1],1.)
+        return gamma_model(distance,self.variogram[0],self.variogram[1],1.,self.variogram_model)
 
     def predict(self,point,excluded=None,exclude_hole=None,support_offsets=None):
         point=np.asarray(point,dtype=float)
@@ -91,6 +103,7 @@ class Estimator:
         offsets=np.zeros((1,3)) if support_offsets is None else np.asarray(support_offsets,dtype=float)
         if offsets.ndim!=2 or offsets.shape[1]!=3 or not 1<=len(offsets)<=64 or not np.isfinite(offsets).all():
             raise ValueError('Block support 1…64 XYZ offset байна.')
+        diagnostics={'kriging_efficiency':None,'slope_of_regression':None,'block_variance':None}
         targets=point+offsets
         candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
         zone=fault_zone(point,self.faults)
@@ -105,7 +118,10 @@ class Estimator:
         if len(candidate)<self.minimum or len(hole_counts)<self.minimum_holes:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
         xyz=self.xyz[candidate];values=self.values[candidate];d=np.linalg.norm(xyz-point,axis=1)
         exact=np.flatnonzero(d<1e-9)
-        if len(offsets)==1 and np.all(offsets==0) and len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method in ('kriging','simple_kriging') else None,'neighbors':len(candidate),'status':'exact_sample'}
+        if len(offsets)==1 and np.all(offsets==0) and len(exact):
+            kriging=self.method in ('kriging','simple_kriging')
+            return {'grade':float(values[exact[0]]),'variance':0. if kriging else None,'neighbors':len(candidate),'status':'exact_sample',
+                    'kriging_efficiency':1. if kriging else None,'slope_of_regression':1. if kriging else None,'block_variance':sum(self.variogram[:2]) if kriging else None}
         if self.method in ('idw','nearest'):
             target_distances=np.linalg.norm(xyz[:,None,:]-targets[None,:,:],axis=2)
             predictions=[]
@@ -144,7 +160,16 @@ class Estimator:
             grade=float(np.dot(solution[:n],values));variance=float(np.dot(solution[:n],rhs[:n])+solution[n]-within)
             if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,'status':'invalid_variance'}
             variance=max(0.,variance)
-        return {'grade':grade,'variance':variance,'neighbors':len(candidate),'status':'estimated'}
+        if self.method in ('kriging','simple_kriging'):
+            sill=sum(self.variogram[:2]);block_variance=sill-within
+            w=weights if self.method=='simple_kriging' else solution[:n]
+            covariance=sill-self.semivariance(xyz[:,None,:]-xyz[None,:,:])
+            cross=sill-self.semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1)
+            prediction_variance=float(w@covariance@w)
+            diagnostics={'kriging_efficiency':1.-variance/block_variance if block_variance>1e-12 else None,
+                         'slope_of_regression':float(w@cross)/prediction_variance if prediction_variance>1e-12 else None,
+                         'block_variance':float(block_variance)}
+        return {'grade':grade,'variance':variance,'neighbors':len(candidate),'status':'estimated',**diagnostics}
 
 
 def make_blocks(bounds,size,domain=None,grid_angles=None):
