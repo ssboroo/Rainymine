@@ -79,8 +79,9 @@ class DhImportTests(unittest.TestCase):
         from unittest.mock import Mock
         from rainymine.workbench import Workbench
         window=Mock()
-        Workbench.import_data(window,'assays','/data/dh_assay.csv')
-        window.dh_import_dialog.assert_called_once_with('/data')
+        path=Path(tempfile.gettempdir())/'data'/'dh_assay.csv'
+        Workbench.import_data(window,'assays',str(path))
+        window.dh_import_dialog.assert_called_once_with(str(path.parent))
         window.guard.assert_not_called()
 
     def test_pivot_unit_conflict_cannot_silently_relabel_percent_as_ppm(self):
