@@ -32,3 +32,7 @@
 - Top-cut source preservation, per-hole caps, minimum distinct holes, cancellation protection.
 - Offscreen Qt parameter dialog with 35 fields: scroll area and visible accept controls.
 - Latest Windows build/installed smoke must be checked on the PR commit; local mathematical tests are not a Windows executable test.
+
+## 0.4.0 development controls
+
+Synthetic tests check sub-block volume conservation/coalescing, planar fault separation, project round-trip, hand-calculated haul capacity (3072 t/shift), MILP against exhaustive enumeration, grade-unit conversion and complete/partial external reference matching. These do not complete the independent real-deposit acceptance gate. See docs/EXTERNAL_VALIDATION.md.

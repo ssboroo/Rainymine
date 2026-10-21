@@ -13,6 +13,7 @@ from scipy.spatial import cKDTree
 from .core import finite,Trajectory,composite_assays
 from .geometry import inside_polygon,validate_polygon
 from .spatial import search_basis
+from .domains import validate_faults,fault_zone,adaptive_blocks
 
 
 def sample_support(project,length=5,minimum_coverage=1.):
@@ -41,6 +42,8 @@ class Estimator:
     def __init__(self,samples,params):
         if not samples:raise ValueError('Тооцох сорьц алга. Композитын coverage-ийг шалгана уу.')
         self.samples=samples;self.params=deepcopy(params)
+        self.faults=deepcopy(params.get('faults',[]));validate_faults(self.faults)
+        self.zones=[fault_zone(s['xyz'],self.faults) for s in samples]
         self.xyz=np.asarray([r['xyz'] for r in samples],dtype=float);self.values=np.asarray([r['grade'] for r in samples],dtype=float)
         if not np.isfinite(self.xyz).all() or not np.isfinite(self.values).all():raise ValueError('Sample утга буруу.')
         if self.xyz.shape!=(len(samples),3):raise ValueError('Sample XYZ бүтэц буруу.')
@@ -87,7 +90,8 @@ class Estimator:
             raise ValueError('Block support 1…64 XYZ offset байна.')
         targets=point+offsets
         candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
-        candidate=[i for i in candidate if i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
+        zone=fault_zone(point,self.faults)
+        candidate=[i for i in candidate if self.zones[i]==zone and i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
         ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm(((self.xyz[i]-point)@self.basis)/self.radii)),i))
         candidate=[];hole_counts={}
         for i in ordered:
@@ -153,7 +157,12 @@ def estimate_model(project,bounds,size,params,domain=None,cancel=None,progress=N
     discretization=params.get('discretization',[1,1,1])
     if (len(discretization)!=3 or any(type(v) is not int or not 1<=v<=4 for v in discretization)):
         raise ValueError('Discretization axis бүр 1…4 бүхэл тоо байна (64 хүртэл support).')
-    blocks=make_blocks(bounds,size,domain,grid_angles);samples=sample_support(project,params.get('composite_length',5),params.get('minimum_coverage',1.))
+    params=deepcopy(params);faults=deepcopy(params.get('faults',project.workspace.get('faults',[])));validate_faults(faults);params['faults']=faults
+    levels=params.get('subblock_levels',0)
+    if type(levels) is not int or not 0<=levels<=3:raise ValueError('Sub-block levels 0…3 байна.')
+    parents=make_blocks(bounds,size,None,grid_angles)
+    blocks=adaptive_blocks(parents,bounds,grid_angles,domain,faults,levels,cancel) if levels or faults else make_blocks(bounds,size,domain,grid_angles)
+    samples=sample_support(project,params.get('composite_length',5),params.get('minimum_coverage',1.))
     if domain:samples=[s for s in samples if inside_polygon(s['xyz'][0],s['xyz'][1],domain['points']) and 0<=((np.asarray(s['xyz'])-bounds[:3])@grid_basis)[2]<=bounds[5]-bounds[2]]
     estimator=Estimator(samples,params)
     for i,b in enumerate(blocks):
@@ -170,7 +179,7 @@ def estimate_model(project,bounds,size,params,domain=None,cancel=None,progress=N
     run_sha256=hashlib.sha256(json.dumps(run,sort_keys=True,allow_nan=False).encode()).hexdigest()
     statuses={}
     for b in blocks:statuses[b['status']]=statuses.get(b['status'],0)+1
-    return {'blocks':blocks,'params':deepcopy(params),'grid_angles':list(grid_angles),'grid_origin':list(bounds[:3]),'capped_sample_count':estimator.capped_count,'bounds':list(bounds),'size':list(size),'domain':deepcopy(domain),'input_sha256':fingerprint,'run_sha256':run_sha256,'status_counts':statuses,'software_version':__version__,'support':('point at block centre' if math.prod(discretization)==1 else 'discretized block average; midpoint quadrature; common centre-selected neighborhood'),'discretization':list(discretization),'classification':'UNCLASSIFIED — independent geological benchmark pending','sample_count':len(samples)}
+    return {'blocks':blocks,'params':deepcopy(params),'subblock_levels':levels,'faults':faults,'grid_angles':list(grid_angles),'grid_origin':list(bounds[:3]),'capped_sample_count':estimator.capped_count,'bounds':list(bounds),'size':list(size),'domain':deepcopy(domain),'input_sha256':fingerprint,'run_sha256':run_sha256,'status_counts':statuses,'software_version':__version__,'support':('point at block centre' if math.prod(discretization)==1 else 'discretized block average; midpoint quadrature; common centre-selected neighborhood'),'discretization':list(discretization),'classification':'UNCLASSIFIED — independent geological benchmark pending','sample_count':len(samples)}
 
 
 def cross_validate(samples,params,mode='hole',limit=1000):
@@ -191,7 +200,7 @@ def cross_validate(samples,params,mode='hole',limit=1000):
         'baseline_rmse':float(np.sqrt(np.mean(np.array(baseline)**2))) if baseline else None,'rows':rows,'independent_geologist_review':False}
 
 
-def experimental_variogram(samples,lag_width=20,lags=15,direction=None):
+def experimental_variogram(samples,lag_width=20,lags=15,direction=None,faults=None):
     finite(lag_width)
     if lag_width<=0 or not 1<=lags<=100 or not 2<=len(samples)<=10000:raise ValueError('Variogram тохиргоо/өгөгдлийн хэмжээ буруу.')
     axis=None
@@ -207,6 +216,9 @@ def experimental_variogram(samples,lag_width=20,lags=15,direction=None):
     if n*(n-1)//2<=250000:a,b=np.triu_indices(n,1)
     else:
         rng=np.random.default_rng(2026);pairs=np.sort(rng.integers(0,n,(300000,2)),axis=1);pairs=np.unique(pairs[pairs[:,0]!=pairs[:,1]],axis=0)[:250000];a,b=pairs.T
+    faults=deepcopy(faults or []);validate_faults(faults)
+    if faults:
+        zones=np.array([fault_zone(p,faults) for p in xyz]);same=zones[a]==zones[b];a=a[same];b=b[same]
     delta=xyz[a]-xyz[b];distances=np.linalg.norm(delta,axis=1);semi=.5*(v[a]-v[b])**2
     candidate_pairs=len(a)
     if axis is not None:
@@ -218,7 +230,7 @@ def experimental_variogram(samples,lag_width=20,lags=15,direction=None):
     for i in range(lags):
         mask=(distances>=i*lag_width)&(distances<(i+1)*lag_width);count=int(mask.sum())
         if count:rows.append({'lag':i+1,'distance':float(distances[mask].mean()),'semivariance':float(semi[mask].mean()),'pairs':count})
-    return {'rows':rows,'pair_count':len(distances),'candidate_pair_count':candidate_pairs,'isotropic':direction is None,'pair_sampling_seed':2026,'directional_variogram':direction is not None,'direction':direction,'lag_width':lag_width,'lags':lags}
+    return {'rows':rows,'pair_count':len(distances),'candidate_pair_count':candidate_pairs,'isotropic':direction is None,'pair_sampling_seed':2026,'directional_variogram':direction is not None,'faults':faults,'direction':direction,'lag_width':lag_width,'lags':lags}
 
 
 def fit_variogram(rows):

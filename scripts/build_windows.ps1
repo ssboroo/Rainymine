@@ -11,5 +11,5 @@ Copy-Item examples dist\Rainymine\examples -Recurse -Force
 $proc = Start-Process -FilePath '.\dist\Rainymine\Rainymine.exe' -ArgumentList '--smoke' -PassThru
 if (-not $proc.WaitForExit(60000)) { $proc.Kill(); throw 'Packaged app smoke test timed out' }
 if ($proc.ExitCode -ne 0) { throw "Packaged app smoke test failed: $($proc.ExitCode)" }
-Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-0.3.0-Windows-x64.zip -Force
-Write-Host 'Portable package ready: dist\Rainymine-0.3.0-Windows-x64.zip'
+Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-0.4.0-Windows-x64.zip -Force
+Write-Host 'Portable package ready: dist\Rainymine-0.4.0-Windows-x64.zip'

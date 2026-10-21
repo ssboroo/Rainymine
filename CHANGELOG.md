@@ -36,3 +36,11 @@
 - Non-destructive top cuts, maximum samples per hole, minimum distinct holes, capped counts, status summaries and reproducible run fingerprints.
 - Scrollable estimation dialogs, updated in-app help, Windows package version 0.3.0.
 - Analytical anisotropy/block-variance controls, rotation/render/persistence tests. Independent deposit benchmark, sub-blocks and professional certification remain pending.
+
+## 0.4.0 — Geological barriers and planning scenarios
+
+- Centre-sampled adaptive sub-blocks with sibling coalescing and explicit resolution limits.
+- Infinite planar fault barriers for estimation, validation and variogram pairing; guide meshes without displacement modelling.
+- Polyline gradient checks and constant-speed fleet cycle/capacity scenarios.
+- Economic optional-task HiGHS MILP with capacity, strict predecessor periods, discounting and solver status/gap.
+- External reference CSV comparison, complete matching, provenance hashes and CLI; independent real-deposit review remains pending.

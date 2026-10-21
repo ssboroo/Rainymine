@@ -1,10 +1,10 @@
 # RAINYMINE — Product Roadmap to a Professional Mining Workflow
 
-**Status:** 0.3.0 implementation checkpoint; release gates below remain applicable
+**Status:** 0.4.0 implementation checkpoint; release gates below remain applicable
 **Product direction:** Mongolian-first, Windows desktop, integrated 3D geology and mine-planning workflow  
 **Principle:** a feature is not production-ready until it has deterministic tests, documented limits, representative datasets, and domain-expert review where required.
 
-The 0.3.0 workbench adds geometric-anisotropic covariance, discretized block-support approximation, rotated parent grids, directional variograms and estimation controls. These additions do not close the independent-review gates below. The initial desktop foundation provides for drillhole CSV import, minimum-curvature drillhole traces, assay interval coloring, a Delaunay TIN surface, compositing, project persistence, and Windows packaging automation. This roadmap does not imply that the capabilities below already exist.
+The 0.4.0 workbench adds centre-sampled adaptive sub-blocks, planar fault barriers, polyline haul/fleet scenarios, optional-task economic MILP and external numerical comparison. The 0.3.0 foundation added geometric-anisotropic covariance, discretized block-support approximation, rotated parent grids, directional variograms and estimation controls. These additions do not close the independent-review gates below. The initial desktop foundation provides for drillhole CSV import, minimum-curvature drillhole traces, assay interval coloring, a Delaunay TIN surface, compositing, project persistence, and Windows packaging automation. This roadmap does not imply that the capabilities below already exist.
 
 ## Release gates
 

@@ -1,4 +1,4 @@
-# RAINYMINE 0.3.0 — Монгол оффлайн 3D уул уурхайн workbench
+# RAINYMINE 0.4.0 — Монгол оффлайн 3D уул уурхайн workbench
 
 Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэл, API key шаардахгүй. Суулгасан EXE нь Python шаардахгүй. Эх кодын dependency таталт болон Windows build-д интернэт хэрэгтэй.
 
@@ -8,10 +8,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.3.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.4.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x artifact нь шинэ 0.3.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x artifact нь шинэ 0.4.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## Мэргэжлийн интерфэйс
 
@@ -34,9 +34,9 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 | CRS | PROJ/pyproj, оффлайн, explicit source/target, XY axis order, метрийн projected target, local bearing rotation | Z босоо datum ба measured-depth scale хөрвүүлэхгүй; geometry/block model үүсгэхийн өмнө хөрвүүлнэ; геодезийн хяналтын бодит цэг хэрэгтэй |
 | Өрөмдлөг / QAQC | Minimum curvature, assay/lithology интервал, missing-support coverage, standard Z-score, blank threshold, duplicate RPD | Хяналтын хязгаарыг лаборатори/геологич сонгоно; зөвшөөрөлгүй outlier устгахгүй; лабораторийн бүрэн batch certification биш |
 | Геометр | XYZ TIN, breakline constrained TIN ба edge verification, string/polygon vertex editor, OBJ triangles, DXF LINE/POLYLINE/3DFACE, topology/volume report | Mesh self-intersection, robust Boolean solids, fault-aware modelling, full DXF entity coverage дутуу |
-| Блок / үнэлгээ | Rotated parent blocks, XY polygon domain, IDW / isotropic эсвэл geometric-anisotropic spherical ordinary kriging, midpoint block discretization, top cut, per-hole limits, rotated ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Sub-blocks, composite-support regularization, domain-by-lithology, nested variogram structures, independent benchmark дутуу; discrete block support нь approximation |
+| Блок / үнэлгээ | Rotated parent blocks, XY polygon domain, IDW / isotropic эсвэл geometric-anisotropic spherical ordinary kriging, midpoint block discretization, top cut, per-hole limits, rotated ellipsoid neighbor search, variogram/fit, leave-one-hole-out validation, residual/observed charts | Centre-sampled adaptive sub-block ба planar fault barrier нэмсэн; fault displacement/implicit geology, composite-support regularization, domain-by-lithology, nested variogram structures, independent real-deposit benchmark дутуу; discrete block support нь approximation |
 | Тайлан | Density t/m³, cutoff scenarios, volume/tonnes/mean grade, missing volume, kriging variance атрибут | **UNCLASSIFIED**; variance нь нөөцийн ангилал биш. Density fields, geologist review, uncertainty sensitivity / reporting-code certification дутуу |
-| Төлөвлөлт | Circular bench/berm/slope prototype, straight underground drive mesh, capacity/precedence reconciliation ба greedy schedule | Ramp, geotechnics, ventilation/support, slope-sector precedence, haulage/stockpile, economic/global optimization дутуу |
+| Төлөвлөлт | Circular bench/berm/slope prototype, straight underground drive mesh, capacity/precedence reconciliation ба greedy schedule | Polyline замын gradient/fleet cycle ба optional-task economic MILP нэмсэн. Engineered ramps, curvature, geotechnics, ventilation/support, slope-sector precedence, stockpile/dispatch, global pit optimization дутуу |
 | Түгээлт | Native Windows EXE, portable ZIP, Inno Setup, CPU renderer, source/packaged/installed smoke checks | Signed installer, бодит Windows төхөөрөмж/GPU matrix хараахан байхгүй |
 
 Дэлгэрэнгүй бүтээгдэхүүний чиглэл: [ROADMAP.md](ROADMAP.md). Дээрх хязгааруудыг хэрэгжсэн мэтээр нэрлэхгүй.
@@ -133,3 +133,11 @@ py -3.11 -m venv .venv
 EXE: `pip install pyinstaller==6.12.0`, дараа нь `scripts/build_windows.ps1`. CPU renderer: `scripts/prepare_mesa.ps1`. Inno Setup 6: `ISCC.exe installer\Rainymine.iss`.
 
 Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL/Commercial, VTK BSD, NumPy/SciPy BSD, PROJ/pyproj болон ezdxf-ийн upstream licenses. Dynamic Qt libraries-ийг багцад хэвээр хадгална. Micromine native file compatibility амлаагүй.
+
+## 0.4.0 — Sub-block / Fault / Haul / MILP / Reference workflow
+
+- **Sub-block levels 0–3:** finest-cell centre-үүдийг world XY polygon ба fault zone-оор ангилна; ижил ангилалтай найман sibling-ийг нэгтгэнэ. Adaptive output нь geometry clipping биш; нимгэн заагийг finest resolution-оос доош барихгүй. 200000 хүртэл finest sample, 50000 output cell. Grid minimum pivot ба rotation хэвээр.
+- **Fault Plane:** point + normal бүхий 8 хүртэл infinite planar barrier. Estimation, cross-validation, variogram нь fault-ийн эсрэг талын sample/pair-ийг холихгүй. Харагдах patch-ийн extent нь зөвхөн guide; barrier infinite. On-plane point нь + тал. Fault throw, displacement restoration, curved faults, implicit stratigraphy дэмжихгүй.
+- **Зам / Тээвэр:** эхлээд нээлттэй XYZ String үүсгээд сонгоно. Segment-ийн 3D урт, signed gradient, max-gradient limit шалгана. Payload/trucks/speeds/loading/dumping/queue/shift/utilization-аар continuous-average cycle capacity тооцно. Curvature, turning radius, superelevation, traction, traffic, engineered ramp биш. Gradient зөрвөл fleet result үүсгэхгүй.
+- **MILP Оновчлол:** world-axis parent grid, vertical column precedence ашиглана. Metal price нь **нэг тонн металлд**, бүх cost нэг currency-д байна; % → 0.01, g/t ба ppm → 1e-6 tonne-metal/tonne-rock. Recovery, mining/processing/haul costs, discount-per-period, mining/processing capacity орно. Optional tasks: ашиггүй block-ийг олборлохгүй байж болно, харин predecessor шаардлагатай бол зардалтай waste-ийг сонгоно. Solver status/gap-ийг харуулна; timeout incumbent-ийг optimal гэж нэрлэхгүй. 12000 binary, 1 сая precedence coefficients; synchronous solver нь тохируулсан 60 сек хүртэл UI-г ачааллуулж болно. Sub-block/rotated grid schedule, slope cones, haul-network coupling, stockpiles, global pit shell optimization дутуу.
+- **External Benchmark:** гадаад `x,y,z,grade` CSV-тэй complete one-to-one coordinate matching ба absolute + relative tolerance-оор тоон харьцуулна. Incomplete/ambiguous/unestimated үр дүн pass болохгүй. Reference SHA256 ба model run SHA256 хадгална. `independent_review_verified` үргэлж false: өгөгдлийн гарал, эрх, real-deposit scope, reviewer sign-off тусдаа шаардлагатай. [Баталгаажуулалтын заавар](docs/EXTERNAL_VALIDATION.md).
