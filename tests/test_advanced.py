@@ -132,8 +132,8 @@ class EstimationTests(unittest.TestCase):
         local=[{'hole_id':str(i),'xyz':xyz,'grade':grade} for i,xyz,grade in
                [(0,[4,0,0],2),(1,[6,1,0],8),(2,[-5,0,0],5)]]
         rotated=[dict(row,xyz=(np.array(row['xyz'])@basis.T+[500000,5300000,1400]).tolist()) for row in local]
-        for method in ('idw','kriging'):
-            settings=dict(params,method=method,minimum=2,neighbors=3)
+        for method in ('idw','kriging','nearest','simple_kriging'):
+            settings=dict(params,method=method,minimum=2,neighbors=3,known_mean=1)
             expected=Estimator(local,settings).predict([0,0,0])
             actual=Estimator(rotated,dict(settings,search_angles=[35,-40,20])).predict([500000,5300000,1400])
             self.assertAlmostEqual(actual['grade'],expected['grade'],places=8)

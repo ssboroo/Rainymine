@@ -1,3 +1,15 @@
+## 0.4.0
+
+- RBF grade isosurface, economic maximum-closure pit, exposed voxel envelope; UI, project persistence.
+- XLSX mapping workflow; ASCII/binary STL; read-only SQL Server canonical-view adapter.
+- Windows source/frozen/installed smoke exercises RBF, HiGHS, Excel, STL, pyodbc load and actual 3D meshes.
+- Geobank live server, proprietary mining formats, fault-aware solid, engineering optimization benchmark remain external acceptance gates.
+
+## Геостатистикийн нэмэлт (хөгжүүлэлт)
+
+- Nearest Neighbour, spherical covariance Simple Kriging; SK known mean-ийг хэрэглэгч тодорхойлно.
+- Point-support тооцоо; нөөцийн ангилал, мэргэжлийн баталгаажуулалт агуулаагүй.
+
 # Өөрчлөлтийн түүх
 
 ## 0.3.0 — 2026-10-21
@@ -51,3 +63,11 @@
 - Polyline gradient checks and constant-speed fleet cycle/capacity scenarios.
 - Economic optional-task HiGHS MILP with capacity, strict predecessor periods, discounting and solver status/gap.
 - External reference CSV comparison, complete matching, provenance hashes and CLI; independent real-deposit review remains pending.
+
+## 0.5.0 — Local software-support assistant
+
+- Native Mongolian support dock, background setup/inference, cancellation and model process cleanup.
+- Pinned llama.cpp CPU runtime + Qwen3-1.7B Q4_K_M model, SHA256-checked atomic downloads and model-included offline portable ZIP.
+- Strict reviewed-help-ID output; no arbitrary generated instructions, project access, file changes, commands or general chat.
+- Localhost-only authenticated process, no proxy/redirect, no cloud inference or API credentials.
+- Offline manual help when model unavailable; scope, invalid output, asset integrity and process-boundary tests.

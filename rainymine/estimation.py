@@ -64,7 +64,10 @@ class Estimator:
         self.radii=radii;self.origin=self.xyz[0];self.tree=cKDTree(((self.xyz-self.origin)@self.basis)/radii)
         self.k=int(params.get('neighbors',12));self.minimum=int(params.get('minimum',3));self.method=params.get('method','idw');self.power=float(params.get('power',2))
         finite(self.power)
-        if self.method not in ('idw','kriging') or not 1<=self.minimum<=self.k<=64 or self.power<=0:raise ValueError('Estimator тохиргоо буруу.')
+        if self.method not in ('idw','kriging','nearest','simple_kriging') or not 1<=self.minimum<=self.k<=64 or self.power<=0:raise ValueError('Estimator тохиргоо буруу.')
+        self.mean=float(params.get('known_mean',0))
+        finite(self.mean)
+        if self.method=='simple_kriging' and 'known_mean' not in params:raise ValueError('Simple kriging-д хараат бусаар тогтоосон known_mean шаардлагатай.')
         self.variogram=(float(params.get('nugget',0)),float(params.get('partial_sill',1)),float(params.get('range_m',100)))
         if self.minimum_holes>self.k:raise ValueError('Minimum holes нь neighbors-оос их байж болохгүй.')
         self._within_cache={}
@@ -92,7 +95,7 @@ class Estimator:
         candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
         zone=fault_zone(point,self.faults)
         candidate=[i for i in candidate if self.zones[i]==zone and i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
-        ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm(((self.xyz[i]-point)@self.basis)/self.radii)),i))
+        ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point) if self.method=='nearest' else ((self.xyz[i]-point)@self.basis)/self.radii)),i))
         candidate=[];hole_counts={}
         for i in ordered:
             hole=self.samples[i]['hole_id']
@@ -102,16 +105,29 @@ class Estimator:
         if len(candidate)<self.minimum or len(hole_counts)<self.minimum_holes:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
         xyz=self.xyz[candidate];values=self.values[candidate];d=np.linalg.norm(xyz-point,axis=1)
         exact=np.flatnonzero(d<1e-9)
-        if len(offsets)==1 and np.all(offsets==0) and len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method=='kriging' else None,'neighbors':len(candidate),'status':'exact_sample'}
-        if self.method=='idw':
+        if len(offsets)==1 and np.all(offsets==0) and len(exact):return {'grade':float(values[exact[0]]),'variance':0. if self.method in ('kriging','simple_kriging') else None,'neighbors':len(candidate),'status':'exact_sample'}
+        if self.method in ('idw','nearest'):
             target_distances=np.linalg.norm(xyz[:,None,:]-targets[None,:,:],axis=2)
             predictions=[]
             for column in target_distances.T:
                 exact_target=np.flatnonzero(column<1e-9)
                 if len(exact_target):predictions.append(float(values[exact_target[0]]));continue
+                if self.method=='nearest':predictions.append(float(values[np.argmin(column)]));continue
                 weights=(column.min()/column)**self.power
                 predictions.append(float(np.dot(weights,values)/weights.sum()))
             grade=float(np.mean(predictions));variance=None
+        elif self.method=='simple_kriging':
+            sill=sum(self.variogram[:2]);n=len(candidate)
+            covariance=sill-self.semivariance(xyz[:,None,:]-xyz[None,:,:])
+            rhs=sill-self.semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1)
+            within=float(self.semivariance(offsets[:,None,:]-offsets[None,:,:]).mean())
+            try:
+                if np.linalg.cond(covariance)>1e12:raise np.linalg.LinAlgError('ill-conditioned')
+                weights=np.linalg.solve(covariance,rhs)
+            except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,'status':'singular_kriging_system'}
+            grade=float(self.mean+np.dot(weights,values-self.mean));variance=float(sill-within-np.dot(weights,rhs))
+            if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,'status':'invalid_variance'}
+            variance=max(0.,variance)
         else:
             n=len(candidate)
             matrix=np.ones((n+1,n+1));matrix[:n,:n]=self.semivariance(xyz[:,None,:]-xyz[None,:,:]);matrix[n,n]=0

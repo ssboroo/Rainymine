@@ -1,3 +1,11 @@
+## 0.4 external acceptance
+
+- RBF analytic symmetric-plane test, maximum closure exhaustive subset comparison, stripping/lateral-slope tests, Excel/STL round-trip and SQL transaction tests are automated.
+- Windows source, packaged and installed app smoke must exercise RBF/HiGHS/Excel/STL/pyodbc; this is CI VM evidence, not physical-device certification.
+- Site Geobank database: pending DBA views, DSN, snapshot isolation and anonymized reference export (see GEOBANK_SQL.md).
+- DWG/Datamine/Surpac/Vulcan binary adapters are not implemented. Vendor specs/licensing and representative files remain required; no extension-only import claim.
+- RBF grade isosurface is not a fault-constrained geological solid. Pit scenario is not a certified engineering design or Whittle/LG product implementation.
+
 # RAINYMINE — хүлээн авах шалгалтын төлөв
 
 ## Автомат шалгалт
@@ -36,3 +44,11 @@
 ## 0.4.0 development controls
 
 Synthetic tests check sub-block volume conservation/coalescing, planar fault separation, project round-trip, hand-calculated haul capacity (3072 t/shift), MILP against exhaustive enumeration, grade-unit conversion and complete/partial external reference matching. These do not complete the independent real-deposit acceptance gate. See docs/EXTERNAL_VALIDATION.md.
+
+## 0.5.0 local-support evidence
+
+- Actual pinned Qwen3-1.7B Q4_K_M + llama.cpp b11796 CPU inference tested locally: Mongolian CSV import, blank render and block-model help route correctly; unrelated requests are redirected.
+- Reviewed-help output rejects unknown IDs/malformed JSON and discards all arbitrary model prose.
+- Tests cover topic-only follow-up context, off-topic scope, verified/failed/cancelled atomic downloads, archive traversal rejection and localhost process arguments.
+- Offscreen Qt verifies manual help, clear, off-topic handling and plain-text display.
+- Windows CI additionally downloads/hash-checks actual assets and runs local-model inference from source, packaged EXE and installed EXE. Check the exact commit's CI result before claiming this passed.

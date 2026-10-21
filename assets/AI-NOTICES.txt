@@ -1,0 +1,10 @@
+RAINYMINE LOCAL SUPPORT ASSETS
+
+Runtime: ggml-org/llama.cpp b11796 (MIT); see LLAMA_CPP_LICENSE.txt; runtime-specific third-party notices also accompany the binaries.
+Model: Qwen3-1.7B, Q4_K_M quantization by ggml-org (Apache-2.0).
+Original: https://huggingface.co/Qwen/Qwen3-1.7B
+Quantization: https://huggingface.co/ggml-org/Qwen3-1.7B-GGUF
+Pinned revision: daeb8e2d528a760970442092f6bf1e55c3b659eb
+SHA256: d2387ca2dbfee2ffabce7120d3770dadca0b293052bc2f0e138fdc940d9bc7b5
+See QWEN_MODEL_LICENSE.txt for Apache-2.0 terms.
+Model weights are unchanged. Rainymine uses the model to select reviewed software-help IDs; no geology certification or general chat is offered.

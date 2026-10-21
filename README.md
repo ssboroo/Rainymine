@@ -1,4 +1,15 @@
-# RAINYMINE 0.4.0 — Монгол оффлайн 3D уул уурхайн workbench
+# RAINYMINE 0.5.0 — Монгол оффлайн 3D уул уурхайн workbench
+
+Эхлэх жишээ нь 720 ширхэг 50 м блоктой synthetic model; pit optimizer-ийг шууд туршиж болно. Бодит уурхай/нөөцийн эталон биш.
+
+`Загвар / оновчлол` ribbon: RBF implicit гадарга, economic pit, Excel, STL, Geobank/SQL унших.
+
+- **RBF:** композитын агуулгын linear RBF interpolation + cutoff isosurface. 4–10000 support, 5–60 grid resolution; сонгосон bounds дотор extrapolation хийнэ. Fault, stratigraphy, signed-distance constraint болон автомат геологийн solid баталгаа байхгүй.
+- **Pit:** undiscounted maximum closure-ийг HiGHS binary MILP solver-оор бодно. Блок бүрийн олборлолтын зардал, боловсруулах зардал, recovery, price болон налуугийн precedence орно. Price = нэг project grade-unit × тонн тутмын мөнгө; хувь, g/t хөрвүүлэлт автоматаар хийхгүй. 5000 хүртэл ижил хэмжээтэй, бүрэн тэгш өнцөгт parent grid; бүх grade шаардлагатай. Conservative square next-level slope stencil; model-ийн гаднах stripping орохгүй. Ramps/pushbacks, scheduling/NPV болон Whittle benchmark биш.
+- **Excel:** `.xlsx`, sheet нэр, багана mapping; formula/error cell-ийг татгалзана. `.xls`, `.xlsm` дэмжихгүй.
+- **STL:** ASCII/binary triangle import, double-precision ASCII export. STL-д CRS/нэгжийн metadata байхгүй; project metre гэж хэрэглэгч шалгана. Binary STL эх координат float32 нарийвчлалтай.
+- **Geobank SQL:** Windows ODBC + integrated authentication; site-specific canonical views ба snapshot transaction. [Тохиргоо](GEOBANK_SQL.md). Интернэт шаардлагагүй; SQL сервер тухайн сүлжээнд хүртээмжтэй байна. Бодит байгууллагын серверийн acceptance тест хүлээгдэж байгаа.
+
 
 Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэл, API key шаардахгүй. Суулгасан EXE нь Python шаардахгүй. Эх кодын dependency таталт болон Windows build-д интернэт хэрэгтэй.
 
@@ -8,10 +19,10 @@ Windows desktop, Qt/PySide6 + VTK. Интернэт, сервер, бүртгэ�
 
 1. [Windows desktop build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтыг нээнэ.
 2. **Rainymine-Windows-x64** artifact татаж задална (GitHub нэвтрэлт шаардагдаж болно).
-3. `Rainymine-0.4.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
+3. `Rainymine-0.5.0-Setup-x64.exe` суулгана. Эсвэл portable ZIP-ийг бүхлээр нь задалж `Rainymine.exe` ажиллуулна.
 4. GPU/драйверын улмаас цонх хар байвал `Rainymine-Software.bat` эсвэл Start цэсний CPU rendering хувилбарыг ашиглана. Mesa/llvmpipe оффлайн драйвер багцад бий. Системийн DLL/драйверийг солихгүй; CPU горим том өгөгдөлд удаан байж болно.
 
-EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x artifact нь шинэ 0.4.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
+EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **ногоон үр дүнгээр** шалгана. Өмнөх 0.1.x/0.2.x/0.3.x/0.4.x artifact нь шинэ 0.5.0 боломжуудыг агуулахгүй. Кодын тоон гарын үсгийн сертификат одоогоор холбогдоогүй.
 
 ## 0.3 — Micromine төрлийн 3D ажлын урсгал
 
@@ -145,10 +156,25 @@ EXE: `pip install pyinstaller==6.12.0`, дараа нь `scripts/build_windows.p
 
 Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL/Commercial, VTK BSD, NumPy/SciPy BSD, PROJ/pyproj болон ezdxf-ийн upstream licenses. Dynamic Qt libraries-ийг багцад хэвээр хадгална. Micromine native file compatibility амлаагүй.
 
-## 0.4.0 — Sub-block / Fault / Haul / MILP / Reference workflow
+## 0.5.0 — Sub-block / Fault / Haul / MILP / Reference workflow
 
 - **Sub-block levels 0–3:** finest-cell centre-үүдийг world XY polygon ба fault zone-оор ангилна; ижил ангилалтай найман sibling-ийг нэгтгэнэ. Adaptive output нь geometry clipping биш; нимгэн заагийг finest resolution-оос доош барихгүй. 200000 хүртэл finest sample, 50000 output cell. Grid minimum pivot ба rotation хэвээр.
 - **Fault Plane:** point + normal бүхий 8 хүртэл infinite planar barrier. Estimation, cross-validation, variogram нь fault-ийн эсрэг талын sample/pair-ийг холихгүй. Харагдах patch-ийн extent нь зөвхөн guide; barrier infinite. On-plane point нь + тал. Fault throw, displacement restoration, curved faults, implicit stratigraphy дэмжихгүй.
 - **Зам / Тээвэр:** эхлээд нээлттэй XYZ String үүсгээд сонгоно. Segment-ийн 3D урт, signed gradient, max-gradient limit шалгана. Payload/trucks/speeds/loading/dumping/queue/shift/utilization-аар continuous-average cycle capacity тооцно. Curvature, turning radius, superelevation, traction, traffic, engineered ramp биш. Gradient зөрвөл fleet result үүсгэхгүй.
 - **MILP Оновчлол:** world-axis parent grid, vertical column precedence ашиглана. Metal price нь **нэг тонн металлд**, бүх cost нэг currency-д байна; % → 0.01, g/t ба ppm → 1e-6 tonne-metal/tonne-rock. Recovery, mining/processing/haul costs, discount-per-period, mining/processing capacity орно. Optional tasks: ашиггүй block-ийг олборлохгүй байж болно, харин predecessor шаардлагатай бол зардалтай waste-ийг сонгоно. Solver status/gap-ийг харуулна; timeout incumbent-ийг optimal гэж нэрлэхгүй. 12000 binary, 1 сая precedence coefficients; synchronous solver нь тохируулсан 60 сек хүртэл UI-г ачааллуулж болно. Sub-block/rotated grid schedule, slope cones, haul-network coupling, stockpiles, global pit shell optimization дутуу.
 - **External Benchmark:** гадаад `x,y,z,grade` CSV-тэй complete one-to-one coordinate matching ба absolute + relative tolerance-оор тоон харьцуулна. Incomplete/ambiguous/unestimated үр дүн pass болохгүй. Reference SHA256 ба model run SHA256 хадгална. `independent_review_verified` үргэлж false: өгөгдлийн гарал, эрх, real-deposit scope, reviewer sign-off тусдаа шаардлагатай. [Баталгаажуулалтын заавар](docs/EXTERNAL_VALIDATION.md).
+
+## 0.5 — Зөвхөн Rainymine-ийн local туслах
+
+**3D хэрэгслүүд → Local AI Туслах** самбар монголоор программын ажиллагаа, тохиргоо, CSV импорт, алдаа засах зааврыг сонгож өгнө. Ерөнхий чат, геологийн шийдвэр/нөөцийн баталгаа, код үүсгэх, автоматаар үйлдэл хийхгүй.
+
+- CPU engine: pinned llama.cpp b11796; model: Qwen3-1.7B Q4_K_M, 1,282,439,264 bytes (~1.28 GB download), pinned revision/SHA256. Model/runtime лиценз: assets/AI-NOTICES.txt, assets/QWEN_MODEL_LICENSE.txt. Суулгасан багцын root-д эдгээр лиценз мөн байна.
+- **Rainymine-AI-Offline-x64 artifact доторх AI Offline portable ZIP** моделийг дотроо агуулна. Бүх ZIP-ийг задлаад Rainymine.exe нээнэ. Engine/model-д тусдаа installation, интернэт, Ollama, API key шаардахгүй.
+- **Энгийн installer/portable** engine агуулна, model ороогүй. Local AI → Анх тохируулах дарж моделийг нэг удаа татна. Дараа нь оффлайн ажиллана. Model нь хэрэглэгчийн LOCALAPPDATA/Rainymine/ai/models-д хадгалагдана. Нэг удаагийн таталтад интернэт, сул диск хэрэгтэй.
+- Бэлэн GGUF/llama-server файлтай бол Файл сонгох ашиглаж болно; баталгаажуулсан хослол нь дээрх Qwen3/llama.cpp. Бусад model-ийн template/JSON/CPU нийцлийг амлахгүй.
+- Local модель боломжит тусламжийн ID-г сонгоно; дэлгэцийн алхмууд reviewed built-in заавраас гарна. Model-ийн дурын prose/команд/HTML хэрэглэгчид дамжуулахгүй. Эх сурвалжийн help ID харагдана. Хамааралгүй асуултыг буцааж чиглүүлнэ.
+- Туслах project/assay/coordinates/logs/чатын түүхийг уншихгүй. Асуулт + сонгосон тусламжийн хэсгүүд нь зөвхөн 127.0.0.1 дээрх тухайн Rainymine-ийн эхлүүлсэн process-д очно. Proxy/redirect ашиглахгүй. API key/үүлэн inference холболт байхгүй.
+- Setup болон inference background thread-д ажиллана. Зогсоох товч model process-ийг хааж RAM чөлөөлнө. Программ хаахад мөн хаана. Чат файлд хадгалахгүй; Clear нь харагдах түүх ба follow-up ID-г цэвэрлэнэ.
+- Модельгүй үед зааврын dropdown нь оффлайнаар шууд ажиллана; энэ нь generative AI ажилласан гэсэн үг биш. CPU хурд/RAM-аас model startup/response хамаарна. Энэ model нь Mongolian general reasoning/геологийн мэргэжлийн чадвараар баталгаажуулагдаагүй; reviewed help routing-д л ашиглана.
+
+Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.5.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.

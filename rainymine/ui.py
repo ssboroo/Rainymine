@@ -282,8 +282,8 @@ def main():
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
-    from .navigation import NavigationWorkbench
-    window=NavigationWorkbench();window.show()
+    from .advanced import AdvancedWorkbench
+    window=AdvancedWorkbench();window.show()
     if args.smoke:
         def verify():
             try:
@@ -300,7 +300,10 @@ def main():
                 renderer.SetWorldPoint(*point,1);renderer.WorldToDisplay();screen=renderer.GetDisplayPoint()
                 window.vtk.SetEventPosition(round(screen[0]),round(screen[1]));window.on_click(None,None)
                 assert window.picked_info.text()!='3D дээр цооног эсвэл блок дарж сонгоно.'
-                verify(window.project)
+                meshes=verify(window.project)
+                window.project.workspace.setdefault('meshes',[]).extend(meshes)
+                window.refresh()
+                assert window.scene.sources['mesh_0'].GetNumberOfCells()>0
                 assert window.ribbon.count()>=6
                 assert window.project.workspace.get('block_model')
                 assert window.scene.sources['blocks'].GetNumberOfCells()>0

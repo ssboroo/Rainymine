@@ -9,7 +9,7 @@ permissions:
 jobs:
   build:
     runs-on: windows-2022
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       RAINYMINE_SOFTWARE: '1'
       GALLIUM_DRIVER: llvmpipe
@@ -21,16 +21,28 @@ jobs:
           cache: pip
       - name: Install dependencies
         run: python -m pip install -r requirements.txt pyinstaller==6.12.0
+      - name: Cache pinned local AI assets
+        uses: actions/cache@v4
+        with:
+          path: ai
+          key: rainy-local-ai-b11796-qwen3-1.7b-d2387ca2
+      - name: Prepare local AI engine and GGUF
+        run: python scripts/prepare_local_ai.py --model
       - name: Prepare optional CPU OpenGL renderer
         shell: pwsh
         run: ./scripts/prepare_mesa.ps1
+      - name: Enable real local-model checks
+        shell: pwsh
+        run: |
+          $model = (Resolve-Path 'ai/models/Qwen3-1.7B-Q4_K_M.gguf').Path
+          "RAINYMINE_AI_SMOKE_MODEL=$model" >> $env:GITHUB_ENV
       - name: Geometry, file and scene tests
         run: python -m unittest discover -s tests -v
       - name: Desktop smoke test
         shell: pwsh
         run: |
           $p = Start-Process python -ArgumentList 'main.py','--smoke','--screenshot','windows-smoke.png' -PassThru -NoNewWindow -RedirectStandardOutput smoke-out.log -RedirectStandardError smoke-err.log
-          if (-not $p.WaitForExit(60000)) { $p.Kill(); throw 'Desktop smoke test timed out' }
+          if (-not $p.WaitForExit(180000)) { $p.Kill(); throw 'Desktop smoke test timed out' }
           Get-Content smoke-out.log,smoke-err.log
           if ($p.ExitCode -ne 0) { throw "Desktop smoke test failed: $($p.ExitCode)" }
       - name: Package and test Windows executable
@@ -45,19 +57,26 @@ jobs:
         shell: pwsh
         run: |
           $dest = Join-Path $env:RUNNER_TEMP 'RainymineInstalled'
-          $setup = Start-Process '.\dist\Rainymine-0.4.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
+          $setup = Start-Process '.\dist\Rainymine-0.5.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
           if (-not $setup.WaitForExit(60000)) { $setup.Kill(); throw 'Install timed out' }
           if ($setup.ExitCode -ne 0) { throw 'Install failed' }
           $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
-          if (-not $app.WaitForExit(60000)) { $app.Kill(); throw 'Installed app smoke test timed out' }
+          if (-not $app.WaitForExit(180000)) { $app.Kill(); throw 'Installed app smoke test timed out' }
           if ($app.ExitCode -ne 0) { throw 'Installed app failed' }
       - uses: actions/upload-artifact@v4
         with:
           name: Rainymine-Windows-x64
           path: |
-            dist/Rainymine-0.4.0-Windows-x64.zip
-            dist/Rainymine-0.4.0-Setup-x64.exe
+            dist/Rainymine-0.5.0-Windows-x64.zip
+            dist/Rainymine-0.5.0-Setup-x64.exe
             windows-smoke.png
+          if-no-files-found: error
+      - name: Upload full offline AI portable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rainymine-AI-Offline-x64
+          path: dist/Rainymine-0.5.0-AI-Offline-x64.zip
+          compression-level: 0
           if-no-files-found: error
       - name: Upload diagnostic logs
         if: always()

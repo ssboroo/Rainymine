@@ -97,7 +97,7 @@ class Workbench(Window):
         if not self.project.name.startswith('ЖИШЭЭ'):return
         for h in self.project.collars:
             self.project.lithology.extend([Lithology(h.hole_id,0,h.depth*.35,'Хурдас'),Lithology(h.hole_id,h.depth*.35,h.depth*.7,'Хүдэржилт'),Lithology(h.hole_id,h.depth*.7,h.depth,'Боржин')])
-        self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[25,25,25],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
+        self.project.workspace['block_model']=estimate_model(self.project,[499950,5299950,1100,500450,5300400,1500],[50,50,50],{'method':'idw','minimum':2,'neighbors':8,'radii':[220,220,130],'composite_length':10,'minimum_coverage':1})
         self.project.workspace['block_display']='slices'
         self.layer_checks['surface'].setChecked(False)
     def build_ui(self):
@@ -116,7 +116,7 @@ class Workbench(Window):
         tab('Өрөмдлөг',[('Импорт',[('Амсар','holes',lambda:self.import_data('collars')),('Survey','holes',lambda:self.import_data('surveys')),('Сорьц','chart',lambda:self.import_data('assays')),('Литологи','holes',lambda:self.import_data('lithology'))]),('Чанар',[('Сорьцын\nбүрхэлт','grid',self.qaqc),('Стандарт /\nBlank / Dup','chart',self.controls),('Шалгах','gear',self.validate_data)]),('Гаргалгаа',[('Композит','grid',self.composites),('Замнал CSV','file',self.export_paths)])])
         tab('Геологи / DTM',[('Геометр',[('String /\nPolygon','polygon',self.edit_string),('Геометр\nзасах','pick',self.edit_existing_string),('Гадарга\nXYZ','surface',lambda:self.import_data('surface'))]),('DTM / Solid',[('Breakline\nTIN','surface',self.build_tin),('Mesh\nшалгах','cube',self.check_mesh)]),('Солилцоо',[('OBJ\nимпорт','cube',self.import_obj),('OBJ\nэкспорт','cube',self.export_obj),('DXF\nимпорт','polygon',self.import_dxf),('DXF\nэкспорт','polygon',self.export_dxf)])])
         tab('Блок модель',[('Модель',[('Блок модель\nүүсгэх','cube',self.block_dialog),('Домэйн\nPolygon','polygon',self.edit_string),('Блок CSV\nэкспорт','grid',self.export_blocks),('3 зүсэлт /\nБүх блок','cube',self.block_display)]),('Үнэлгээ',[('Variogram\nба fit','chart',self.variogram),('Cross-\nvalidation','chart',self.cross_validation),('External\nBenchmark','chart',self.external_benchmark),('Fault\nPlane','surface',self.add_fault),('Density /\nCutoff','cube',self.resource_report)])])
-        tab('Уурхай',[('Загварын prototype',[('Ил уурхайн\nBench','pit',self.pit),('Далд уурхайн\nМалталт','cube',self.drive)]),('Төлөвлөлт',[('Capacity\nSchedule','grid',self.schedule_dialog),('Зам /\nТээвэр','surface',self.haul_dialog),('MILP\nОновчлол','chart',self.optimize_dialog),('Төслийн\nтайлан','file',self.report)])])
+        tab('Уурхай',[('Загварын prototype',[('Ил уурхайн\nBench','pit',self.pit),('Далд уурхайн\nМалталт','cube',self.drive)]),('Төлөвлөлт',[('Capacity\nSchedule','grid',self.schedule_dialog),('Зам /\nТээвэр','surface',self.haul_dialog),('MILP\nОновчлол','chart',self.schedule_milp_dialog),('Төслийн\nтайлан','file',self.report)])])
         tab('Харагдац',[('Камер',[('3D','cube',lambda:self.scene.view('iso')),('Дээрээс','grid',lambda:self.scene.view('top')),('Урдаас','surface',lambda:self.scene.view('north')),('Төвлөрүүлэх','pick',lambda:self.scene.reset())]),('Ажлын орчин',[('Хоёр\nviewport','grid',self.toggle_view),('Агуулга /\nЛитологи','holes',self.color_mode),('Зай\nхэмжих','pick',lambda:self.measure.setChecked(not self.measure.isChecked()))]),('Экспорт',[('PNG зураг','file',self.export_png),('VTP\nгеометр','cube',self.export_vtp),('Заавар','file',self.help)])])
         rb=QToolBar('Ribbon');rb.setMovable(False);rb.addWidget(self.ribbon);self.addToolBar(Qt.ToolBarArea.TopToolBarArea,rb)
         # Large white scientific viewport; the second view is an optional plan window.
@@ -204,8 +204,8 @@ class Workbench(Window):
             path=self.destination(title,'csv')
             if path:self.guard(lambda:write_records(path,rows,columns))
         dlg.box.accepted.connect(save);dlg.exec()
-    def import_data(self,kind):
-        path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
+    def import_data(self,kind,path=None):
+        if path is None:path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
         if not path:return
         def run():
             headers,preview,delimiter=csv_preview(path);dlg=QDialog(self);dlg.setWindowTitle('Импортын багана тохируулах');dlg.resize(760,520);layout=QVBoxLayout(dlg);form=QFormLayout();selectors={}
@@ -318,9 +318,10 @@ class Workbench(Window):
         meshes=self.project.workspace.get('meshes',[]);i=self.choose('Mesh топологи',[m['name'] for m in meshes])
         if i is not None:self.guard(lambda:self.show_rows('Mesh — self-intersection хараахан шалгахгүй',[mesh_report(meshes[i])]))
     def estimator_params(self):
-        result=self.params('Үнэлгээ — search / covariance / block support',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'Search azimuth':90,'Search dip':0,'Search roll':0,'Max samples per hole':64,'Minimum holes':1,'Top cut (blank = none)':'','IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Covariance':['Isotropic','Anisotropic'],'Variogram range X':100,'Variogram range Y':100,'Variogram range Z':50,'Variogram azimuth':90,'Variogram dip':0,'Variogram roll':0,'Block support':['Point','2 × 2 × 2','3 × 3 × 3','4 × 4 × 4'],'Composite metres':5,'Minimum coverage':1})
+        result=self.params('Үнэлгээ — search / covariance / block support',{'Арга':['idw','kriging','nearest','simple_kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'Search azimuth':90,'Search dip':0,'Search roll':0,'Max samples per hole':64,'Minimum holes':1,'Top cut (blank = none)':'','IDW power':2,'Nugget':0,'Partial sill':1,'Known mean (SK)':0,'Range metres':100,'Covariance':['Isotropic','Anisotropic'],'Variogram range X':100,'Variogram range Y':100,'Variogram range Z':50,'Variogram azimuth':90,'Variogram dip':0,'Variogram roll':0,'Block support':['Point','2 × 2 × 2','3 × 3 × 3','4 × 4 × 4'],'Composite metres':5,'Minimum coverage':1})
         if not result:return None
         params={'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'search_angles':[float(result['Search '+a]) for a in ('azimuth','dip','roll')],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        params['known_mean']=float(result['Known mean (SK)'])
         params.update(max_per_hole=int(result['Max samples per hole']),minimum_holes=int(result['Minimum holes']),top_cut=float(result['Top cut (blank = none)']) if result['Top cut (blank = none)'].strip() else None)
         n=1 if result['Block support']=='Point' else int(result['Block support'][0]);params['discretization']=[n,n,n]
         if result['Covariance']=='Anisotropic':
@@ -457,7 +458,7 @@ class Workbench(Window):
             self.show_rows('Замын сегментүүд',route['segments']);self.show_rows('Fleet capacity — average cycle approximation',[capacity])
         self.guard(run)
 
-    def optimize_dialog(self):
+    def schedule_milp_dialog(self):
         def run():
             model=self.project.workspace.get('block_model')
             if not model:raise ValueError('Эхлээд world-axis parent model үүсгэнэ үү.')
