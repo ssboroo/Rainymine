@@ -74,6 +74,17 @@ class ParquetStoreTests(unittest.TestCase):
             self.assertTrue(all(b.num_rows<=1 for b in batches))
             with self.assertRaises(ValueError):read_block_model(path,maximum=1)
         self.assertEqual(model,before)
+    def test_durable_flush_uses_a_writable_descriptor(self):
+        import os
+        from unittest.mock import patch
+        flush=os.fsync
+        def writable_flush(fd):
+            self.assertEqual(os.write(fd,b''),0)
+            flush(fd)
+        with tempfile.TemporaryDirectory() as directory,patch('rainymine.block_store.os.fsync',side_effect=writable_flush):
+            path=Path(directory)/'model.parquet'
+            write_block_parquet(path,self.model())
+            self.assertEqual(len(read_block_model(path)[0]['blocks']),6)
     def test_failure_preserves_existing_file(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'model.parquet';path.write_bytes(b'preserve')

@@ -53,7 +53,8 @@ def write_block_parquet(path,model,crs='',grade_unit=''):
         pq.write_table(table,temp,row_group_size=262144,compression='zstd',compression_level=3,
                        use_dictionary=[k for k in ('domain','lithology','status','subblock_level') if k in columns],
                        use_byte_stream_split=floats,write_statistics=True)
-        with open(temp,'rb') as stream:os.fsync(stream.fileno())
+        # Windows _commit/FlushFileBuffers requires a writable descriptor.
+        with open(temp,'r+b') as stream:os.fsync(stream.fileno())
         os.replace(temp,path)
     finally:
         if os.path.exists(temp):os.unlink(temp)
