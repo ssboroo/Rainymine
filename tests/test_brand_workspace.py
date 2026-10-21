@@ -31,6 +31,8 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
         window.set_language('en',persist=False)
         self.assertEqual(window.ribbon.tabText(0),'Project')
         self.assertEqual(window.ribbon.tabText(3),'Block model')
+        self.assertEqual(window.layer_list.headerItem().text(0),'Layer')
+        self.assertEqual(window.representation.itemText(0),'Surface')
         self.assertEqual(window.block_model.headerData(1,Qt.Orientation.Horizontal),'Easting (m)')
         self.assertEqual(window.project,before)
         self.assertEqual(len(window.tool_entries()),len(window.tool_catalog))

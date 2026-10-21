@@ -716,6 +716,11 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.support.manual.setItemText(0,tr('Зааврыг шууд үзэх — модель шаардахгүй'))
         self.language_combo.setCurrentIndex(self.language_combo.findData(code))
         self.block_model.headerDataChanged.emit(Qt.Orientation.Horizontal,0,6)
+        for index,title in enumerate(('Давхарга','Элемент')):
+            self.layer_list.headerItem().setText(index,tr(title))
+        # Representation is index-based, so translating these labels cannot change a style key.
+        for index,title in enumerate(('Бүтэн гадарга','Торон дүрслэл','Цэг')):
+            self.representation.setItemText(index,tr(title))
         self.refresh_layers()
         if self._workspace_ready:self.refresh_workspace()
         # The initial reviewed guide is static; user conversations are never rewritten.
