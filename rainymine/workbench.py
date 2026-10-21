@@ -193,6 +193,9 @@ class Workbench(Window):
     def import_data(self,kind,path=None):
         if path is None:path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
         if not path:return
+        from .dh_import import NAMES
+        if Path(path).name.lower() in NAMES and hasattr(self,'dh_import_dialog'):
+            self.dh_import_dialog(str(Path(path).parent));return
         def run():
             headers,preview,delimiter=csv_preview(path);dlg=QDialog(self);dlg.setWindowTitle('Импортын багана тохируулах');dlg.resize(760,520);layout=QVBoxLayout(dlg);form=QFormLayout();selectors={}
             for field in SCHEMAS[kind]:

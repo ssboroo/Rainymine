@@ -75,6 +75,15 @@ def verify(project):
         assert write_geopackage(root/'Монгол.gpkg',exchange_fixture)['features']>0
         assert read_geopackage(root/'Монгол.gpkg','collars')['points']
         assert write_exchange_bundle(root/'Монгол.zip',exchange_fixture)['files']>=8
+    from .dh_import import scan_sources,project_from_bundle,source_bytes
+    with TemporaryDirectory() as folder:
+        root=Path(folder);collar=root/'dh_collar.csv';assay=root/'dh_assay.csv'
+        collar.write_text('id,companyholeid,easting,northing,elevation,maxdepth,azimuth,dip,datum,projection,zone,height_datum\n1,TEST,400000,6500000,100,10,360,-90,GDA94,UTM,51,EGM96\n',encoding='utf-8')
+        assay.write_text('companyholeid,fromdepth,todepth,attributecolumn,attributevalue,units,dsc\nTEST,0,1,Au,-0.1,PPM,LDL\nTEST,1,2,Au,0,PPM,\n',encoding='utf-8')
+        archive=scan_sources([collar,assay]);imported,report=project_from_bundle(archive,('dh_assay.csv','Au','PPM'))
+        save_project(root/'dh.rmine',imported);restored=load_project(root/'dh.rmine')
+        assert len(restored.assays)==1 and restored.assays[0].grade==0 and restored.collars[0].azimuth==0
+        assert source_bytes(restored.workspace['dh_bundle'],'dh_assay.csv')==assay.read_bytes()
     from .engineering import rtc_buffer,morton_codes,oriented_core,density_composites
     from .block_store import write_block_parquet,read_block_model,scan_block_batches
     from .validation import validate_tables

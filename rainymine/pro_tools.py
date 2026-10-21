@@ -11,7 +11,7 @@ class ProTools:
     def build_pro_menu(self):
         self._engineering_tasks=[];self._preview_dialogs=[];self._gizmo=None
         menu=self.menuBar().addMenu('Мэргэжлийн хэрэгсэл')
-        groups=[('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
+        groups=[('DH өгөгдөл',[('DH CSV багц импорт…',self.dh_import_dialog),('DH эх хүснэгт / CSV экспорт…',self.dh_source_browser),('DH сорьцын элемент солих…',self.dh_change_channel)]),('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
                 ('Файл / GIS',[('Surpac STR импорт…',self.surpac_import),('Surpac STR экспорт…',self.surpac_export),('Surpac ASCII DTM импорт…',self.surpac_dtm_import),('SHP импорт…',self.shapefile_import),('GeoTIFF DEM импорт…',self.dem_import),('LAS/LAZ шүүлт ба экспорт…',self.lidar_export),('DWG → DXF adapter…',self.dwg_import)]),
                 ('Геологи / Үнэлгээ',[('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
                 ('Уурхайн зураг төсөл',[('Спираль ramp…',self.ramp_dialog),('Шугамаар малталтын сүлжээ…',self.network_dialog),('Өрөмдлөгийн ring / fan…',self.ring_dialog),('Stope box MILP…',self.stope_dialog)]),
@@ -389,3 +389,80 @@ class ProTools:
                 xyz=np.asarray(data['points']);payload={'kind':'points','xyz':xyz,'source_index':np.arange(len(xyz),dtype=np.int64),'source_points':len(xyz),'matched_before_sampling':len(xyz),'stride':1}
                 LargePreviewFactory.show(self,payload,'GeoPackage · '+data['layer'])
         self.launch_task('GeoPackage унших…',lambda cancel:read_geopackage(path,layers[index]),apply)
+
+    def dh_import_dialog(self,directory=""):
+        from .dh_import import scan_sources,options
+        from PySide6.QtCore import QTimer
+        paths,_=QFileDialog.getOpenFileNames(self,'DH багц — dh_collar.csv болон бусад dh_*.csv-ээ хамт сонгоно',str(directory),'DH CSV (*.csv)')
+        if not paths:return
+        source=self.project
+        def work(cancel):
+            bundle=scan_sources(paths,cancel);return bundle,options(bundle)
+        def apply(result):
+            def configure():
+                if self.project is not source:return
+                if self._engineering_tasks:QTimer.singleShot(20,configure);return
+                self.guard(lambda:self.dh_configure(*result))
+            QTimer.singleShot(0,configure)
+        self.launch_task('DH эх хүснэгтүүдийг шалгаж архивлах…',work,apply)
+
+    def dh_configure(self,bundle,choices=None):
+        from .dh_import import options,project_from_bundle
+        choices=choices or options(bundle)
+        channels=list(choices['channels']);channels.sort(key=lambda c:(c!=('dh_assay.csv','Au','PPM'),c))
+        labels=[' | '.join(c) for c in channels];rocks=list(choices['lithology_columns']);rocks.sort(key=lambda c:(c!='Lith1_Code',c!='Lith_primary',c))
+        settings=self.params('DH — шинэ өгөгдлийн төсөл; Survey байхгүй бол амсрын өнцгөөр шулуун таамаг',{
+            'Идэвхтэй сорьц (нэг элемент)':labels+['— Сорьц сонгохгүй —'],
+            'Литологийн кодын атрибут':rocks+['— Литологи сонгохгүй —'],
+            'Илрүүлэх хязгаараас доош утга':['Exclude — эх утгыг хадгалж тооцооноос хасах','Half limit — эх limit-ийн 1/2 (сонгосон орлуулалт)']})
+        if not settings:return
+        selected=settings['Идэвхтэй сорьц (нэг элемент)'];channel=channels[labels.index(selected)] if selected in labels else None
+        lith=settings['Литологийн кодын атрибут'];lith=lith if lith in rocks else None
+        policy='half_limit' if settings['Илрүүлэх хязгаараас доош утга'].startswith('Half') else 'exclude'
+        def apply(result):
+            project,report=result;self.commit(project);self.path=None;self.update_title()
+            self.show_rows('DH импорт — эх файлууд төсөлд хадгалагдсан; Survey байхгүй',[
+                {'үзүүлэлт':'Амсар','утга':report['collars']},{'үзүүлэлт':'Идэвхтэй сорьц','утга':report['active_assays']},
+                {'үзүүлэлт':'Литологи','утга':report['active_lithology']},{'үзүүлэлт':'Survey station','утга':0},
+                {'үзүүлэлт':'CSV баганын алдаатай мөр (эх archive-д хадгалсан)','утга':len(report['source_parse_issues'])},
+                {'үзүүлэлт':'Интервал / join алдаа','утга':len(report['issues'])},
+                {'үзүүлэлт':'Замнал','утга':'Downhole survey байхгүй: collar azimuth/dip-ээр шулуун таамаг'},
+                {'үзүүлэлт':'Өмнөх тооцоолол','утга':'Шинэ өгөгдлийн төсөл үүссэн. Хадгалахдаа шинэ .rmine сонгоно.'}])
+        self.launch_task('DH сонгосон элемент / литологи холбох…',lambda cancel:project_from_bundle(bundle,channel,lith,policy,cancel=cancel),apply)
+
+    def dh_change_channel(self):
+        bundle=self.project.workspace.get('dh_bundle')
+        if not bundle:raise ValueError('Эхлээд DH багц импортлоно уу.')
+        if QMessageBox.question(self,'DH өгөгдлийг дахин сонгох','Archive-аас шинэ өгөгдлийн төсөл үүсгэнэ. Одоогийн блок/тооцооллыг шинэ элементийн үр дүн гэж авч үлдэхгүй. Үргэлжлүүлэх үү?')==QMessageBox.StandardButton.Yes:self.dh_configure(bundle)
+
+    def dh_source_browser(self):
+        from .dh_import import source_page,source_bytes
+        from .open_exchange import atomic_destination
+        from PySide6.QtWidgets import QComboBox,QSpinBox,QTableWidget,QTableWidgetItem,QAbstractItemView
+        bundle=self.project.workspace.get('dh_bundle')
+        if not bundle:raise ValueError('DH эх архив байхгүй. DH багц импортлоно уу.')
+        dialog=QDialog(self);dialog.setWindowTitle('DH эх хүснэгт — 200 мөр / хуудас; бүх эх утга хадгалагдсан');dialog.resize(1200,720)
+        layout=QVBoxLayout(dialog);row=QHBoxLayout();files=QComboBox();files.addItems(sorted(bundle['files']));page=QSpinBox();page.setMinimum(1);row.addWidget(files,1);row.addWidget(QLabel('Хуудас'));row.addWidget(page);export=QPushButton('Эх CSV-г яг хэвээр гаргах');row.addWidget(export);layout.addLayout(row)
+        info=QLabel();info.setWordWrap(True);layout.addWidget(info);table=QTableWidget();table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers);layout.addWidget(table)
+        def load(reset=False):
+            def run():
+                name=files.currentText();entry=bundle['files'][name]
+                page.blockSignals(True);page.setMaximum(max(1,(entry['rows']+199)//200))
+                if reset:page.setValue(1)
+                page.blockSignals(False);rows=source_page(bundle,name,page.value()-1);columns=['source_row']+entry['headers']
+                for r in rows:
+                    for key in r:
+                        if key not in columns:columns.append(key)
+                table.setRowCount(len(rows));table.setColumnCount(len(columns));table.setHorizontalHeaderLabels(columns)
+                for i,r in enumerate(rows):
+                    for j,key in enumerate(columns):table.setItem(i,j,QTableWidgetItem(str(r.get(key,''))))
+                info.setText(f"{name} · {entry['rows']:,} мөр · {len(entry.get('parse_issues',[]))} CSV бүтэц буруу мөр · "+('No data found — эх файл хоосон' if entry['empty_marker'] else 'SHA256 шалгасан эх утга; negative / < / NULL өөрчлөгдөөгүй'))
+            self.guard(run)
+        def save():
+            path=self.destination('DH эх CSV экспорт','csv')
+            if path:
+                def run():
+                    data=source_bytes(bundle,files.currentText())
+                    with atomic_destination(path) as temp:temp.write_bytes(data)
+                self.guard(run)
+        files.currentIndexChanged.connect(lambda:load(True));page.valueChanged.connect(lambda:load());export.clicked.connect(save);load();dialog.exec()

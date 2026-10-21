@@ -1,5 +1,7 @@
 # RAINYMINE — хэрэгслийн бүрэн жагсаалт
 
+[DH CSV багц импорт ба эх хүснэгтийн харагдац](DH_IMPORT.mn.md) — multi-element long/pivot, NULL/qualifier, geology join, portable raw archive.
+
 [OMF / GeoPackage / CSV–CAD metadata солилцоо](OPEN_EXCHANGE.mn.md) — шинэ экспорт/импортын дэмжлэг, хувилбар, хязгаар.
 
 **Шинэ өргөтгөл:** [Мэргэжлийн ажлын урсгал ба шинэчлэгдсэн хязгаар](PROFESSIONAL_WORKFLOWS.mn.md). Доорх суурь мэдээллийн CSG, LAS/LAZ, SHP, GeoTIFF, STR, IK, gizmo, implicit-ийн дутуу тэмдэглэгээг шинэ баримттай хамт уншина.
