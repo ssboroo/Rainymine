@@ -278,12 +278,28 @@ def main():
     app.setFont(QFont('Segoe UI',10))
     asset_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
     if (asset_root/'assets'/'rainymine.ico').exists():app.setWindowIcon(QIcon(str(asset_root/'assets'/'rainymine.ico')))
+    license_manager = None
+    if not args.smoke:
+        from .licensing import LicenseManager
+        from .license_ui import LicenseDialog
+        try:
+            license_manager = LicenseManager()
+        except (OSError, ValueError) as exc:
+            QMessageBox.critical(None, 'Лицензийн тохиргоо', str(exc))
+            return 1
+        if not license_manager.status().allowed:
+            dialog = LicenseDialog(license_manager)
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                return 0
     # VTK may log renderer errors without raising Python exceptions.
     # Smoke tests must fail on these errors rather than accepting a blank viewport.
     capture=vtk.vtkStringOutputWindow() if args.smoke else None
     if capture is not None:vtk.vtkOutputWindow.SetInstance(capture)
     from .advanced import AdvancedWorkbench
     window=AdvancedWorkbench();window.show()
+    if license_manager is not None:
+        from .license_ui import attach_licensing
+        attach_licensing(window, license_manager)
     if args.smoke:
         def verify():
             try:

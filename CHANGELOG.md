@@ -1,3 +1,10 @@
+## 0.6.0
+
+- Explicit 168-hour trial; Windows DPAPI file/registry anchors and rollback checks.
+- Mongolian activation/status dialog, periodic expiry enforcement, save path preserved.
+- Device-bound Ed25519 license verification and separate password-encrypted owner issuer tool. No private keys included; owner public key configuration pending.
+- Traceable release kit, checksums, inventory and draft-only packaging pipeline.
+
 ## 0.4.0
 
 - RBF grade isosurface, economic maximum-closure pit, exposed voxel envelope; UI, project persistence.

@@ -178,3 +178,7 @@ Dependency лицензүүд тусдаа хүчинтэй: Qt/PySide6 LGPL/GPL
 - Модельгүй үед зааврын dropdown нь оффлайнаар шууд ажиллана; энэ нь generative AI ажилласан гэсэн үг биш. CPU хурд/RAM-аас model startup/response хамаарна. Энэ model нь Mongolian general reasoning/геологийн мэргэжлийн чадвараар баталгаажуулагдаагүй; reviewed help routing-д л ашиглана.
 
 Source setup: `python scripts/prepare_local_ai.py --model` (Windows runtime татна). Build нь runtime-ийг энгийн багцад, model-ийг тусдаа **Rainymine-0.5.0-AI-Offline-x64.zip** дотор оруулна. CI smoke нь бодит local model inference-ийг source, packaged болон installed EXE дотроос шалгана.
+
+## 0.6.0 — 7 хоногийн туршилт
+
+168 цагийн offline trial болон төхөөрөмжид холбосон, Ed25519 гарын үсэгтэй лицензийн шалгалт нэмэгдсэн. Эзэмшигчийн public key тохируулаагүй тул одоогийн build арилжааны лиценз хүлээн авахад хараахан бэлэн биш. [Монгол лицензийн заавар](release/LICENSING.mn.md), [release checklist](release/RELEASE_CHECKLIST.mn.md)-ийг үзнэ үү. Offline trial нь администраторын өөрчлөлтийн эсрэг серверийн баталгаа биш.

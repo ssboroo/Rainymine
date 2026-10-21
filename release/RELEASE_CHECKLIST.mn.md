@@ -2,9 +2,9 @@
 
 ## Автомат баримт
 
-- [x] 0.5.0 эх код `6ed490a95e4cb5b957bd0cdf3c55381792795f4a` дээр 94 тест давсан.
-- [x] Source desktop, packaged EXE, installed EXE ба бодит local model smoke давсан — run 39605254612.
-- [ ] Draft workflow эх build-ийн conclusion, commit, tree, version, ZIP/EXE бүтэц, model hash-ийг дахин баталсан.
+- [ ] 0.6.0-ийн тухайн commit дээр бүх автомат тест амжилттай.
+- [ ] Source desktop, packaged EXE, installed EXE ба бодит local model smoke тухайн build дээр амжилттай.
+- [ ] Release workflow тухайн commit, tree, run ID, ZIP/EXE бүтэц, model hash-ийг бүртгэж баталсан.
 - [ ] Гурван бинар файл, release kit, SHA256SUMS, manifest draft-д байршсан.
 - [ ] Checksum-ийг дахин уншиж файлуудтай нь тулгасан.
 
@@ -26,3 +26,6 @@
 - [ ] Draft-ийн бүх файл, тэмдэглэл, tag/commit-ийг хянаад эзэмшигч нийтлэх шийдвэр гаргасан.
 
 Draft workflow хэзээ ч `draft=false` болгохгүй.
+
+- [ ] Эзэмшигчийн public key-г оруулж дахин build гаргах; бодит лиценз олгох, идэвхжүүлэх, сунгах урсгалыг эзэмшигчийн төхөөрөмжөөр шалгах.
+- [ ] 7 хоногийн туршилтын гэрээ/нөхцөл, үнэ, дэмжлэгийн суваг, арилжааны дараагийн түгээлтийг эцэслэх.

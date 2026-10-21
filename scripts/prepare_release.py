@@ -2,6 +2,8 @@
 import argparse
 import hashlib
 import json
+import os
+import subprocess
 from pathlib import Path
 import zipfile
 
@@ -33,6 +35,15 @@ def validate_archive(path, offline=False):
 
 def prepare(root, dist):
     config = json.loads((root / 'release/config.json').read_text())
+    if config['source_commit'] == 'CURRENT_BUILD':
+        if not os.environ.get('GITHUB_ACTIONS') or not os.environ.get('GITHUB_RUN_ID'):
+            raise ValueError('Release provenance requires a GitHub Actions build')
+        config['source_commit'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
+        if config['source_commit'] != os.environ.get('GITHUB_SHA'):
+            raise ValueError('Checked out source differs from workflow commit')
+        config['source_tree'] = subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], cwd=root, text=True).strip()
+        config['source_run_id'] = int(os.environ['GITHUB_RUN_ID'])
+        config['source_run_url'] = 'https://github.com/' + os.environ['GITHUB_REPOSITORY'] + '/actions/runs/' + os.environ['GITHUB_RUN_ID']
     if config['draft'] is not True or config['prerelease'] is not True:
         raise ValueError('Unapproved production publication is disabled')
     records = []
@@ -41,6 +52,11 @@ def prepare(root, dist):
         if Path(name).name != name:
             raise ValueError('Invalid release filename')
         path = dist / name
+        if not path.is_file():
+            matches = [candidate for candidate in dist.rglob(name) if candidate.is_file()]
+            if len(matches) == 1:
+                import shutil
+                shutil.copy2(matches[0], path)
         if not path.is_file() or path.stat().st_size == 0:
             raise ValueError('Missing or empty asset: ' + name)
         if path.suffix == '.exe':
@@ -60,7 +76,7 @@ def prepare(root, dist):
         for name in ('README.md', 'CHANGELOG.md', 'ACCEPTANCE.md', 'MICROMINE_SCOPE.md'):
             if (root / name).is_file():
                 archive.write(root / name, name)
-        for path in sorted((root / 'assets').glob('*LICENSE*')):
+        for path in sorted(list((root / 'assets').glob('*LICENSE*')) + list((root / 'assets').glob('*NOTICES*'))):
             archive.write(path, 'third-party/' + path.name)
         archive.write(inventory_path, inventory_path.name)
     records.append({'name': kit.name, 'bytes': kit.stat().st_size, 'sha256': digest(kit)})
