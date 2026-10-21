@@ -1,7 +1,7 @@
 {
   "product": "RAINYMINE 2026",
   "version": "0.6.0",
-  "tag": "v0.6.0-preview.2",
+  "tag": "v0.6.0-preview.3",
   "title": "RAINYMINE 2026 — 0.6.0 · 7 хоногийн туршилт",
   "source_commit": "CURRENT_BUILD",
   "source_tree": null,
@@ -21,5 +21,7 @@
   "physical_windows_device_validation": "pending",
   "trial_days": 7,
   "license_signing_key": "pending_owner_configuration",
-  "trial_protection": "Windows DPAPI and two local per-user anchors; not a server entitlement"
+  "trial_protection": "Windows DPAPI and two local per-user anchors; not a server entitlement",
+  "publisher": "RAINY STUDIO",
+  "support_phone": "90220101"
 }
