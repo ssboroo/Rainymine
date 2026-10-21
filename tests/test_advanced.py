@@ -17,6 +17,35 @@ class DataPreparation(unittest.TestCase):
             rows,report=mapped_import(p,'surveys',dict(zip(SCHEMAS['surveys'],headers)),delimiter)
             self.assertEqual(report['accepted'],1);self.assertEqual(report['rejected'],1);self.assertEqual(report['issues'][0]['row'],3)
             self.assertEqual(rows_to_values('surveys',rows)[0].hole_id,'А')
+    def test_mapping_profile_roundtrip_and_missing_columns(self):
+        mapping=dict(zip(SCHEMAS['surveys'],['Нэр','Гүн','Зүг','Налуу']))
+        original=Project()
+        updated=save_mapping_profile(original,'Лаборатори','surveys',mapping)
+        self.assertNotIn('mapping_profiles',original.workspace)
+        with tempfile.TemporaryDirectory() as d:
+            path=Path(d)/'profiles.rmine';save_project(path,updated)
+            restored=load_project(path)
+            self.assertEqual(mapping_profile(restored,'Лаборатори','surveys',list(mapping.values())),mapping)
+            with self.assertRaises(ValueError):mapping_profile(restored,'Лаборатори','surveys',['Нэр'])
+        history=History();history.apply(original,updated,'profile')
+        self.assertNotIn('mapping_profiles',history.undo(updated).workspace)
+        self.assertEqual(mapping_profile(history.redo(original),'Лаборатори','surveys',list(mapping.values())),mapping)
+        for invalid in ('', 'x'*81):
+            with self.assertRaises(ValueError):save_mapping_profile(original,invalid,'surveys',mapping)
+        with self.assertRaises(ValueError):save_mapping_profile(original,'bad','surveys',dict.fromkeys(SCHEMAS['surveys'],'same'))
+
+    def test_csv_structural_errors_are_reported(self):
+        with tempfile.TemporaryDirectory() as d:
+            path=Path(d)/'bad.csv'
+            path.write_text('hole_id,depth,azimuth,dip\nA,0,0,-90,EXTRA\nB,0,0\nC,0,0,-90\n')
+            rows,report=mapped_import(path,'surveys',{k:k for k in SCHEMAS['surveys']})
+            self.assertEqual(report['accepted'],1)
+            self.assertEqual([r['row'] for r in report['issues']],[2,3])
+            for header in ('hole_id,depth,azimuth,dip,dip', 'hole_id,depth,azimuth,dip,'):
+                path.write_text(header+'\nA,0,0,-90,1\n')
+                with self.assertRaises(ValueError):csv_preview(path)
+                with self.assertRaises(ValueError):mapped_import(path,'surveys',{k:k for k in SCHEMAS['surveys']})
+
     def test_history_is_transactional(self):
         old=Project();new=Project(name='Шинэ');history=History();history.apply(old,new,'rename')
         self.assertEqual(history.undo(new).name,old.name);self.assertEqual(history.redo(old).name,new.name)

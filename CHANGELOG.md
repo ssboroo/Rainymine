@@ -18,3 +18,9 @@
 - Математик, өгөгдөл, VTK scene тест; Windows EXE/суулгагчийн CI.
 
 Туршилтын хувилбар. Блок модель, кригинг, нөөцийн ангилал болон уурхайн төлөвлөлт ороогүй.
+
+## Unreleased
+
+- Reusable named CSV column mappings saved per import kind inside the project, with explicit application, missing-column checks and undo/redo.
+- Reject empty/duplicate CSV headers and report short/extra-field rows instead of silently dropping values.
+- Regression coverage for profile persistence, transactional history and malformed CSV input.

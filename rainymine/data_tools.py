@@ -27,6 +27,39 @@ class History:
         if not self.redo_items:return current
         label,p=self.redo_items.pop();self.undo_items.append((label,deepcopy(current)));return p
 
+def validate_mapping(kind, mapping, headers=None):
+    """Require complete, one-to-one mappings; never silently remap a profile."""
+    if kind not in SCHEMAS or not isinstance(mapping, dict):
+        raise ValueError('Импортын төрөл / баганын тохиргоо буруу.')
+    if (set(mapping) != set(SCHEMAS[kind]) or
+            any(not isinstance(v, str) or not v.strip() for v in mapping.values()) or
+            len(set(mapping.values())) != len(mapping)):
+        raise ValueError('Багана бүрийг давхардуулахгүй тохируулна уу.')
+    if headers is not None and not set(mapping.values()).issubset(headers):
+        raise ValueError('Загварын багана CSV файлд алга. Тохиргоог шалгана уу.')
+    return dict(mapping)
+
+
+def save_mapping_profile(project, name, kind, mapping):
+    """Return a validated project copy so profile changes participate in undo."""
+    name = name.strip()
+    if not name or len(name) > 80:
+        raise ValueError('Загварын нэр 1–80 тэмдэгт байна.')
+    mapping = validate_mapping(kind, mapping)
+    candidate = deepcopy(project)
+    profiles = candidate.workspace.setdefault('mapping_profiles', {})
+    profiles.setdefault(kind, {})[name] = mapping
+    candidate.validate()
+    return candidate
+
+
+def mapping_profile(project, name, kind, headers):
+    profiles = project.workspace.get('mapping_profiles', {}).get(kind, {})
+    if name not in profiles:
+        raise ValueError('Баганын загвар олдсонгүй.')
+    return validate_mapping(kind, profiles[name], headers)
+
+
 def csv_preview(path):
     if Path(path).stat().st_size>32_000_000:raise ValueError('CSV хэмжээ 32 MB-аас их.')
     with open(path,encoding='utf-8-sig',newline='') as f:
@@ -34,21 +67,26 @@ def csv_preview(path):
         try:delimiter=csv.Sniffer().sniff(sample,delimiters=',;\t').delimiter
         except csv.Error:delimiter=','
         reader=csv.DictReader(f,delimiter=delimiter);headers=reader.fieldnames or []
-        if not headers or len(set(headers))!=len(headers):raise ValueError('CSV гарчиг хоосон эсвэл давхардсан.')
+        if not headers or any(not h.strip() for h in headers) or len(set(headers))!=len(headers):raise ValueError('CSV гарчиг хоосон эсвэл давхардсан.')
         rows=[]
         for _,r in zip(range(8),reader):rows.append(r)
     return headers,rows,delimiter
 
 def mapped_import(path,kind,mapping,delimiter=','):
+    mapping=validate_mapping(kind,mapping)
     schema=SCHEMAS[kind]
-    if set(mapping)!=set(schema) or len(set(mapping.values()))!=len(mapping):raise ValueError('Багана бүрийг давхардуулахгүй тохируулна уу.')
     rows=[];issues=[]
     with open(path,encoding='utf-8-sig',newline='') as f:
         reader=csv.DictReader(f,delimiter=delimiter)
-        if not set(mapping.values()).issubset(reader.fieldnames or []):raise ValueError('Багана олдохгүй байна.')
+        headers=reader.fieldnames or []
+        if not headers or any(not h.strip() for h in headers) or len(set(headers))!=len(headers):
+            raise ValueError('CSV гарчиг хоосон эсвэл давхардсан.')
+        validate_mapping(kind,mapping,headers)
         for i,row in enumerate(reader,2):
             if i>100001:raise ValueError('CSV 100000 мөрөөс их.')
             try:
+                if None in row or any(v is None for v in row.values()):
+                    raise ValueError('Мөрийн баганын тоо гарчигтай тохирохгүй.')
                 item={}
                 for field in schema:
                     raw=row[mapping[field]]
