@@ -11,7 +11,7 @@ from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import (QDialog,QDialogButtonBox,QVBoxLayout,QHBoxLayout,QFormLayout,
     QLineEdit,QComboBox,QTableWidget,QTableWidgetItem,QPushButton,QLabel,QMessageBox,
     QFileDialog,QInputDialog,QTabWidget,QWidget,QGroupBox,QToolButton,QToolBar,QDockWidget,
-    QCheckBox,QProgressDialog,QSplitter,QHeaderView,QApplication)
+    QCheckBox,QProgressDialog,QSplitter,QHeaderView,QApplication,QScrollArea)
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from .ui import Window
 from .scene import Scene
@@ -36,7 +36,7 @@ QPushButton:hover {background:#e7e1f3;border-color:#8972b2;}
 QTabWidget::pane {border:1px solid #ccd0da;background:#f7f7fa;}
 QTabBar::tab {background:#ddd9e7;padding:7px 14px;border:0;color:#453b59;}
 QTabBar::tab:selected {background:#f7f7fa;color:#5a3586;border-top:2px solid #8061a7;}
-QGroupBox {border:0;border-right:1px solid #d5d7df;margin-top:0;padding:0 5px 17px 5px;}
+QGroupBox {border:0;border-right:1px solid #d5d7df;margin-top:0;padding:0 5px 0 5px;}
 QGroupBox::title {subcontrol-origin:padding;subcontrol-position:bottom center;color:#737888;padding:1px;}
 QDockWidget::title {background:#e7e5ed;color:#3d3b4c;padding:5px;}
 QDockWidget {background:#f7f7fa;}
@@ -101,7 +101,7 @@ class Workbench(Window):
     def build_ui(self):
         super().build_ui()
         for bar in self.findChildren(QToolBar):bar.hide()
-        self.ribbon=QTabWidget();self.ribbon.setMaximumHeight(133);self.ribbon.setMinimumHeight(128)
+        self.ribbon=QTabWidget();self.ribbon.setMaximumHeight(146);self.ribbon.setMinimumHeight(146)
         def tab(name,groups):
             page=QWidget();row=QHBoxLayout(page);row.setContentsMargins(3,2,3,0);row.setSpacing(2)
             for title,actions in groups:
@@ -121,7 +121,9 @@ class Workbench(Window):
         layout=self.centralWidget().layout();layout.removeWidget(self.vtk)
         self.split=QSplitter(Qt.Orientation.Horizontal);self.split.addWidget(self.vtk);self.vtk2=QVTKRenderWindowInteractor();self.split.addWidget(self.vtk2);self.vtk2.hide();layout.insertWidget(1,self.split,1)
         docks=self.findChildren(QDockWidget);left=docks[0];properties=docks[1];properties.setWindowTitle('ШИНЖ ЧАНАР / ОГТЛОЛ');self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea,properties);self.splitDockWidget(left,properties,Qt.Orientation.Vertical)
-        self.resizeDocks([left,properties],[380,260],Qt.Orientation.Vertical);self.resizeDocks([left],[265],Qt.Orientation.Horizontal)
+        for dock in (left,properties):
+            content=dock.widget();scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setWidget(content);dock.setWidget(scroll);dock.setMinimumHeight(150)
+        self.resizeDocks([left,properties],[300,240],Qt.Orientation.Vertical);self.resizeDocks([left],[265],Qt.Orientation.Horizontal)
         self.coordinates=QLabel('X —   Y —   Z —');self.statusBar().addPermanentWidget(self.coordinates)
         edit=self.menuBar().addMenu('Засвар');self.action(edit,'Буцаах',self.undo,'Ctrl+Z');self.action(edit,'Сэргээх',self.redo,'Ctrl+Y')
     def refresh(self):

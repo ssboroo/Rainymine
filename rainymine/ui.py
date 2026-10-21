@@ -303,7 +303,23 @@ def main():
                     output=capture.GetOutput()
                     if 'ERROR' in output.upper() or 'ERR|' in output.upper():
                         raise RuntimeError('VTK rendering failed: '+output[-2000:])
-                if args.screenshot:window.grab().save(args.screenshot)
+                # Native WGL child windows are absent from QWidget.grab().
+                # Verify the real framebuffer, then composite it into the UI image.
+                QApplication.processEvents()
+                window.centralWidget().layout().activate()
+                QApplication.processEvents()
+                from tempfile import TemporaryDirectory
+                from PySide6.QtGui import QImage,QPainter
+                from PySide6.QtCore import QPoint,QRect
+                from vtkmodules.util.numpy_support import vtk_to_numpy
+                with TemporaryDirectory() as folder:
+                    capture_image=vtk.vtkWindowToImageFilter();capture_image.SetInput(window.vtk.GetRenderWindow());capture_image.ReadFrontBufferOff();window.vtk.GetRenderWindow().Render();capture_image.Update()
+                    pixels=vtk_to_numpy(capture_image.GetOutput().GetPointData().GetScalars())
+                    colored=((pixels[:,:3].max(axis=1)-pixels[:,:3].min(axis=1))>35).sum()
+                    assert colored>100, 'Blank viewport: no colored geological geometry in framebuffer'
+                    if args.screenshot:
+                        path=str(Path(folder)/'viewport.png');window.scene.screenshot(path);pixmap=window.grab();painter=QPainter(pixmap)
+                        origin=window.vtk.mapTo(window,QPoint(0,0));painter.drawImage(QRect(origin,window.vtk.size()),QImage(path));painter.end();pixmap.save(args.screenshot)
                 window.dirty=False;window.close();app.exit(0)
             except Exception:
                 import traceback;traceback.print_exc();app.exit(1)
