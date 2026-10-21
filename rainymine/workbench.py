@@ -201,8 +201,8 @@ class Workbench(Window):
             path=self.destination(title,'csv')
             if path:self.guard(lambda:write_records(path,rows,columns))
         dlg.box.accepted.connect(save);dlg.exec()
-    def import_data(self,kind):
-        path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
+    def import_data(self,kind,path=None):
+        if path is None:path,_=QFileDialog.getOpenFileName(self,'CSV импорт — багана тохируулах','','CSV (*.csv)')
         if not path:return
         def run():
             headers,preview,delimiter=csv_preview(path);dlg=QDialog(self);dlg.setWindowTitle('Импортын багана тохируулах');dlg.resize(760,520);layout=QVBoxLayout(dlg);form=QFormLayout();selectors={}
