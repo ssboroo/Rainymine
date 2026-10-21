@@ -84,7 +84,12 @@ def read_shapefile(path):
     import shapefile
     from pyproj import CRS
     path=Path(path);strings=[];points=[];attributes=[];point_count=0
-    prj=path.with_suffix('.prj');crs=CRS.from_wkt(prj.read_text(encoding='utf-8')).to_string() if prj.exists() else None
+    prj=path.with_suffix('.prj');crs=None;prj_encoding=None
+    if prj.exists():
+        raw=prj.read_bytes()
+        try:text=raw.decode('utf-8-sig');prj_encoding='utf-8'
+        except UnicodeDecodeError:text=raw.decode('cp1252');prj_encoding='cp1252'
+        crs=CRS.from_wkt(text).to_string()
     with shapefile.Reader(str(path),encoding='utf-8') as reader:
         fields=[r[0] for r in reader.fields[1:]]
         for i,record in enumerate(reader.iterShapeRecords()):
@@ -103,7 +108,7 @@ def read_shapefile(path):
             elif shape.shapeType!=shapefile.NULL:raise ValueError('SHP geometry type дэмжигдээгүй: '+str(shape.shapeType))
             point_count+=len(xyz)
             if point_count>200000:raise ValueError('SHP point хязгаар хэтэрсэн.')
-    return {'strings':strings,'points':points,'attributes':attributes,'crs':crs,'z_assumed_zero':reader.shapeType in (1,3,5,8)}
+    return {'strings':strings,'points':points,'attributes':attributes,'crs':crs,'z_assumed_zero':reader.shapeType in (1,3,5,8),'prj_encoding':prj_encoding}
 
 
 def las_preview(path,maximum=250000,bounds=None,classes=None,chunk_size=250000,cancel=None):

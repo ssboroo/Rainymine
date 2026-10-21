@@ -59,8 +59,11 @@ class ExternalFormats(unittest.TestCase):
             path=Path(directory)/'line.shp'
             with shapefile.Writer(str(path),shapeType=shapefile.POLYLINEZ) as writer:
                 writer.field('NAME','C');writer.linez([[[500000,5300000,10],[500010,5300010,20]]]);writer.record('TEST')
-            path.with_suffix('.prj').write_text(CRS.from_epsg(32648).to_wkt())
+            path.with_suffix('.prj').write_text(CRS.from_epsg(32648).to_wkt(),encoding='utf-8')
             result=read_shapefile(path);self.assertEqual(result['crs'],'EPSG:32648');self.assertEqual(result['strings'][0]['points'][1],[500010,5300010,20]);self.assertEqual(result['attributes'][0]['NAME'],'TEST')
+            self.assertEqual(result['prj_encoding'],'utf-8')
+            path.with_suffix('.prj').write_bytes(CRS.from_epsg(32648).to_wkt().encode('cp1252'))
+            result=read_shapefile(path);self.assertEqual(result['crs'],'EPSG:32648');self.assertEqual(result['prj_encoding'],'cp1252')
     def test_las_laz_streaming_source_ids_and_filters(self):
         import laspy
         from pyproj import CRS

@@ -9,7 +9,7 @@
 | CAD | Manifold3D union/intersection/difference, conservative mesh repair, transform, интерактив box gizmo | Хаалттай manifold оролт; өөрөө огтлолцсон биетийг бүрэн засахгүй. Gizmo Apply нь хуулбар үүсгэнэ. |
 | Snapping | Орой/шугамд ойр цэгийг координатаар хайх | Интерактив зурах бүх үйлдлийн snapping биш; mesh/интервалын иж бүрэн CAD сонголт биш. |
 | Surpac | ASCII STR импорт/экспорт; STR-тэй хосолсон ASCII TRISOLATION DTM импорт | Binary, баталгаажаагүй checksum-тай DTM дэмжихгүй. |
-| GIS | SHP point/polyline/polygon Z ба DBF/PRJ импорт; GeoTIFF DEM | SHP экспортгүй; polygon hole-ийг solid гэж тайлбарлахгүй. DEM нь метрийн projected CRS, band 1, хязгаартай sampled гадарга. |
+| GIS | SHP point/polyline/polygon Z ба DBF/PRJ импорт; GeoTIFF DEM | PRJ UTF-8/Windows-1252; DBF UTF-8. SHP экспортгүй; polygon hole-ийг solid гэж тайлбарлахгүй. DEM нь метрийн projected CRS, band 1, хязгаартай sampled гадарга. |
 | LiDAR | LAS/LAZ chunk уншилт, ROI/class filter, raw dimension хадгалсан atomic экспорт | 250k default sampled preview; waveform packet export дэмжихгүй. Бүх эх цэгийг GPU-д ачаалахгүй. |
 | DWG / Datamine | Гадна суулгасан ODA-аар DWG→DXF | ODA багцад ороогүй, бодит DWG fixture баталгаажаагүй. Native Datamine SDK/уншигч **байхгүй**. |
 | Implicit | Signed contact RBF; литологийн интервалын төвийн binary constraints; anisotropy, kernel, planar fault zone | Fault zone тус бүр салангид; boundary grid gap боломжтой. Fault throw, стратиграфийн бүрэн solver, watertight ore solid биш. |
