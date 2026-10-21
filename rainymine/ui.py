@@ -296,6 +296,10 @@ def main():
                 window.scene.project=window.project
                 assert 'hole_id' in window.scene.identify(window.scene.actors['holes'],0)
                 assert 'block_index' in window.scene.identify(window.scene.actors['blocks'],0)
+                h=window.project.collars[0];point=window.scene.local((h.x,h.y,h.z));renderer=window.scene.renderer
+                renderer.SetWorldPoint(*point,1);renderer.WorldToDisplay();screen=renderer.GetDisplayPoint()
+                window.vtk.SetEventPosition(round(screen[0]),round(screen[1]));window.on_click(None,None)
+                assert window.picked_info.text()!='3D дээр цооног эсвэл блок дарж сонгоно.'
                 verify(window.project)
                 assert window.ribbon.count()>=6
                 assert window.project.workspace.get('block_model')

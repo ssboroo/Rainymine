@@ -9,7 +9,7 @@ class Scene:
         self.window=window;self.renderer=vtk.vtkRenderer();window.AddRenderer(self.renderer)
         self.renderer.SetBackground(.035,.055,.09);self.renderer.SetBackground2(.10,.15,.22);self.renderer.GradientBackgroundOn()
         self.selected_hole=None;self.cell_holes=[];self.mode='assay';self.project=None;self.origin=(0,0,0);self.sources={};self.actors={};self.labels=[]
-        self.base_properties={};self.section=None;self.pipeline=[];self.paths={};self.grade_max=1
+        self.base_properties={};self.selection_pipeline=[];self.section=None;self.pipeline=[];self.paths={};self.grade_max=1
         light=vtk.vtkLight();light.SetLightTypeToHeadlight();self.renderer.AddLight(light)
         self.renderer.GetActiveCamera().ParallelProjectionOn()
         self.lut=vtk.vtkLookupTable();self.lut.SetNumberOfTableValues(256);self.lut.SetNanColor(.45,.5,.6,1)
@@ -178,34 +178,35 @@ class Scene:
         if name in self.actors:self.actors[name].SetVisibility(value)
         if name=='holes':
             if 'selected' in self.actors:self.actors['selected'].SetVisibility(value)
-            self.legend.SetVisibility(value)
             for label in self.labels:label.SetVisibility(value and self.section is None)
+        self.update_legend()
         self.window.Render()
 
     def select(self,hole_id,render=True):
         self.selected_hole=hole_id
         if 'selected' in self.actors:self.renderer.RemoveActor(self.actors.pop('selected'))
+        self.selection_pipeline=[]
         if hole_id in self.paths:
             pts=vtk.vtkPoints();pts.SetDataTypeToDouble();cells=vtk.vtkCellArray();tr=self.paths[hole_id];samples=tr.sample()
             cells.InsertNextCell(len(samples))
             for _,p in samples:cells.InsertCellPoint(pts.InsertNextPoint(*self.local(p)))
             poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetLines(cells)
             mapper=vtk.vtkPolyDataMapper()
-            if self.section:mapper.SetInputConnection(self.clip_poly(poly,self.section).GetOutputPort())
+            if self.section:mapper.SetInputConnection(self.clip_poly(poly,self.section,selection=True).GetOutputPort())
             else:mapper.SetInputData(poly)
             a=vtk.vtkActor();a.SetMapper(mapper);a.GetProperty().SetColor(.95,.12,.45);a.GetProperty().SetLineWidth(7)
             # Selection uses the same slab and layer visibility as its source.
             a.PickableOff();a.SetVisibility(self.actors['holes'].GetVisibility());self.renderer.AddActor(a);self.actors['selected']=a
         if render:self.window.Render()
 
-    def clip_poly(self,poly,section):
+    def clip_poly(self,poly,section,selection=False):
         az,offset,width=section;normal=(math.sin(math.radians(az)),math.cos(math.radians(az)),0);pipeline=poly
         for sign in (1,-1):
             plane=vtk.vtkPlane();plane.SetNormal(*(sign*n for n in normal));plane.SetOrigin(*(n*(offset-sign*width/2) for n in normal))
             clip=vtk.vtkClipPolyData();clip.SetClipFunction(plane);clip.SetValue(0)
             if isinstance(pipeline,vtk.vtkPolyData):clip.SetInputData(pipeline)
             else:clip.SetInputConnection(pipeline.GetOutputPort())
-            self.pipeline.extend([plane,clip]);pipeline=clip
+            (self.selection_pipeline if selection else self.pipeline).extend([plane,clip]);pipeline=clip
         return pipeline
 
     def apply_styles(self):
@@ -219,6 +220,10 @@ class Scene:
             color=style.get('color')
             actor.GetMapper().SetScalarVisibility(color is None and key in ('holes','blocks'))
             prop.SetColor(*(color if color is not None else self.base_properties.get(key,{}).get('color',[.5,.6,.8])))
+        self.update_legend()
+
+    def update_legend(self):
+        self.legend.SetVisibility(any(self.actors[k].GetVisibility() and self.actors[k].GetMapper().GetScalarVisibility() for k in ('holes','blocks') if k in self.actors))
 
     def identify(self,actor,cell_id):
         if cell_id<0:return None

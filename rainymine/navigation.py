@@ -61,7 +61,7 @@ class NavigationWorkbench(Workbench):
     def change_layer(self,key,changes):
         if not key or self.updating_layers:return
         def run():
-            candidate=styled_project(self.project,key,changes);self.project=candidate;self.dirty=True
+            effective={'visible':bool(self.scene.actors[key].GetVisibility()),**changes};candidate=styled_project(self.project,key,effective);self.project=candidate;self.dirty=True
             for scene in (self.scene,self.secondary):
                 if scene:scene.project=candidate;scene.apply_styles();scene.window.Render()
             if key in self.layer_checks and 'visible' in changes:

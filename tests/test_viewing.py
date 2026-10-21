@@ -37,6 +37,16 @@ class DisplayStateTests(unittest.TestCase):
         actor=scene.actors['selected'];actor.GetMapper().Update();poly=actor.GetMapper().GetInput()
         for i in range(poly.GetNumberOfPoints()):self.assertLessEqual(abs(poly.GetPoint(i)[0]),50.0001)
         self.assertEqual(scene.selected_hole,p.collars[0].hole_id);self.assertEqual(actor.GetPickable(),0)
+    def test_clipping_pipeline_survives_python_collection(self):
+        import gc
+        scene=Scene(NoRenderWindow());scene.load(demo());scene.set_section((90,0,100));gc.collect()
+        mapper=scene.actors['holes'].GetMapper();mapper.Update();self.assertGreater(mapper.GetInput().GetNumberOfCells(),0)
+    def test_color_legend_tracks_all_scalar_layers(self):
+        p=Project();blocks=make_blocks([0,0,0,20,20,20],[10,10,10])
+        for b in blocks:b['grade']=1.
+        p.workspace['block_model']={'blocks':blocks,'bounds':[0,0,0,20,20,20],'size':[10,10,10]}
+        scene=Scene(NoRenderWindow());scene.load(p);scene.visible('holes',False);self.assertTrue(scene.legend.GetVisibility())
+        scene.visible('blocks',False);self.assertFalse(scene.legend.GetVisibility())
     def test_block_indices_and_shifted_slices(self):
         p=Project();blocks=make_blocks([0,0,0,20,20,20],[10,10,10])
         for i,b in enumerate(blocks):b['grade']=float(i)
