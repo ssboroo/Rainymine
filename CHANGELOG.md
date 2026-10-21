@@ -24,3 +24,6 @@
 - Reusable named CSV column mappings saved per import kind inside the project, with explicit application, missing-column checks and undo/redo.
 - Reject empty/duplicate CSV headers and report short/extra-field rows instead of silently dropping values.
 - Regression coverage for profile persistence, transactional history and malformed CSV input.
+
+- Rotated search ellipsoids (azimuth, dip, roll) in estimation and cross-validation. Physical-distance IDW and isotropic kriging covariance remain unchanged.
+- Directional experimental variograms with angular tolerance, perpendicular bandwidth, saved settings and exploratory spherical fits.

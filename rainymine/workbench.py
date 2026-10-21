@@ -315,9 +315,9 @@ class Workbench(Window):
         meshes=self.project.workspace.get('meshes',[]);i=self.choose('Mesh топологи',[m['name'] for m in meshes])
         if i is not None:self.guard(lambda:self.show_rows('Mesh — self-intersection хараахан шалгахгүй',[mesh_report(meshes[i])]))
     def estimator_params(self):
-        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
+        result=self.params('Үнэлгээ — туршилтын point-support estimator',{'Арга':['idw','kriging'],'Neighbors':12,'Minimum':3,'Radius X':200,'Radius Y':200,'Radius Z':100,'Search azimuth':90,'Search dip':0,'Search roll':0,'IDW power':2,'Nugget':0,'Partial sill':1,'Range metres':100,'Composite metres':5,'Minimum coverage':1})
         if not result:return None
-        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
+        return {'method':result['Арга'],'neighbors':int(result['Neighbors']),'minimum':int(result['Minimum']),'radii':[float(result['Radius '+a]) for a in 'XYZ'],'search_angles':[float(result['Search '+a]) for a in ('azimuth','dip','roll')],'power':float(result['IDW power']),'nugget':float(result['Nugget']),'partial_sill':float(result['Partial sill']),'range_m':float(result['Range metres']),'composite_length':float(result['Composite metres']),'minimum_coverage':float(result['Minimum coverage'])}
     def block_dialog(self):
         def run():
             parameters=self.estimator_params()
@@ -362,11 +362,14 @@ class Workbench(Window):
         self.guard(run)
     def variogram(self):
         def run():
-            fields=self.params('Isotropic experimental variogram',{'Lag metres':20,'Lags':15,'Composite metres':5})
+            fields=self.params('Experimental variogram',{'Mode':['Isotropic','Directional'],'Azimuth':90,'Dip':0,'Tolerance degrees':22.5,'Bandwidth metres':100,'Lag metres':20,'Lags':15,'Composite metres':5})
             if not fields:return
-            result=experimental_variogram(sample_support(self.project,float(fields['Composite metres'])),float(fields['Lag metres']),int(fields['Lags']))
-            if len(result['rows'])>=3:result['fit']=fit_variogram(result['rows'])
-            p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart('Isotropic experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
+            direction=None if fields['Mode']=='Isotropic' else {'azimuth':float(fields['Azimuth']),'dip':float(fields['Dip']),'tolerance':float(fields['Tolerance degrees']),'bandwidth':float(fields['Bandwidth metres'])}
+            result=experimental_variogram(sample_support(self.project,float(fields['Composite metres'])),float(fields['Lag metres']),int(fields['Lags']),direction)
+            if len(result['rows'])>=3:
+                result['fit']=fit_variogram(result['rows'])
+                result['fit']['model']='spherical; '+fields['Mode'].lower()+'; exploratory fit'
+            p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart(fields['Mode']+' experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
             if 'fit' in result:QMessageBox.information(self,'Spherical model fit',json.dumps(result['fit'],indent=2))
         self.guard(run)
     def resource_report(self):

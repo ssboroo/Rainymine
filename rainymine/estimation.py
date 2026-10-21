@@ -6,6 +6,7 @@ import math
 import hashlib
 import json
 from dataclasses import asdict
+from copy import deepcopy
 import numpy as np
 from scipy.spatial import cKDTree
 from .core import finite,Trajectory,composite_assays
@@ -32,6 +33,21 @@ def gamma_spherical(distance,nugget,partial_sill,range_m):
     d=np.asarray(distance,dtype=float);h=np.minimum(d/range_m,1.)
     return np.where(d<=1e-12,0.,nugget+partial_sill*(1.5*h-.5*h**3))
 
+def search_basis(azimuth=90., dip=0., roll=0.):
+    """Columns are local X/Y/Z in world ENU; azimuth clockwise from north.
+    Dip is positive upwards. Roll rotates local Y towards local Z about local X.
+    The default (90, 0, 0) preserves the historical world-axis search.
+    """
+    finite(azimuth, dip, roll)
+    if not -90 <= dip <= 90:
+        raise ValueError('Search dip −90…90 градус байна.')
+    a,d,r=np.radians([azimuth,dip,roll])
+    x=np.array([np.sin(a)*np.cos(d),np.cos(a)*np.cos(d),np.sin(d)])
+    y=np.array([-np.cos(a),np.sin(a),0.])
+    z=np.cross(x,y)
+    return np.column_stack((x,np.cos(r)*y+np.sin(r)*z,-np.sin(r)*y+np.cos(r)*z))
+
+
 class Estimator:
     def __init__(self,samples,params):
         if not samples:raise ValueError('Тооцох сорьц алга. Композитын coverage-ийг шалгана уу.')
@@ -41,7 +57,10 @@ class Estimator:
         if len(np.unique(self.xyz,axis=0))!=len(self.xyz):raise ValueError('Ижил координаттай композит байна. Давхардлыг эх өгөгдөл дээр шийднэ үү.')
         radii=np.asarray(params.get('radii',[200,200,100]),dtype=float)
         if radii.shape!=(3,) or not np.isfinite(radii).all() or (radii<=0).any():raise ValueError('Search ellipsoid-ийн 3 радиус эерэг байна.')
-        self.radii=radii;self.origin=self.xyz[0];self.tree=cKDTree((self.xyz-self.origin)/radii)
+        angles=params.get('search_angles',[90.,0.,0.])
+        if len(angles)!=3:raise ValueError('Search azimuth/dip/roll шаардлагатай.')
+        self.basis=search_basis(*angles)
+        self.radii=radii;self.origin=self.xyz[0];self.tree=cKDTree(((self.xyz-self.origin)@self.basis)/radii)
         self.k=int(params.get('neighbors',12));self.minimum=int(params.get('minimum',3));self.method=params.get('method','idw');self.power=float(params.get('power',2))
         finite(self.power)
         if self.method not in ('idw','kriging') or not 1<=self.minimum<=self.k<=64 or self.power<=0:raise ValueError('Estimator тохиргоо буруу.')
@@ -51,9 +70,9 @@ class Estimator:
     def predict(self,point,excluded=None,exclude_hole=None):
         point=np.asarray(point,dtype=float)
         if point.shape!=(3,) or not np.isfinite(point).all():raise ValueError('Target цэг буруу.')
-        candidate=self.tree.query_ball_point((point-self.origin)/self.radii,1.)
+        candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
         candidate=[i for i in candidate if i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
-        candidate=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point)/self.radii)),i))[:self.k]
+        candidate=sorted(candidate,key=lambda i:(float(np.linalg.norm(((self.xyz[i]-point)@self.basis)/self.radii)),i))[:self.k]
         if len(candidate)<self.minimum:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
         xyz=self.xyz[candidate];values=self.values[candidate];d=np.linalg.norm(xyz-point,axis=1)
         exact=np.flatnonzero(d<1e-9)
@@ -120,23 +139,39 @@ def cross_validate(samples,params,mode='hole',limit=1000):
     for r in rows:
         train=[s['grade'] for j,s in enumerate(samples) if (s['hole_id']!=r['hole_id'] if mode=='hole' else j!=r['sample_index'])]
         baseline.append(float(np.mean(train))-r['observed'])
-    return {'mode':'leave-one-hole-out' if mode=='hole' else 'leave-one-sample-out','attempted':len(indices),'predicted':len(rows),'unestimated':len(indices)-len(rows),
+    return {'params':deepcopy(params),'mode':'leave-one-hole-out' if mode=='hole' else 'leave-one-sample-out','attempted':len(indices),'predicted':len(rows),'unestimated':len(indices)-len(rows),
         'bias':float(errors.mean()) if len(rows) else None,'mae':float(np.abs(errors).mean()) if len(rows) else None,'rmse':float(np.sqrt((errors**2).mean())) if len(rows) else None,
         'baseline_rmse':float(np.sqrt(np.mean(np.array(baseline)**2))) if baseline else None,'rows':rows,'independent_geologist_review':False}
 
 
-def experimental_variogram(samples,lag_width=20,lags=15):
+def experimental_variogram(samples,lag_width=20,lags=15,direction=None):
     finite(lag_width)
     if lag_width<=0 or not 1<=lags<=100 or not 2<=len(samples)<=10000:raise ValueError('Variogram тохиргоо/өгөгдлийн хэмжээ буруу.')
-    xyz=np.array([s['xyz'] for s in samples]);v=np.array([s['grade'] for s in samples]);n=len(samples)
+    axis=None
+    if direction is not None:
+        azimuth=float(direction['azimuth']);dip=float(direction.get('dip',0.))
+        tolerance=float(direction.get('tolerance',22.5));bandwidth=float(direction.get('bandwidth',100.))
+        finite(tolerance,bandwidth)
+        if not 0<tolerance<=90 or bandwidth<=0:raise ValueError('Tolerance 0…90°, bandwidth > 0 байна.')
+        axis=search_basis(azimuth,dip)[:,0]
+        direction={'azimuth':azimuth,'dip':dip,'tolerance':tolerance,'bandwidth':bandwidth}
+    xyz=np.array([s['xyz'] for s in samples],dtype=float);v=np.array([s['grade'] for s in samples],dtype=float);n=len(samples)
+    if xyz.shape!=(n,3) or not np.isfinite(xyz).all() or not np.isfinite(v).all():raise ValueError('Variogram sample утга буруу.')
     if n*(n-1)//2<=250000:a,b=np.triu_indices(n,1)
     else:
         rng=np.random.default_rng(2026);pairs=np.sort(rng.integers(0,n,(300000,2)),axis=1);pairs=np.unique(pairs[pairs[:,0]!=pairs[:,1]],axis=0)[:250000];a,b=pairs.T
-    distances=np.linalg.norm(xyz[a]-xyz[b],axis=1);semi=.5*(v[a]-v[b])**2;rows=[]
+    delta=xyz[a]-xyz[b];distances=np.linalg.norm(delta,axis=1);semi=.5*(v[a]-v[b])**2
+    candidate_pairs=len(a)
+    if axis is not None:
+        axial=np.abs(delta@axis)
+        perpendicular=np.sqrt(np.maximum(0.,distances**2-axial**2))
+        mask=(distances>1e-12)&(axial>=distances*np.cos(np.radians(tolerance))-1e-10)&(perpendicular<=bandwidth+1e-10)
+        distances=distances[mask];semi=semi[mask]
+    rows=[]
     for i in range(lags):
         mask=(distances>=i*lag_width)&(distances<(i+1)*lag_width);count=int(mask.sum())
         if count:rows.append({'lag':i+1,'distance':float(distances[mask].mean()),'semivariance':float(semi[mask].mean()),'pairs':count})
-    return {'rows':rows,'pair_count':len(a),'isotropic':True,'pair_sampling_seed':2026,'directional_variogram':False}
+    return {'rows':rows,'pair_count':len(distances),'candidate_pair_count':candidate_pairs,'isotropic':direction is None,'pair_sampling_seed':2026,'directional_variogram':direction is not None,'direction':direction,'lag_width':lag_width,'lags':lags}
 
 
 def fit_variogram(rows):
