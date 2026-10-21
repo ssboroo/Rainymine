@@ -30,7 +30,7 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 
 | Чиглэл | Оруулсан боломж | Хараахан баталгаажаагүй / дутуу |
 |---|---|---|
-| Өгөгдөл | CSV багана mapping/preview, мөрийн алдааны тайлан, SHA256 provenance, editable grid, 20 алхмын undo/redo, v1→v2 төслийн migration | Бодит уурхайн anonymized acceptance dataset өгөөгүй; mapping profile сонгож дахин ашиглах UI, detection-limit workflow дутуу |
+| Өгөгдөл | CSV багана mapping/preview, мөрийн алдааны тайлан, SHA256 provenance, editable grid, 20 алхмын undo/redo, v1→v2 төслийн migration | Бодит уурхайн anonymized acceptance dataset өгөөгүй; detection-limit workflow дутуу |
 | CRS | PROJ/pyproj, оффлайн, explicit source/target, XY axis order, метрийн projected target, local bearing rotation | Z босоо datum ба measured-depth scale хөрвүүлэхгүй; geometry/block model үүсгэхийн өмнө хөрвүүлнэ; геодезийн хяналтын бодит цэг хэрэгтэй |
 | Өрөмдлөг / QAQC | Minimum curvature, assay/lithology интервал, missing-support coverage, standard Z-score, blank threshold, duplicate RPD | Хяналтын хязгаарыг лаборатори/геологич сонгоно; зөвшөөрөлгүй outlier устгахгүй; лабораторийн бүрэн batch certification биш |
 | Геометр | XYZ TIN, breakline constrained TIN ба edge verification, string/polygon vertex editor, OBJ triangles, DXF LINE/POLYLINE/3DFACE, topology/volume report | Mesh self-intersection, robust Boolean solids, fault-aware modelling, full DXF entity coverage дутуу |
@@ -54,7 +54,7 @@ EXE, суулгагч бэлэн болсон эсэхийг Actions-ийн **н
 
 ## CSV форматууд
 
-UTF-8/BOM, comma/semicolon/tab delimiter-ийг танина; эхний мөр гарчиг. Import mapping-оор өөр нэртэй баганыг зураглаж болно. `.xlsx`-ийг шууд нээхгүй; Excel-ээс CSV UTF-8 экспортлоно.
+UTF-8/BOM, comma/semicolon/tab delimiter-ийг танина; эхний мөр гарчиг. Import mapping-оор өөр нэртэй баганыг зураглаж болно. Загварын нэр өгвөл амжилттай импортын дараа баганын тохиргоо төсөлд хадгалагдана. Дараагийн ижил төрлийн импортод загвараа сонгоод «Загвар хэрэглэх» дарна. Багана дутуу бол загвар хэрэглэхгүй; гараар шалгаж тохируулна. Ижил нэртэй загварыг шинэчилж болно; undo/redo дэмжинэ. Гарчиг давхардсан/хоосон эсвэл мөрийн баганын тоо зөрсөн CSV-г хүлээн авахгүй. `.xlsx`-ийг шууд нээхгүй; Excel-ээс CSV UTF-8 экспортлоно.
 
 ```csv
 hole_id,x,y,z,depth,azimuth,dip

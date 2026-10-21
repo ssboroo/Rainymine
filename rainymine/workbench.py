@@ -16,7 +16,7 @@ from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 from .ui import Window
 from .scene import Scene
 from .core import Project,Lithology,finite,write_records,atomic_write
-from .data_tools import History,SCHEMAS,csv_preview,mapped_import,rows_to_values,transform_project,qaqc_assays,evaluate_controls
+from .data_tools import History,SCHEMAS,save_mapping_profile,mapping_profile,csv_preview,mapped_import,rows_to_values,transform_project,qaqc_assays,evaluate_controls
 from .geometry import read_obj,write_obj,read_dxf,write_dxf,mesh_report,constrained_tin,validate_polygon
 from .estimation import estimate_model,sample_support,cross_validate,experimental_variogram,fit_variogram,tonnage_grade
 from .planning import pit_benches,underground_drive,schedule,tasks_from_blocks
@@ -210,6 +210,19 @@ class Workbench(Window):
                 combo=QComboBox();combo.addItems(headers)
                 if field in headers:combo.setCurrentText(field)
                 selectors[field]=combo;form.addRow(field,combo)
+            profile_selector=QComboBox();profile_selector.addItem('— Гараар тохируулах —')
+            profile_selector.addItems(sorted(self.project.workspace.get('mapping_profiles',{}).get(kind,{})))
+            profile_button=QPushButton('Загвар хэрэглэх')
+            def apply_profile():
+                def apply():
+                    mapping=mapping_profile(self.project,profile_selector.currentText(),kind,headers)
+                    for field,value in mapping.items():selectors[field].setCurrentText(value)
+                self.guard(apply)
+            profile_button.clicked.connect(apply_profile)
+            profile_row=QHBoxLayout();profile_row.addWidget(profile_selector);profile_row.addWidget(profile_button)
+            layout.addLayout(profile_row)
+            profile_name=QLineEdit();profile_name.setMaxLength(80);profile_name.setPlaceholderText('Нэр өгвөл амжилттай импортын дараа загвар хадгална')
+            form.addRow('Загварын нэр',profile_name)
             layout.addLayout(form);table=QTableWidget(len(preview),len(headers));table.setHorizontalHeaderLabels(headers)
             for i,row in enumerate(preview):
                 for j,h in enumerate(headers):table.setItem(i,j,QTableWidgetItem(str(row.get(h,''))))
@@ -223,6 +236,8 @@ class Workbench(Window):
             if kind=='collars' and (p.surveys or p.assays or p.lithology):
                 if QMessageBox.question(self,'Амсрын сан солих','Survey, сорьц, литологийн санг цэвэрлэж амсрыг солих уу?')!=QMessageBox.StandardButton.Yes:return
                 p.surveys=[];p.assays=[];p.lithology=[]
+            if profile_name.text().strip():
+                p=save_mapping_profile(p,profile_name.text(),kind,report['mapping'])
             p.workspace.setdefault('imports',[]).append(report);self.commit(p)
             QMessageBox.information(self,'Импорт дууслаа',f"{report['accepted']} мөр. SHA256 ба баганын mapping төсөлд хадгалагдлаа.")
         self.guard(run)
