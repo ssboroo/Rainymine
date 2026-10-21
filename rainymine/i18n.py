@@ -114,6 +114,7 @@ CATALOG = dict(line.split('|', 1) for line in '''Төсөл|Project
 Нэр|Name
 Төрөл|Type
 Хаах|Close
+Зогсоох|Stop
 Болих|Cancel
 Цуцлах|Cancel
 Нэмэх|Add

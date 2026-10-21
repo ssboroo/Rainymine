@@ -217,7 +217,11 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         help_panel = self.support.widget()
         help_panel.setParent(None)
         self.assistant_tabs = QTabWidget()
-        self.assistant_tabs.addTab(help_panel, 'Тусламж')
+        self.help_scroller = QScrollArea()
+        self.help_scroller.setWidgetResizable(True)
+        self.help_scroller.setMinimumHeight(100)
+        self.help_scroller.setWidget(help_panel)
+        self.assistant_tabs.addTab(self.help_scroller, 'Тусламж')
         self.project_summary = QLabel()
         self.project_summary.setWordWrap(True)
         self.project_summary.setTextFormat(Qt.TextFormat.PlainText)
@@ -231,6 +235,10 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         note = help_panel.layout().itemAt(0).widget()
         note.setToolTip(note.text())
         note.setText('Программ ашиглах, тохируулах, алдаа засах локал туслах.')
+        help_panel.layout().setContentsMargins(8,6,8,6)
+        help_panel.layout().setSpacing(3)
+        self.support.cancel_button.setText('Зогсоох')
+        self.support.cancel_button.setToolTip('Зогсоох / Санах ой чөлөөлөх')
         self.support.status.setText('Шууд заавар сонгох эсвэл асуултаа бичнэ үү.')
         self.support.chat.setHtml("""
         <table cellspacing="4" cellpadding="2">
@@ -606,7 +614,10 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         layout = QVBoxLayout(panel);layout.setContentsMargins(0,0,0,0)
         layout.addWidget(self.assistant_tabs, 3)
         group = QGroupBox('Сонгосон блокийн шинж')
+        group.setObjectName('blockInspector')
         self.inspector_form = QFormLayout(group)
+        self.inspector_form.setContentsMargins(10,22,10,8)
+        self.inspector_form.setVerticalSpacing(3)
         self.inspector_values = {}
         for key, title in (('index','Дугаар'),('x','Зүүн (м)'),('y','Хойд (м)'),
                            ('z','Өндөр (м)'),('grade','Агуулга'),('density','Нягт (т/м³)'),
@@ -650,11 +661,14 @@ class WorkspaceWorkbench(AdvancedWorkbench):
     def toggle_coordinate_grid(self, value):
         for scene in (self.scene,self.secondary):
             if scene and scene.coordinate_grid:
-                scene.coordinate_grid.SetVisibility(value);scene.window.Render()
+                scene.coordinate_grid.SetVisibility(value)
+                if scene.coordinate_text:scene.coordinate_text.SetVisibility(value)
+                scene.window.Render()
 
     def toggle_cutaway(self, value):
         for scene in (self.scene,self.secondary):
             if scene:scene.set_cutaway(value)
+        self.update_labels()
 
     def toggle_block_edges(self, value):
         for scene in (self.scene,self.secondary):
@@ -702,6 +716,11 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         self.support.manual.setItemText(0,tr('Зааврыг шууд үзэх — модель шаардахгүй'))
         self.language_combo.setCurrentIndex(self.language_combo.findData(code))
         self.block_model.headerDataChanged.emit(Qt.Orientation.Horizontal,0,6)
+        for index,title in enumerate(('Давхарга','Элемент')):
+            self.layer_list.headerItem().setText(index,tr(title))
+        # Representation is index-based, so translating these labels cannot change a style key.
+        for index,title in enumerate(('Бүтэн гадарга','Торон дүрслэл','Цэг')):
+            self.representation.setItemText(index,tr(title))
         self.refresh_layers()
         if self._workspace_ready:self.refresh_workspace()
         # The initial reviewed guide is static; user conversations are never rewritten.
@@ -726,6 +745,7 @@ class WorkspaceWorkbench(AdvancedWorkbench):
         for scene in (self.scene, self.secondary):
             if not scene:continue
             if scene.coordinate_grid:scene.coordinate_grid.SetVisibility(grid)
+            if scene.coordinate_text:scene.coordinate_text.SetVisibility(grid)
             if 'blocks' in scene.actors:scene.actors['blocks'].GetProperty().SetEdgeVisibility(edges)
 
     def layer_selected(self, item, *args):

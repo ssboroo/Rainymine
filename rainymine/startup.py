@@ -12,11 +12,31 @@ class StartupScreen(QSplashScreen):
         root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parent.parent))
         from PySide6.QtSvg import QSvgRenderer
         from PySide6.QtGui import QPainter
-        image=QPixmap(1200,660);image.fill(Qt.GlobalColor.transparent)
-        renderer=QSvgRenderer(str(root/'assets'/'splash.svg'))
-        painter=QPainter(image);renderer.render(painter);painter.end()
-        self.artwork_loaded=renderer.isValid()
-        if image.isNull():image=QPixmap(960,540);image.fill(QColor('#152937'))
+        from PySide6.QtCore import QByteArray
+        background=QPixmap(str(root/'assets'/'splash-background.jpg'))
+        image=QPixmap(1200,675);image.fill(QColor('#101C2C'))
+        painter=QPainter(image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        if not background.isNull():painter.drawPixmap(image.rect(),background)
+        # A reverse rendering of the SAME canonical mark retains every silhouette
+        # and drillhole cut. Navy on navy must never erase the upper stratum.
+        logo=(root/'assets'/'rainymine-brand.svg').read_text(encoding='utf-8')
+        logo=logo.replace('#101C2C','#F4F8FB')
+        renderer=QSvgRenderer(QByteArray(logo.encode('utf-8')))
+        renderer.render(painter,QRectF(535,70,130,162.5))
+        font=QFont('Segoe UI');font.setPixelSize(62);font.setBold(True);painter.setFont(font)
+        metrics=painter.fontMetrics();first=metrics.horizontalAdvance('RAINY');total=metrics.horizontalAdvance('RAINYMINE')
+        left=(1200-total)//2
+        painter.setPen(QColor('#F4F8FB'));painter.drawText(left,318,'RAINY')
+        painter.setPen(QColor('#19C6B3'));painter.drawText(left+first,318,'MINE')
+        font=QFont('Segoe UI');font.setPixelSize(25);font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing,9)
+        painter.setFont(font);painter.setPen(QColor('#b4ced4'))
+        painter.drawText(0,342,1200,38,Qt.AlignmentFlag.AlignCenter,'2026')
+        font=QFont('Segoe UI');font.setPixelSize(13);painter.setFont(font);painter.setPen(QColor('#9AA6B2'))
+        painter.drawText(0,406,1200,28,Qt.AlignmentFlag.AlignCenter,'RAINY STUDIO · 90220101')
+        painter.end()
+        self.artwork_loaded=not background.isNull() and renderer.isValid()
         screen=QApplication.primaryScreen().availableGeometry()
         width=min(960,int(screen.width()*.82))
         image=image.scaledToWidth(width,Qt.TransformationMode.SmoothTransformation)

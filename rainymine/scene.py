@@ -30,7 +30,7 @@ class Scene:
         self.legend.GetLabelTextProperty().SetColor(.8,.86,.94)
         self.legend.GetTitleTextProperty().SetColor(.8,.86,.94)
         self.renderer.AddActor2D(self.legend)
-        self.marker=None;self.cutaway=False;self.cutaway_pipeline=[];self.coordinate_grid=None;self.presentation_enabled=False
+        self.marker=None;self.cutaway=False;self.cutaway_pipeline=[];self.coordinate_grid=None;self.presentation_enabled=False;self.coordinate_text=None
 
     def local(self,p):return tuple(p[i]-self.origin[i] for i in range(3))
 
@@ -159,14 +159,14 @@ class Scene:
 
     def reset(self):
         camera=self.renderer.GetActiveCamera();camera.SetPosition(1,-1,1);camera.SetFocalPoint(0,0,0);camera.SetViewUp(0,0,1)
-        self.renderer.ResetCamera();self.renderer.ResetCameraClippingRange();self.window.Render()
+        self.fit_geometry();self.renderer.ResetCameraClippingRange();self.window.Render()
 
     def view(self,name):
         camera=self.renderer.GetActiveCamera();focus=camera.GetFocalPoint();distance=max(1,camera.GetDistance())
         direction={'top':(0,0,1),'north':(0,-1,0),'east':(1,0,0)}.get(name,(1,-1,1))
         camera.SetPosition(*(focus[i]+direction[i]*distance for i in range(3)))
         camera.SetViewUp(*( (0,1,0) if name=='top' else (0,0,1)))
-        self.renderer.ResetCamera();self.window.Render()
+        self.fit_geometry();self.window.Render()
 
     def set_section(self,section,render=True):
         """Clip to a true vertical slab. Angle is normal azimuth north clockwise."""
@@ -282,6 +282,8 @@ class Scene:
             surface.GetProperty().SetEdgeColor(.79, .85, .89)
         if self.coordinate_grid:
             self.renderer.RemoveActor(self.coordinate_grid)
+        if self.coordinate_text:
+            self.renderer.RemoveActor2D(self.coordinate_text)
         if not self.sources:
             return
         bounds = [poly.GetBounds() for poly in self.sources.values() if poly.GetNumberOfPoints()]
@@ -291,8 +293,10 @@ class Scene:
         grid = vtk.vtkCubeAxesActor()
         grid.SetBounds(*extent)
         grid.SetCamera(self.renderer.GetActiveCamera())
-        grid.SetFlyModeToOuterEdges()
-        grid.SetXTitle('E (m)');grid.SetYTitle('N (m)');grid.SetZTitle('Z (m)')
+        grid.SetFlyModeToFurthestTriad()
+        grid.SetUse2DMode(True)
+        grid.XAxisLabelVisibilityOff();grid.YAxisLabelVisibilityOff();grid.ZAxisLabelVisibilityOff()
+        grid.SetXTitle('');grid.SetYTitle('');grid.SetZTitle('')
         for axis, (low, high) in enumerate(((0,1),(2,3),(4,5))):
             getattr(grid, ('SetXAxisRange','SetYAxisRange','SetZAxisRange')[axis])(
                 extent[low]+self.origin[axis], extent[high]+self.origin[axis])
@@ -306,6 +310,31 @@ class Scene:
         grid.PickableOff()
         self.coordinate_grid = grid
         self.renderer.AddActor(grid)
+        hud = vtk.vtkTextActor()
+        hud.SetInput('\n'.join(
+            f'{axis}: {extent[i]+self.origin[j]:,.0f} … {extent[i+1]+self.origin[j]:,.0f} m'
+            for j,(axis,i) in enumerate((('E',0),('N',2),('Z',4)))))
+        hud.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        hud.SetPosition(.02,.96)
+        hud.GetTextProperty().SetVerticalJustificationToTop()
+        hud.GetTextProperty().SetFontSize(11)
+        hud.GetTextProperty().SetColor(.19,.28,.38)
+        hud.PickableOff()
+        self.coordinate_text = hud
+        self.renderer.AddActor2D(hud)
+
+    def fit_geometry(self):
+        if not self.presentation_enabled:
+            self.renderer.ResetCamera()
+            return
+        bounds = [poly.GetBounds() for key,poly in self.sources.items()
+                  if poly.GetNumberOfPoints() and self.actors[key].GetVisibility()]
+        if not bounds:
+            return
+        extent = [min(b[i] for b in bounds) if i%2==0 else max(b[i] for b in bounds) for i in range(6)]
+        self.renderer.ResetCamera(extent)
+        # Reserve a modest margin for the legend, avoiding 3D annotation bounds.
+        self.renderer.GetActiveCamera().Zoom(1.10)
 
     def set_cutaway(self, enabled):
         self.cutaway = bool(enabled)

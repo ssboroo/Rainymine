@@ -31,6 +31,8 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
         window.set_language('en',persist=False)
         self.assertEqual(window.ribbon.tabText(0),'Project')
         self.assertEqual(window.ribbon.tabText(3),'Block model')
+        self.assertEqual(window.layer_list.headerItem().text(0),'Layer')
+        self.assertEqual(window.representation.itemText(0),'Surface')
         self.assertEqual(window.block_model.headerData(1,Qt.Orientation.Horizontal),'Easting (m)')
         self.assertEqual(window.project,before)
         self.assertEqual(len(window.tool_entries()),len(window.tool_catalog))
@@ -67,6 +69,23 @@ class BrandWorkspaceTests(test_workspace.WorkspaceLayoutTests):
                 item=group.child(j)
                 if item.data(0,Qt.ItemDataRole.UserRole)=='string_0':found.append(item.text(0))
         self.assertEqual(found,['Гадарга'])
+
+    def test_small_window_keeps_inspector_inside_the_sidebar(self):
+        window=self.make_window();window.resize(1080,740);window.show();self.app.processEvents()
+        value=window.inspector_values['dimensions']
+        point=value.mapTo(window.support.widget(), value.rect().bottomLeft())
+        self.assertLessEqual(point.y(),window.support.widget().height())
+        self.assertTrue(window.help_scroller.widgetResizable())
+        self.assertEqual(window.scene.coordinate_grid.GetXAxisLabelVisibility(),0)
+        self.assertIn('E:',window.scene.coordinate_text.GetInput())
+
+    def test_cutaway_retains_selected_only_label_policy(self):
+        window=self.make_window();window.toggle_labels(False)
+        for value in (False,True):
+            window.toggle_cutaway(value)
+            for label in window.scene.labels:
+                if label.GetInput()!=window.scene.selected_hole:
+                    self.assertFalse(label.GetVisibility())
 
 
 class CutawayTests(unittest.TestCase):
@@ -113,3 +132,20 @@ class EnglishHelpTests(unittest.TestCase):
             self.assertEqual(selected,topic['id'])
             self.assertIn('Source: Rainymine help',text)
             self.assertNotRegex(text,'[А-Яа-яӨөҮү]')
+
+
+class StartupContrastTests(unittest.TestCase):
+    def test_dark_splash_preserves_the_light_upper_stratum(self):
+        from PySide6.QtWidgets import QApplication
+        from rainymine.startup import StartupScreen
+        app=QApplication.instance() or QApplication([])
+        splash=StartupScreen()
+        self.addCleanup(splash.close)
+        self.assertTrue(splash.artwork_loaded)
+        image=splash.pixmap().toImage();w=image.width();h=image.height()
+        light=0
+        for y in range(int(h*.08),int(h*.24)):
+            for x in range(int(w*.44),int(w*.56)):
+                color=image.pixelColor(x,y)
+                light += min(color.red(),color.green(),color.blue())>220
+        self.assertGreater(light,50,'Dark background has erased the upper logo stratum')
