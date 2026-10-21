@@ -1,0 +1,3842 @@
+{
+  "format": "rainymine",
+  "version": 1,
+  "units": "metres",
+  "name": "ЖИШЭЭ • Өрөмдлөгийн талбай",
+  "crs": "Зохиомол локал метрийн систем — бодит орд биш",
+  "grade_unit": "%",
+  "collars": [
+    {
+      "hole_id": "RM-001",
+      "x": 500000,
+      "y": 5300000,
+      "z": 1450.0,
+      "depth": 180,
+      "azimuth": 0,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-002",
+      "x": 500090,
+      "y": 5300000,
+      "z": 1458.414709848079,
+      "depth": 203,
+      "azimuth": 37,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-003",
+      "x": 500180,
+      "y": 5300000,
+      "z": 1459.0929742682567,
+      "depth": 226,
+      "azimuth": 74,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-004",
+      "x": 500270,
+      "y": 5300000,
+      "z": 1451.4112000805987,
+      "depth": 249,
+      "azimuth": 111,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-005",
+      "x": 500360,
+      "y": 5300000,
+      "z": 1442.4319750469208,
+      "depth": 272,
+      "azimuth": 148,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-006",
+      "x": 500000,
+      "y": 5300110,
+      "z": 1440.4107572533685,
+      "depth": 295,
+      "azimuth": 185,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-007",
+      "x": 500090,
+      "y": 5300110,
+      "z": 1447.2058450180107,
+      "depth": 318,
+      "azimuth": 222,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-008",
+      "x": 500180,
+      "y": 5300110,
+      "z": 1456.569865987188,
+      "depth": 191,
+      "azimuth": 259,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-009",
+      "x": 500270,
+      "y": 5300110,
+      "z": 1459.8935824662337,
+      "depth": 214,
+      "azimuth": 296,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-010",
+      "x": 500360,
+      "y": 5300110,
+      "z": 1454.1211848524176,
+      "depth": 237,
+      "azimuth": 333,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-011",
+      "x": 500000,
+      "y": 5300220,
+      "z": 1444.5597888911063,
+      "depth": 260,
+      "azimuth": 10,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-012",
+      "x": 500090,
+      "y": 5300220,
+      "z": 1440.000097934493,
+      "depth": 283,
+      "azimuth": 47,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-013",
+      "x": 500180,
+      "y": 5300220,
+      "z": 1444.6342708199957,
+      "depth": 306,
+      "azimuth": 84,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-014",
+      "x": 500270,
+      "y": 5300220,
+      "z": 1454.2016703682664,
+      "depth": 329,
+      "azimuth": 121,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-015",
+      "x": 500360,
+      "y": 5300220,
+      "z": 1459.9060735569487,
+      "depth": 202,
+      "azimuth": 158,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-016",
+      "x": 500000,
+      "y": 5300330,
+      "z": 1456.5028784015713,
+      "depth": 225,
+      "azimuth": 195,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-017",
+      "x": 500090,
+      "y": 5300330,
+      "z": 1447.1209668333493,
+      "depth": 248,
+      "azimuth": 232,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-018",
+      "x": 500180,
+      "y": 5300330,
+      "z": 1440.3860250812045,
+      "depth": 271,
+      "azimuth": 269,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-019",
+      "x": 500270,
+      "y": 5300330,
+      "z": 1442.4901275322832,
+      "depth": 294,
+      "azimuth": 306,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-020",
+      "x": 500360,
+      "y": 5300330,
+      "z": 1451.4987720966296,
+      "depth": 317,
+      "azimuth": 343,
+      "dip": -65
+    }
+  ],
+  "surveys": [
+    {
+      "hole_id": "RM-001",
+      "depth": 0,
+      "azimuth": 0,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-001",
+      "depth": 180,
+      "azimuth": 25,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-002",
+      "depth": 0,
+      "azimuth": 37,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-002",
+      "depth": 203,
+      "azimuth": 62,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-003",
+      "depth": 0,
+      "azimuth": 74,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-003",
+      "depth": 226,
+      "azimuth": 99,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-004",
+      "depth": 0,
+      "azimuth": 111,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-004",
+      "depth": 249,
+      "azimuth": 136,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-005",
+      "depth": 0,
+      "azimuth": 148,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-005",
+      "depth": 272,
+      "azimuth": 173,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-006",
+      "depth": 0,
+      "azimuth": 185,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-006",
+      "depth": 295,
+      "azimuth": 210,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-007",
+      "depth": 0,
+      "azimuth": 222,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-007",
+      "depth": 318,
+      "azimuth": 247,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-008",
+      "depth": 0,
+      "azimuth": 259,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-008",
+      "depth": 191,
+      "azimuth": 284,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-009",
+      "depth": 0,
+      "azimuth": 296,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-009",
+      "depth": 214,
+      "azimuth": 321,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-010",
+      "depth": 0,
+      "azimuth": 333,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-010",
+      "depth": 237,
+      "azimuth": 358,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-011",
+      "depth": 0,
+      "azimuth": 10,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-011",
+      "depth": 260,
+      "azimuth": 35,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-012",
+      "depth": 0,
+      "azimuth": 47,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-012",
+      "depth": 283,
+      "azimuth": 72,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-013",
+      "depth": 0,
+      "azimuth": 84,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-013",
+      "depth": 306,
+      "azimuth": 109,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-014",
+      "depth": 0,
+      "azimuth": 121,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-014",
+      "depth": 329,
+      "azimuth": 146,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-015",
+      "depth": 0,
+      "azimuth": 158,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-015",
+      "depth": 202,
+      "azimuth": 183,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-016",
+      "depth": 0,
+      "azimuth": 195,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-016",
+      "depth": 225,
+      "azimuth": 220,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-017",
+      "depth": 0,
+      "azimuth": 232,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-017",
+      "depth": 248,
+      "azimuth": 257,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-018",
+      "depth": 0,
+      "azimuth": 269,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-018",
+      "depth": 271,
+      "azimuth": 294,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-019",
+      "depth": 0,
+      "azimuth": 306,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-019",
+      "depth": 294,
+      "azimuth": 331,
+      "dip": -80
+    },
+    {
+      "hole_id": "RM-020",
+      "depth": 0,
+      "azimuth": 343,
+      "dip": -65
+    },
+    {
+      "hole_id": "RM-020",
+      "depth": 317,
+      "azimuth": 8,
+      "dip": -80
+    }
+  ],
+  "assays": [
+    {
+      "hole_id": "RM-001",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.206
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.22
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.257
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.343
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.518
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.824
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 1.282
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 1.855
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 2.434
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 2.862
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 2.998
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 2.796
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.325
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 1.736
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.179
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 0.751
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 0.474
+    },
+    {
+      "hole_id": "RM-001",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 0.32
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.304
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.315
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.343
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.413
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.56
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.829
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 1.247
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 1.797
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 2.389
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 2.872
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 3.095
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.981
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.569
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.994
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 1.417
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 0.95
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 0.633
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.451
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.36
+    },
+    {
+      "hole_id": "RM-002",
+      "from_m": 200,
+      "to_m": 203,
+      "grade": 0.321
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.403
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.411
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.433
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.489
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.611
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.843
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 1.221
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 1.742
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 2.336
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 2.864
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 3.168
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 3.144
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.8
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.253
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 1.662
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 1.159
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.803
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.589
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.478
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.428
+    },
+    {
+      "hole_id": "RM-003",
+      "from_m": 220,
+      "to_m": 226,
+      "grade": 0.409
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.202
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.208
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.225
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.269
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.37
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.569
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.906
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 1.393
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 1.978
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.54
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.917
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.984
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.717
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.209
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 1.615
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 1.079
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.682
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.433
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.238
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.213
+    },
+    {
+      "hole_id": "RM-004",
+      "from_m": 240,
+      "to_m": 249,
+      "grade": 0.204
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.302
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.306
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.319
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.353
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.436
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.604
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.902
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 1.351
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 1.919
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.502
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.943
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 3.1
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.917
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.459
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 1.871
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 1.31
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.872
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.586
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.426
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.349
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.317
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.305
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-005",
+      "from_m": 270,
+      "to_m": 272,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.404
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.414
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.441
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.507
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.649
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 0.908
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 1.318
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 1.862
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.455
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.949
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 3.191
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 3.097
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 2.7
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 2.13
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 1.549
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 1.073
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.748
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.559
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.464
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.423
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.407
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.402
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 280,
+      "to_m": 290,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-006",
+      "from_m": 290,
+      "to_m": 295,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.203
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.21
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.231
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.284
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 0.626
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 0.994
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.508
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.1
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.637
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.958
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 2.955
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 2.628
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 2.089
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 1.496
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.985
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.62
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.398
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.282
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.23
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.21
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 280,
+      "to_m": 290,
+      "grade": 0.203
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 290,
+      "to_m": 300,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 300,
+      "to_m": 310,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-007",
+      "from_m": 310,
+      "to_m": 318,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.303
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.31
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.33
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.383
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.499
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.721
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 1.088
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 1.599
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 2.192
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 2.73
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 3.056
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 3.057
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.735
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.198
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.605
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 1.092
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 0.724
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 0.5
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.384
+    },
+    {
+      "hole_id": "RM-008",
+      "from_m": 190,
+      "to_m": 191,
+      "grade": 0.331
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.402
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.407
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.423
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.464
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.56
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.75
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 1.075
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 1.552
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 2.133
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 2.702
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 3.098
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 3.191
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.947
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.452
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 1.859
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 1.315
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 0.907
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.648
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.507
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.441
+    },
+    {
+      "hole_id": "RM-009",
+      "from_m": 210,
+      "to_m": 214,
+      "grade": 0.414
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.205
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.217
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.25
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.327
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.487
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.774
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 1.212
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 1.774
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 2.361
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.819
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 3.0
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.842
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.4
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 1.816
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 1.248
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.8
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.503
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.335
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.253
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.218
+    },
+    {
+      "hole_id": "RM-010",
+      "from_m": 230,
+      "to_m": 237,
+      "grade": 0.206
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.304
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.313
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.338
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.534
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.784
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 1.182
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 1.718
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.312
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.819
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 3.084
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 3.016
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.637
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.075
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 1.49
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 1.004
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.668
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.469
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.369
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.325
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.308
+    },
+    {
+      "hole_id": "RM-011",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.302
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.403
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.409
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.429
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.478
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.589
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.804
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 1.161
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 1.665
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.256
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.803
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 3.145
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 3.167
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.862
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 2.333
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 1.739
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 1.219
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.842
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.61
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.488
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.433
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.411
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.403
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-012",
+      "from_m": 280,
+      "to_m": 283,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.202
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.207
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.221
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.261
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.352
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 0.535
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 0.852
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 1.319
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.897
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.471
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.882
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.995
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 2.77
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 2.286
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 1.694
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 1.144
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.727
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.459
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.313
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.243
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.215
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.204
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 280,
+      "to_m": 290,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 290,
+      "to_m": 300,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-013",
+      "from_m": 300,
+      "to_m": 306,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.305
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.316
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.347
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 0.42
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 0.575
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 0.853
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.282
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 1.839
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.428
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.898
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 3.098
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 2.96
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 2.532
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 1.952
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 1.38
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.922
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.617
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.442
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.356
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.32
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 280,
+      "to_m": 290,
+      "grade": 0.306
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 290,
+      "to_m": 300,
+      "grade": 0.302
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 300,
+      "to_m": 310,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 310,
+      "to_m": 320,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-014",
+      "from_m": 320,
+      "to_m": 329,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.405
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.416
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.446
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.519
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.672
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.948
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 1.374
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 1.93
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 2.52
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 2.992
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 3.198
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 3.065
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.64
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.061
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 1.487
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 1.028
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 0.72
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.544
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.457
+    },
+    {
+      "hole_id": "RM-015",
+      "from_m": 200,
+      "to_m": 202,
+      "grade": 0.42
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.203
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.212
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.235
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.293
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.421
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.66
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 1.046
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 1.574
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 2.168
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 2.688
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.975
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.932
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.574
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.02
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 1.432
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 0.935
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 0.588
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.38
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.274
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.227
+    },
+    {
+      "hole_id": "RM-016",
+      "from_m": 220,
+      "to_m": 225,
+      "grade": 0.209
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.302
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.308
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.326
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.373
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.478
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.683
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 1.029
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 1.523
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 2.111
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.667
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 3.029
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 3.077
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.794
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.277
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 1.683
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 1.153
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 0.765
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.523
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.395
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.335
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.312
+    },
+    {
+      "hole_id": "RM-017",
+      "from_m": 240,
+      "to_m": 248,
+      "grade": 0.303
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.402
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.406
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.42
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.456
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.542
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.717
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 1.022
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 1.48
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 2.052
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 2.632
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 3.06
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 3.198
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.998
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.528
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 1.939
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 1.382
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 0.953
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.675
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.52
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.447
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.416
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.405
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.401
+    },
+    {
+      "hole_id": "RM-018",
+      "from_m": 270,
+      "to_m": 271,
+      "grade": 0.4
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.201
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.204
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.215
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.243
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.313
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.459
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 0.727
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 1.144
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 1.694
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 2.286
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.77
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.995
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 2.882
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 2.471
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 1.897
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 1.319
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 0.852
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 0.535
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.352
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.261
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.221
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.207
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.202
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 280,
+      "to_m": 290,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-019",
+      "from_m": 290,
+      "to_m": 294,
+      "grade": 0.2
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 0,
+      "to_m": 10,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 10,
+      "to_m": 20,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 20,
+      "to_m": 30,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 30,
+      "to_m": 40,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 40,
+      "to_m": 50,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 50,
+      "to_m": 60,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 60,
+      "to_m": 70,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 70,
+      "to_m": 80,
+      "grade": 0.303
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 80,
+      "to_m": 90,
+      "grade": 0.311
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 90,
+      "to_m": 100,
+      "grade": 0.333
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 100,
+      "to_m": 110,
+      "grade": 0.388
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 110,
+      "to_m": 120,
+      "grade": 0.51
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 120,
+      "to_m": 130,
+      "grade": 0.742
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 130,
+      "to_m": 140,
+      "grade": 1.119
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 140,
+      "to_m": 150,
+      "grade": 1.639
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 150,
+      "to_m": 160,
+      "grade": 2.233
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 160,
+      "to_m": 170,
+      "grade": 2.762
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 170,
+      "to_m": 180,
+      "grade": 3.067
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 180,
+      "to_m": 190,
+      "grade": 3.045
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 190,
+      "to_m": 200,
+      "grade": 2.703
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 200,
+      "to_m": 210,
+      "grade": 2.156
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 210,
+      "to_m": 220,
+      "grade": 1.565
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 220,
+      "to_m": 230,
+      "grade": 1.061
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 230,
+      "to_m": 240,
+      "grade": 0.704
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 240,
+      "to_m": 250,
+      "grade": 0.489
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 250,
+      "to_m": 260,
+      "grade": 0.378
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 260,
+      "to_m": 270,
+      "grade": 0.329
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 270,
+      "to_m": 280,
+      "grade": 0.309
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 280,
+      "to_m": 290,
+      "grade": 0.303
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 290,
+      "to_m": 300,
+      "grade": 0.301
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 300,
+      "to_m": 310,
+      "grade": 0.3
+    },
+    {
+      "hole_id": "RM-020",
+      "from_m": 310,
+      "to_m": 317,
+      "grade": 0.3
+    }
+  ],
+  "surface": [
+    [
+      499910,
+      5299890,
+      1454.8176513873777
+    ],
+    [
+      499910,
+      5300000,
+      1453.2242903192596
+    ],
+    [
+      499910,
+      5300110,
+      1454.8176513873777
+    ],
+    [
+      499910,
+      5300220,
+      1458.848351984443
+    ],
+    [
+      499910,
+      5300330,
+      1463.4206906382215
+    ],
+    [
+      499910,
+      5300440,
+      1466.3842250350785
+    ],
+    [
+      499910,
+      5300550,
+      1466.3451586416704
+    ],
+    [
+      500000,
+      5299890,
+      1460.0
+    ],
+    [
+      500000,
+      5300000,
+      1460.0
+    ],
+    [
+      500000,
+      5300110,
+      1460.0
+    ],
+    [
+      500000,
+      5300220,
+      1460.0
+    ],
+    [
+      500000,
+      5300330,
+      1460.0
+    ],
+    [
+      500000,
+      5300440,
+      1460.0
+    ],
+    [
+      500000,
+      5300550,
+      1460.0
+    ],
+    [
+      500090,
+      5299890,
+      1465.1823486126223
+    ],
+    [
+      500090,
+      5300000,
+      1466.7757096807404
+    ],
+    [
+      500090,
+      5300110,
+      1465.1823486126223
+    ],
+    [
+      500090,
+      5300220,
+      1461.151648015557
+    ],
+    [
+      500090,
+      5300330,
+      1456.5793093617785
+    ],
+    [
+      500090,
+      5300440,
+      1453.6157749649215
+    ],
+    [
+      500090,
+      5300550,
+      1453.6548413583296
+    ],
+    [
+      500180,
+      5299890,
+      1468.5543537577496
+    ],
+    [
+      500180,
+      5300000,
+      1471.1844690316068
+    ],
+    [
+      500180,
+      5300110,
+      1468.5543537577496
+    ],
+    [
+      500180,
+      5300220,
+      1461.9009922461585
+    ],
+    [
+      500180,
+      5300330,
+      1454.3535643773755
+    ],
+    [
+      500180,
+      5300440,
+      1449.4617434099034
+    ],
+    [
+      500180,
+      5300550,
+      1449.526229181555
+    ],
+    [
+      500270,
+      5299890,
+      1468.9380770249923
+    ],
+    [
+      500270,
+      5300000,
+      1471.6861715705384
+    ],
+    [
+      500270,
+      5300110,
+      1468.9380770249923
+    ],
+    [
+      500270,
+      5300220,
+      1461.9862651932865
+    ],
+    [
+      500270,
+      5300330,
+      1454.100281804928
+    ],
+    [
+      500270,
+      5300440,
+      1448.989028069352
+    ],
+    [
+      500270,
+      5300550,
+      1449.0564064839418
+    ],
+    [
+      500360,
+      5299890,
+      1466.1994728373145
+    ],
+    [
+      500360,
+      5300000,
+      1468.1055581666137
+    ],
+    [
+      500360,
+      5300110,
+      1466.1994728373145
+    ],
+    [
+      500360,
+      5300220,
+      1461.377678563191
+    ],
+    [
+      500360,
+      5300330,
+      1455.9079405339774
+    ],
+    [
+      500360,
+      5300440,
+      1452.3627620118273
+    ],
+    [
+      500360,
+      5300550,
+      1452.40949585065
+    ],
+    [
+      500450,
+      5299890,
+      1461.2952144276094
+    ],
+    [
+      500450,
+      5300000,
+      1461.6934400967184
+    ],
+    [
+      500450,
+      5300110,
+      1461.2952144276094
+    ],
+    [
+      500450,
+      5300220,
+      1460.2878291749118
+    ],
+    [
+      500450,
+      5300330,
+      1459.1450733637985
+    ],
+    [
+      500450,
+      5300440,
+      1458.404402908288
+    ],
+    [
+      500450,
+      5300550,
+      1458.4141666969017
+    ],
+    [
+      500540,
+      5299890,
+      1455.9385003547873
+    ],
+    [
+      500540,
+      5300000,
+      1454.6897546804619
+    ],
+    [
+      500540,
+      5300110,
+      1455.9385003547873
+    ],
+    [
+      500540,
+      5300220,
+      1459.0974327749386
+    ],
+    [
+      500540,
+      5300330,
+      1462.6808566640384
+    ],
+    [
+      500540,
+      5300440,
+      1465.0034317745
+    ],
+    [
+      500540,
+      5300550,
+      1464.9728147406363
+    ]
+  ]
+}

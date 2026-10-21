@@ -1,0 +1,54 @@
+name: Windows desktop build
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pyinstaller==6.12.0
+      - name: Geometry, file and scene tests
+        run: python -m unittest discover -s tests -v
+      - name: Desktop smoke test
+        shell: pwsh
+        run: |
+          $p = Start-Process python -ArgumentList 'main.py','--smoke','--screenshot','windows-smoke.png' -PassThru
+          if (-not $p.WaitForExit(60000)) { $p.Kill(); throw 'Desktop smoke test timed out' }
+          if ($p.ExitCode -ne 0) { throw 'Desktop smoke test failed' }
+      - name: Package and test Windows executable
+        shell: pwsh
+        run: ./scripts/build_windows.ps1
+      - name: Build installer
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\Rainymine.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Installer build failed' }
+      - name: Verify silent install and installed executable
+        shell: pwsh
+        run: |
+          $dest = Join-Path $env:RUNNER_TEMP 'RainymineInstalled'
+          $setup = Start-Process '.\dist\Rainymine-0.1.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
+          if (-not $setup.WaitForExit(60000)) { $setup.Kill(); throw 'Install timed out' }
+          if ($setup.ExitCode -ne 0) { throw 'Install failed' }
+          $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
+          if (-not $app.WaitForExit(60000)) { $app.Kill(); throw 'Installed app smoke test timed out' }
+          if ($app.ExitCode -ne 0) { throw 'Installed app failed' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Rainymine-Windows-x64
+          path: |
+            dist/Rainymine-0.1.0-Windows-x64.zip
+            dist/Rainymine-0.1.0-Setup-x64.exe
+            windows-smoke.png
+          if-no-files-found: error
