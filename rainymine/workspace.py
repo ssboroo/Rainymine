@@ -480,7 +480,7 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         if self._table_sync or not index.isValid():
             return
         block = self.block_model.blocks[index.row()]
-        self.picked_info.setText(f'Блок #{index.row()}\nX {block["x"]:,.2f}  Y {block["y"]:,.2f}\nZ {block["z"]:,.2f}\nАгуулга: {block.get("grade")} {self.project.grade_unit}')
+        self.picked_info.setText(self.block_selection_text(index.row(),block))
         self.active_layer = 'blocks'
         self.refresh_layers()
         self.show_block_properties(index.row())

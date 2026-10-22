@@ -117,11 +117,9 @@ class Window(QMainWindow):
         bottom.setWidget(self.table);self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea,bottom);self.resizeDocks([bottom],[170],Qt.Orientation.Vertical)
 
     def guard(self,callback):
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:return callback()
         except (OSError,ValueError,TypeError,RuntimeError,KeyError,IndexError,OverflowError,sqlite3.Error) as exc:
             QMessageBox.critical(self,'Үйлдэл амжилтгүй',str(exc));return False
-        finally:QApplication.restoreOverrideCursor()
 
     def refresh(self):
         self.project.validate();self.title_label.setText(self.project.name)

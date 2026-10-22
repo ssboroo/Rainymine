@@ -112,3 +112,37 @@ def pit_mesh(model,indices):
             a,b1,c,d=face;faces.extend([[a,b1,c],[a,c,d]])
     if not faces:raise ValueError('Эдийн засгийн ашигтай pit сонгогдоогүй.')
     return {'name':'Economic pit • voxel envelope','role':'optimized_pit','vertices':vertices,'faces':faces}
+
+
+def nested_pits(model,density,price_per_grade_tonne,recovery,mining_cost,processing_cost,
+                slope=45,rf_start=.30,rf_end=1.20,rf_step=.05,cancel=None,progress=None):
+    """Auditable RF sensitivity using the bounded exact MILP, not pseudoflow/MSO.
+
+    Tied optima may differ in membership. Report that explicitly rather than
+    silently unioning shells and changing the economic optimum.
+    """
+    finite(rf_start,rf_end,rf_step)
+    if not 0<rf_start<=rf_end<=10 or rf_step<=0:
+        raise ValueError('RF range / step буруу.')
+    count=int(math.floor((rf_end-rf_start)/rf_step+1e-9))+1
+    if count>50:raise ValueError('Нэг удаад 50 хүртэл RF scenario тооцно.')
+    scenarios=[];previous=set();all_nested=True
+    for index in range(count):
+        if cancel and cancel():raise RuntimeError('Pit RF cancelled.')
+        factor=round(rf_start+index*rf_step,12)
+        report=economic_pit(model,density,price_per_grade_tonne*factor,recovery,
+                            mining_cost,processing_cost,slope)
+        if cancel and cancel():raise RuntimeError('Pit RF cancelled.')
+        selected=set(report['selected_indices']);nested=previous<=selected
+        all_nested=all_nested and nested
+        report.update(revenue_factor=factor,nested_with_previous=nested,
+                      added_indices=sorted(selected-previous),removed_indices=sorted(previous-selected))
+        # Base-price value permits comparison across scenarios in one currency basis.
+        tonnes=density*model['blocks'][0]['dx']*model['blocks'][0]['dy']*model['blocks'][0]['dz']
+        report['base_price_net_value']=sum(tonnes*(max(0.,model['blocks'][i]['grade']*
+            price_per_grade_tonne*recovery-processing_cost)-mining_cost) for i in selected)
+        scenarios.append(report);previous=selected
+        if progress:progress(index+1,count)
+    return {'scenarios':scenarios,'all_nested':all_nested,
+            'algorithm':'repeated exact HiGHS MILP maximum closure',
+            'engineering_review':False,'discounted':False,'haul_roads_included':False}

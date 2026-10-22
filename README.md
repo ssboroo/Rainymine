@@ -102,3 +102,5 @@ Dependency-ийн тогтоосон хувилбарууд `requirements.txt`-�
 [Баримтын индекс](docs/README.md) · [Шинэчлэлтийн түүх](CHANGELOG.md) · [Түгээлтийн тэмдэглэл](release/RELEASE_NOTES.mn.md) · [Дэмжлэгийн маягт](release/SUPPORT_TEMPLATE.mn.md) · [Брэндбүүк](docs/BRANDBOOK.mn.md)
 
 [Өмнөх дэлгэрэнгүй техникийн лавлагаа](DEVELOPMENT_REFERENCE.md) — түүхэн тайлбар; шинэ модулийн зааврыг давхар мөрдөнө.
+
+Архитектурын шинэчлэл, RF хувилбар ба цэсний засвар: [хэрэгжүүлсэн хүрээ](docs/ROADMAP_IMPLEMENTATION.mn.md).

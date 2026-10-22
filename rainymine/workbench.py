@@ -72,7 +72,7 @@ class GridDialog(QDialog):
 
 class Workbench(Window):
     def __init__(self):
-        self.history=History();self.secondary=None;self.computing=False
+        self.history=History();self.secondary=None;self.computing=False;self._engineering_tasks=[];self._history_generation=0
         super().__init__();self.setStyleSheet(LIGHT)
         self.scene.renderer.SetBackground(1,1,1);self.scene.renderer.GradientBackgroundOff()
         self.secondary=Scene(self.vtk2.GetRenderWindow());self.vtk2.Initialize();self.secondary.renderer.SetBackground(1,1,1);self.secondary.renderer.GradientBackgroundOff()
@@ -124,11 +124,25 @@ class Workbench(Window):
             for key,check in self.layer_checks.items():self.secondary.visible(key,check.isChecked())
         if hasattr(self,'coordinates'):self.coordinates.setText((self.project.crs_code or 'Локал метр')+'  |  X —  Y —  Z —')
     def guard(self,callback):
-        before=deepcopy(self.project);result=super().guard(callback)
-        if result is False and self.project!=before:
-            self.project=before;self.refresh()
-        elif self.project!=before and self.dirty:self.history.apply(before,self.project,'Өгөгдөл / геометр / тооцоо')
+        # Editing commands validate detached candidates before swapping project.
+        # Opening a dialog must not copy/compare/serialize the entire deposit.
+        before=self.project;dirty=self.dirty;history=self.history
+        undo=list(history.undo_items);redo=list(history.redo_items);generation=self._history_generation
+        def invoke():
+            result=callback()
+            if result is not False and self.project is not before and self.dirty and self.history is history and self._history_generation==generation:
+                history.apply(before,self.project,'Өгөгдөл / геометр / тооцоо');self._history_generation+=1
+            return result
+        result=super().guard(invoke)
+        if result is False and self.project is not before:
+            self.project=before;self.dirty=dirty;self.history=history
+            history.undo_items=undo;history.redo_items=redo;self._history_generation=generation;self.refresh()
         return result
+
+    def launch_task(self,title,operation,apply,with_progress=False):
+        from .background import Task
+        if self.computing or self._engineering_tasks:raise ValueError('Ажиллаж буй тооцоогоо дуусгах эсвэл цуцална уу.')
+        return Task(self,title,operation,apply,with_progress=with_progress)
     def commit(self,candidate):
         candidate.validate();self.project=candidate;self.dirty=True;self.refresh()
     def undo(self):
@@ -166,6 +180,9 @@ class Workbench(Window):
                 local=picker.GetPickPosition();p=[a+b for a,b in zip(local,self.scene.origin)];self.coordinates.setText('  '.join(f'{a}: {b:,.3f}' for a,b in zip('XYZ',p)))
         super().on_click(obj,event)
     def closeEvent(self,event):
+        if any(task.worker.isRunning() for task in self._engineering_tasks):
+            for task in self._engineering_tasks:task.cancel.set()
+            event.ignore();return
         if self.computing:event.ignore();return
         super().closeEvent(event)
         if event.isAccepted():self.vtk2.Finalize()
@@ -184,8 +201,8 @@ class Workbench(Window):
         return {k:(w.currentText() if isinstance(w,QComboBox) else w.text()) for k,w in inputs.items()}
     def show_rows(self,title,rows):
         if not rows:QMessageBox.information(self,title,'Өгөгдөл / анхааруулга алга.');return
-        columns=list(dict.fromkeys(k for row in rows for k in row));dlg=GridDialog(self,columns,rows,title);dlg.box.button(QDialogButtonBox.StandardButton.Save).setText('CSV экспорт')
-        dlg.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        from .report_table import ReportDialog
+        columns=list(dict.fromkeys(k for row in rows for k in row));dlg=ReportDialog(self,columns,rows,title)
         def save():
             path=self.destination(title,'csv')
             if path:self.guard(lambda:write_records(path,rows,columns))
@@ -331,12 +348,12 @@ class Workbench(Window):
             parameters['grid_angles']=[float(settings['Grid '+a]) for a in ('azimuth','dip','roll')]
             parameters['subblock_levels']=int(settings['Sub-block levels'])
             domain=next((s for s in self.project.workspace.get('strings',[]) if s['name']==settings['Домэйн'] and s.get('closed')),None)
-            progress=QProgressDialog('Блокийн агуулга тооцож байна…','Цуцлах',0,100,self);progress.setWindowModality(Qt.WindowModality.ApplicationModal);progress.setMinimumDuration(0);self.computing=True
-            def update(i,n):progress.setValue(int(i/n*100));QApplication.processEvents()
-            try:model=estimate_model(self.project,[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ'],[float(settings['Size '+a]) for a in 'XYZ'],parameters,domain,cancel=progress.wasCanceled,progress=update)
-            finally:self.computing=False;progress.close()
-            p=deepcopy(self.project);p.workspace['block_model']=model;p.workspace.pop('block_slice_positions',None);self.commit(p)
-            QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Support: {model['support']}.")
+            project=deepcopy(self.project)
+            bounds=[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ'];size=[float(settings['Size '+a]) for a in 'XYZ']
+            def apply(model):
+                p=deepcopy(self.project);p.workspace['block_model']=model;p.workspace.pop('block_slice_positions',None);self.commit(p)
+                QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Support: {model['support']}.")
+            self.launch_task('Блокийн агуулга тооцож байна…',lambda cancel,progress:estimate_model(project,bounds,size,parameters,domain,cancel=cancel,progress=progress),apply,with_progress=True)
         self.guard(run)
     def block_display(self):
         def run():
@@ -361,21 +378,28 @@ class Workbench(Window):
         def run():
             params=self.estimator_params()
             if not params:return
-            result=cross_validate(sample_support(self.project,params['composite_length'],params['minimum_coverage']),params)
-            p=deepcopy(self.project);p.workspace['cross_validation']=result;self.commit(p)
-            summary={k:v for k,v in result.items() if k!='rows'};QMessageBox.information(self,'Leave-one-hole-out validation',json.dumps(summary,ensure_ascii=False,indent=2));self.chart('Observed / Estimated — leave-one-hole-out',result['rows'],'observed','estimated',True);self.chart('Residuals',result['rows'],'observed','error');self.show_rows('Observed / estimated / residual',result['rows'])
+            project=deepcopy(self.project)
+            def work(cancel,progress):return cross_validate(sample_support(project,params['composite_length'],params['minimum_coverage']),params,cancel=cancel,progress=progress)
+            def apply(result):
+                p=deepcopy(self.project);p.workspace['cross_validation']=result;self.commit(p)
+                summary={k:v for k,v in result.items() if k!='rows'};QMessageBox.information(self,'Leave-one-hole-out validation',json.dumps(summary,ensure_ascii=False,indent=2));self.chart('Observed / Estimated — leave-one-hole-out',result['rows'],'observed','estimated',True);self.chart('Residuals',result['rows'],'observed','error');self.show_rows('Observed / estimated / residual',result['rows'])
+            self.launch_task('Хөндлөн шалгалт…',work,apply,with_progress=True)
         self.guard(run)
     def variogram(self):
         def run():
             fields=self.params('Experimental variogram',{'Mode':['Isotropic','Directional'],'Azimuth':90,'Dip':0,'Tolerance degrees':22.5,'Bandwidth metres':100,'Lag metres':20,'Lags':15,'Composite metres':5})
             if not fields:return
             direction=None if fields['Mode']=='Isotropic' else {'azimuth':float(fields['Azimuth']),'dip':float(fields['Dip']),'tolerance':float(fields['Tolerance degrees']),'bandwidth':float(fields['Bandwidth metres'])}
-            result=experimental_variogram(sample_support(self.project,float(fields['Composite metres'])),float(fields['Lag metres']),int(fields['Lags']),direction,self.project.workspace.get('faults',[]))
-            if len(result['rows'])>=3:
-                result['fit']=fit_variogram(result['rows'])
-                result['fit']['model']='spherical; '+fields['Mode'].lower()+'; exploratory fit'
-            p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart(fields['Mode']+' experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
-            if 'fit' in result:QMessageBox.information(self,'Spherical model fit',json.dumps(result['fit'],indent=2))
+            project=deepcopy(self.project)
+            def work(cancel):
+                result=experimental_variogram(sample_support(project,float(fields['Composite metres'])),float(fields['Lag metres']),int(fields['Lags']),direction,project.workspace.get('faults',[]))
+                if len(result['rows'])>=3:
+                    result['fit']=fit_variogram(result['rows']);result['fit']['model']='spherical; '+fields['Mode'].lower()+'; exploratory fit'
+                return result
+            def apply(result):
+                p=deepcopy(self.project);p.workspace['variogram']=result;self.commit(p);self.chart(fields['Mode']+' experimental variogram',result['rows'],'distance','semivariance');self.show_rows('Variogram lag / semivariance',result['rows'])
+                if 'fit' in result:QMessageBox.information(self,'Spherical model fit',json.dumps(result['fit'],indent=2))
+            self.launch_task('Вариограмм…',work,apply)
         self.guard(run)
     def help(self):
         QMessageBox.information(self,'RAINYMINE — Ажлын дараалал',
@@ -454,11 +478,16 @@ class Workbench(Window):
             if not model:raise ValueError('Эхлээд world-axis parent model үүсгэнэ үү.')
             f=self.params('Economic MILP — optional tasks / precedence',{'Density t/m³':2.7,'Cutoff':.5,'Metal price / tonne metal':8000,'Mining cost / tonne rock':3,'Processing cost / tonne ore':8,'Haul cost / tonne rock':1,'Recovery':.9,'Mining tonnes/period':1000000,'Processing tonnes/period':500000,'Periods':12,'Discount per period':.01,'Solver seconds':10})
             if not f:return
-            tasks=economic_tasks(model,float(f['Density t/m³']),float(f['Cutoff']),self.project.grade_unit,float(f['Metal price / tonne metal']),float(f['Mining cost / tonne rock']),float(f['Processing cost / tonne ore']),float(f['Recovery']),float(f['Haul cost / tonne rock']))
-            result=optimize_schedule(tasks,float(f['Mining tonnes/period']),float(f['Processing tonnes/period']),int(f['Periods']),float(f['Discount per period']),float(f['Solver seconds']))
-            result['assumptions']=f;result['grade_unit']=self.project.grade_unit;result['model_run_sha256']=model.get('run_sha256')
-            p=deepcopy(self.project);p.workspace['optimization']=result;self.commit(p)
-            QMessageBox.information(self,'MILP үр дүн',json.dumps({k:v for k,v in result.items() if k not in ('rows','unscheduled','assumptions')},ensure_ascii=False,indent=2));self.show_rows('MILP schedule',result['rows'])
+            model=deepcopy(model);unit=self.project.grade_unit
+            def work(cancel):
+                tasks=economic_tasks(model,float(f['Density t/m³']),float(f['Cutoff']),unit,float(f['Metal price / tonne metal']),float(f['Mining cost / tonne rock']),float(f['Processing cost / tonne ore']),float(f['Recovery']),float(f['Haul cost / tonne rock']))
+                result=optimize_schedule(tasks,float(f['Mining tonnes/period']),float(f['Processing tonnes/period']),int(f['Periods']),float(f['Discount per period']),float(f['Solver seconds']))
+                result['assumptions']=f;result['grade_unit']=unit;result['model_run_sha256']=model.get('run_sha256')
+                return result
+            def apply(result):
+                p=deepcopy(self.project);p.workspace['optimization']=result;self.commit(p)
+                QMessageBox.information(self,'MILP үр дүн',json.dumps({k:v for k,v in result.items() if k not in ('rows','unscheduled','assumptions')},ensure_ascii=False,indent=2));self.show_rows('MILP schedule',result['rows'])
+            self.launch_task('MILP хуваарь…',work,apply)
         self.guard(run)
 
     def external_benchmark(self):

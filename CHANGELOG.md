@@ -1,3 +1,12 @@
+# Responsiveness and RF scenarios — 2026-10-22
+
+- Remove menu-wide wait cursors and read-only project snapshots; preserve nested undo and rollback.
+- Run estimation, validation, variograms, implicit surfaces, pit/MILP and SQL work in owned workers; add cooperative progress/cancellation.
+- Use lazy report tables and readable block status values.
+- Add bounded RF pit sensitivity, base-price comparisons, shell membership auditing and native scenario meshes.
+- Pin NumPy buffers for shallow VTK preview transfer.
+- Document implementation scope and measurable architecture acceptance gates in docs/ROADMAP_IMPLEMENTATION.mn.md.
+
 # Production foundations — 2026-10-22
 
 - Recover never-saved projects from atomic per-session snapshots; preserve v1/v2/v3 migration.

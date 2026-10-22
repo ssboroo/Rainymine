@@ -223,13 +223,15 @@ def estimate_model(project,bounds,size,params,domain=None,cancel=None,progress=N
     return {'blocks':blocks,'params':deepcopy(params),'subblock_levels':levels,'faults':faults,'grid_angles':list(grid_angles),'grid_origin':list(bounds[:3]),'capped_sample_count':estimator.capped_count,'bounds':list(bounds),'size':list(size),'domain':deepcopy(domain),'input_sha256':fingerprint,'run_sha256':run_sha256,'status_counts':statuses,'software_version':__version__,'support':('point at block centre' if math.prod(discretization)==1 else 'discretized block average; midpoint quadrature; common centre-selected neighborhood'),'discretization':list(discretization),'classification':'UNCLASSIFIED — independent geological benchmark pending','sample_count':len(samples)}
 
 
-def cross_validate(samples,params,mode='hole',limit=1000):
+def cross_validate(samples,params,mode='hole',limit=1000,cancel=None,progress=None):
     if len(samples)>10000:raise ValueError('Cross-validation-д 10000 хүртэл support дэмжинэ.')
     if mode not in ('hole','sample'):raise ValueError('Validation горим буруу.')
     est=Estimator(samples,params);indices=np.linspace(0,len(samples)-1,min(len(samples),limit),dtype=int);rows=[]
-    for i in indices:
+    for position,i in enumerate(indices):
+        if cancel and cancel():raise RuntimeError('Хөндлөн шалгалт цуцлагдлаа.')
         s=samples[int(i)];prediction=est.predict(s['xyz'],excluded=int(i),exclude_hole=s['hole_id'] if mode=='hole' else None)
         if prediction['grade'] is not None:rows.append({'sample_index':int(i),'hole_id':s['hole_id'],'observed':s['grade'],'estimated':prediction['grade'],'error':prediction['grade']-s['grade']})
+        if progress:progress(position+1,len(indices))
     errors=np.array([r['error'] for r in rows]);obs=np.array([r['observed'] for r in rows]);pred=np.array([r['estimated'] for r in rows])
     # Baseline is computed from each training fold, never from the held-out values.
     baseline=[]

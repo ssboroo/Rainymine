@@ -4,7 +4,6 @@ from pathlib import Path
 import csv
 import numpy as np
 from PySide6.QtWidgets import QFileDialog,QMessageBox,QDialog,QVBoxLayout,QLabel,QPushButton,QHBoxLayout
-from .background import Task
 from .foundation_ui import FoundationTools
 
 
@@ -16,7 +15,7 @@ class ProTools(FoundationTools):
                 ('Файл / GIS',[('Surpac STR импорт…',self.surpac_import),('Surpac STR экспорт…',self.surpac_export),('Surpac ASCII DTM импорт…',self.surpac_dtm_import),('SHP импорт…',self.shapefile_import),('GeoTIFF DEM импорт…',self.dem_import),('LAS/LAZ шүүлт ба экспорт…',self.lidar_export),('DWG → DXF adapter…',self.dwg_import)]),
                 ('Геологи / Үнэлгээ',[('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
                 ('Уурхайн зураг төсөл',[('Спираль ramp…',self.ramp_dialog),('Шугамаар малталтын сүлжээ…',self.network_dialog),('Өрөмдлөгийн ring / fan…',self.ring_dialog),('Stope box MILP…',self.stope_dialog)]),
-                ('Төлөвлөлт',[('Олборлолт + feed blend MILP…',self.joint_schedule)]),
+                ('Төлөвлөлт',[('Pit RF хувилбар / үе шат…',self.nested_pit_dialog),('Олборлолт + feed blend MILP…',self.joint_schedule)]),
                 ('Том өгөгдөл',[('LAS / LAZ GPU preview…',self.lidar_preview),('Parquet GPU block preview…',self.large_blocks)])]
         for name,commands in groups:
             submenu=menu.addMenu(name)
@@ -26,9 +25,39 @@ class ProTools(FoundationTools):
                 action.setIcon(semantic_icon(title,icon('gear')))
         self.build_foundation_menu(menu)
 
-    def launch_task(self,title,operation,apply):
-        if self._engineering_tasks:raise ValueError('Ажиллаж буй тооцоогоо дуусгах эсвэл цуцална уу.')
-        return Task(self,title,operation,apply)
+    def nested_pit_dialog(self):
+        from .optimization import nested_pits,pit_mesh
+        model=self.project.workspace.get('block_model')
+        if not model:raise ValueError('Эхлээд блок модель үүсгэнэ үү.')
+        settings=self.params('Pit RF — 5000 хүртэл блок; инженерийн хяналт шаардлагатай',{
+            'Density t/m3':2.7,'Price / grade-unit / tonne':100,'Recovery 0–1':.9,
+            'Mining cost / tonne':3,'Processing cost / tonne':12,'Slope degrees':45,
+            'RF start':.30,'RF end':1.20,'RF step':.05})
+        if not settings:return
+        model=deepcopy(model)
+        keys=('Density t/m3','Price / grade-unit / tonne','Recovery 0–1',
+              'Mining cost / tonne','Processing cost / tonne','Slope degrees','RF start','RF end','RF step')
+        def work(cancel,progress):
+            report=nested_pits(model,*[float(settings[k]) for k in keys],cancel=cancel,progress=progress)
+            meshes=[]
+            for scenario in report['scenarios']:
+                if cancel():raise RuntimeError('Pit RF cancelled.')
+                if scenario['selected_indices']:
+                    mesh=pit_mesh(model,scenario['selected_indices'])
+                    mesh['name']=f"RF {scenario['revenue_factor']:.2f} pit"
+                    meshes.append(mesh)
+            return report,meshes
+        def apply(result):
+            report,meshes=result;p=deepcopy(self.project)
+            p.workspace.setdefault('meshes',[]).extend(meshes)
+            p.workspace.setdefault('engineering_runs',[]).append({'tool':'Pit RF sensitivity','report':report})
+            self.commit(p)
+            self.show_rows('Pit-by-pit RF / инженерийн хяналт хийгдээгүй',[
+                {k:v for k,v in row.items() if k in ('revenue_factor','net_value','base_price_net_value',
+                'selected_blocks','mined_tonnes','processed_tonnes','nested_with_previous')}
+                for row in report['scenarios']])
+            self.chart('Pit-by-pit — base price',report['scenarios'],'revenue_factor','base_price_net_value')
+        self.launch_task('Pit RF…',work,apply,with_progress=True)
 
     def add_mesh(self,mesh,report=None):
         p=deepcopy(self.project);p.workspace.setdefault('meshes',[]).append(mesh)
