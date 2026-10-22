@@ -73,11 +73,14 @@ def prepare(root, dist):
         for path in sorted((root / 'release').glob('*')):
             if path.is_file():
                 archive.write(path, 'release/' + path.name)
-        for name in ('README.md', 'CHANGELOG.md', 'ACCEPTANCE.md', 'MICROMINE_SCOPE.md', 'DESIGN.md', 'docs/BRANDBOOK.mn.md',
-                     'assets/brandbook-2026.jpg', 'assets/rainymine-brand.svg', 'assets/brandmark.png',
-                     'assets/splash.svg', 'assets/splash-new.png', 'assets/splash-background.jpg', 'docs/TOOLS.mn.md'):
-            if (root / name).is_file():
-                archive.write(root / name, name)
+        for name in ('README.md','CHANGELOG.md','ACCEPTANCE.md','MICROMINE_SCOPE.md','DESIGN.md',
+                     'DEVELOPMENT_REFERENCE.md','GEOBANK_SQL.md','ROADMAP.md','assets/brandbook-2026.jpg',
+                     'assets/rainymine-brand.svg','assets/brandmark.png','assets/splash.svg',
+                     'assets/splash-new.png','assets/splash-background.jpg'):
+            if (root/name).is_file():archive.write(root/name,name)
+        for folder in ('docs','examples'):
+            for path in sorted((root/folder).rglob('*')):
+                if path.is_file():archive.write(path,path.relative_to(root).as_posix())
         for path in sorted(list((root / 'assets').glob('*LICENSE*')) + list((root / 'assets').glob('*NOTICES*'))):
             archive.write(path, 'third-party/' + path.name)
         archive.write(inventory_path, inventory_path.name)

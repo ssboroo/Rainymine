@@ -1,3 +1,11 @@
+# 1.0.0-rc.1 — 2026-10-22
+
+- Integrate block CSV/rotated leaves, lazy result tables, schedule audits and production foundations without losing either reference comparison workflow.
+- Add atomic portable .rmpack archives with SQLite backup snapshots, SHA256 inventory, bounded safe extraction and relocated database links.
+- Preserve mapped density/domain and typed extra attributes; retain source text values and leading-zero identifiers. Apply per-block density to tonnage-grade reporting with explicit fallback.
+- Drive build/installer names from checked application version and generate numeric Inno version metadata.
+- Keep draft/prerelease flags and existing production-readiness blockers explicit.
+
 # Production foundations — 2026-10-22
 
 - Recover never-saved projects from atomic per-session snapshots; preserve v1/v2/v3 migration.
@@ -7,6 +15,22 @@
 - Add linked SQLite regular block stores with streamed IDW, persistent transactional undo/redo, totals, sampled 3D previews and full CSV/metadata ZIP export; benchmark the one-million-block workflow on Linux and Windows CI.
 - Add ordered planar shear/parallel-contact classification, layer-isolated restored-coordinate IDW, vertex snapping edits, stockpile mass-balance replay and gradient-band haulage.
 - Keep owner credentials, independent deposit sign-off, physical-device validation and general geological/dispatch solvers explicitly pending.
+
+
+# Rotated leaf exchange and verification — 2026-10-22
+
+- Extend CSV exchange with explicit ENU orientation, parent origin/size and bounded freeform leaf validation; reject overlap and parent-boundary crossing.
+- Add external geometry/NULL/grade comparison with explicit reference orientation, coverage, volume and model/reference hashes; independent sign-off remains pending.
+- Add separate row-level capacity/precedence/feed/NPV audit to joint blend MILP, and prevent task-supplied period from overriding solver decisions.
+- Invalidate stale block-derived reports on import; add UI flow and rotated VTK geometry tests.
+- Add reproducible synthetic 50k CPU CSV import benchmark; no GPU/FPS or real-mine certification claim.
+
+# Production migration baseline — 2026-10-22
+
+- Add strict mapped parent-block CSV import with projected-metre CRS confirmation, NULL preservation, finite values, uniform grid and duplicate checks.
+- Connect cancellable background UI import, undoable model replacement, slice reset and source SHA256/mapping report.
+- Add synthetic save/load and cutoff/volume/tonnage acceptance tests and production-readiness criteria.
+- Scope: unrotated uniform parent blocks only; native Micromine DAT and source classification/extra attributes are not imported.
 
 # Documentation refresh — 2026-10-22
 

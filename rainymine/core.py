@@ -263,11 +263,14 @@ def atomic_write(path,text):
     finally:
         if os.path.exists(temp):os.unlink(temp)
 
-def save_project(path,project):
+def project_text(project):
     text=json.dumps(project.to_dict(),ensure_ascii=False,indent=2,allow_nan=False)
     if len(text.encode('utf-8'))>MAX_FILE:
         raise ValueError('Төслийн хэмжээ 32 MB-аас их байна. Өгөгдлөө жижиг төслүүдэд хуваана уу.')
-    atomic_write(path,text)
+    return text
+
+def save_project(path,project):
+    atomic_write(path,project_text(project))
 
 def load_project(path):
     if Path(path).stat().st_size>MAX_FILE:raise ValueError('Төсөл 32 MB-аас их байна.')

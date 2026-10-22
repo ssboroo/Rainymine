@@ -187,6 +187,13 @@ def verify_foundations():
             assert abs(store.totals()['contained_metal_tonnes']-432)<1e-8
             store.edit(0,1,2.7,'smoke');assert store.undo();assert store.undo(True)
             store.export_bundle(root/'blocks.zip')
+        from .project_pack import export_project_pack,import_project_pack
+        project=Project(name='Portable smoke',crs_code='EPSG:32648',grade_unit='%')
+        project.workspace['disk_block_stores']=[str(path)]
+        export_project_pack(root/'portable.rmpack',project)
+        portable,project_path,_=import_project_pack(root/'portable.rmpack',root/'restored')
+        with DiskModel(portable.workspace['disk_block_stores'][0]) as store:assert store.count()==8
+        assert project_path.is_file()
     ledger=stockpile_ledger([dict(period=1,pile='A',received_t=100,received_grade=2,reclaimed_t=50,capacity_t=200)],'%',100,200)
     assert abs(ledger['metal_balance_error_t'])<1e-10
     restored=restore_planar_slip([[1,0,20]],[dict(point=[0,0,0],normal=[1,0,0],slip=[0,0,10])])

@@ -67,7 +67,8 @@ class Scene:
             coords.extend(p for string in project.workspace.get('strings',[]) for p in string['points'])
         self.origin=tuple(sum(p[i] for p in coords)/len(coords) for i in range(3)) if coords else (0,0,0)
         rock_codes={name:i+1 for i,name in enumerate(sorted({a.rock for a in project.lithology}))}
-        self.grade_max=max(1,len(rock_codes)) if self.mode=='lithology' else max(1,max((a.grade for a in project.assays),default=1))
+        block_grades=[b['grade'] for b in project.workspace.get('block_model',{}).get('blocks',[]) if b.get('grade') is not None]
+        self.grade_max=max(1,len(rock_codes)) if self.mode=='lithology' else max(1,max((a.grade for a in project.assays),default=1),max(block_grades,default=1))
         self.lut.SetTableRange(0,self.grade_max);self.legend.SetTitle('Rock code' if self.mode=='lithology' else project.grade_unit)
         points=vtk.vtkPoints();points.SetDataTypeToDouble();lines=vtk.vtkCellArray();scalars=vtk.vtkFloatArray();scalars.SetName('grade')
         collars=vtk.vtkPoints();collars.SetDataTypeToDouble()
