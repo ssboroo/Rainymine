@@ -11,7 +11,7 @@ python scripts/build_native.py
 if ($LASTEXITCODE -ne 0) { throw 'Native kernel build failed' }
 python -m unittest discover -s tests -v
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed' }
-python -m PyInstaller --noconfirm --clean --windowed --onedir --name Rainymine --icon assets\rainymine.ico --collect-all vtkmodules --collect-data pyproj --collect-data ezdxf --hidden-import vtkmodules.qt.QVTKRenderWindowInteractor --hidden-import pyodbc --hidden-import rainymine_core --collect-submodules scipy.optimize --collect-all pyarrow --collect-all manifold3d --collect-all rasterio --collect-all fiona --collect-all jsonschema --collect-all jsonschema_specifications --collect-all laspy --collect-all lazrs --hidden-import shapefile --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --add-data "examples;examples" --add-data "assets;assets" main.py
+python -m PyInstaller --noconfirm --clean --windowed --onedir --name Rainymine --icon assets\rainymine.ico --collect-all vtkmodules --collect-data pyproj --collect-data ezdxf --hidden-import vtkmodules.qt.QVTKRenderWindowInteractor --hidden-import pyodbc --hidden-import rainymine_core --collect-submodules scipy.optimize --collect-all pyarrow --collect-all shapely --collect-all manifold3d --collect-all rasterio --collect-all fiona --collect-all jsonschema --collect-all jsonschema_specifications --collect-all laspy --collect-all lazrs --hidden-import shapefile --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module PySide2 --add-data "examples;examples" --add-data "assets;assets" main.py
 if ($LASTEXITCODE -ne 0) { throw 'Executable build failed' }
 & "$PSScriptRoot\sign_windows.ps1" -Path 'dist\Rainymine\Rainymine.exe' -Required:$Production
 Copy-Item README.md dist\Rainymine\README.md

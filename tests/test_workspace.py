@@ -67,7 +67,8 @@ class WorkspaceLayoutTests(unittest.TestCase):
     def test_reference_layout_retains_real_data_and_help(self):
         window = self.make_window()
         self.assertEqual([window.ribbon.tabText(i) for i in range(window.ribbon.count())],
-                         ['Төсөл', 'Өрөмдлөг', 'Геологи', 'Блок загвар', 'Уурхайн төлөвлөлт', 'Харагдац'])
+                         ['Төсөл', 'Өрөмдлөг', 'Геологи', 'Блок загвар', 'Уурхайн төлөвлөлт', 'Харагдац',
+                          'Геостатистик','Өдөр тутмын ажил','Хэвлэлт','Автоматжуулалт'])
         self.assertEqual(window.project_pages.count(), 3)
         self.assertEqual(window.block_model.rowCount(), len(window.project.workspace['block_model']['blocks']))
         self.assertIs(window.block_model.blocks, window.project.workspace['block_model']['blocks'])

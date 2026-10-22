@@ -87,6 +87,16 @@ class Estimator:
         gamma_model(1,0,1,1,self.variogram_model)
         self.variogram=(float(params.get('nugget',0)),float(params.get('partial_sill',1)),float(params.get('range_m',100)))
         if self.minimum_holes>self.k:raise ValueError('Minimum holes нь neighbors-оос их байж болохгүй.')
+        self.high_grade=params.get('high_grade_restriction')
+        if self.high_grade is not None:
+            threshold=float(self.high_grade['threshold']);radius=float(self.high_grade['radius_m'])
+            if not math.isfinite(threshold) or threshold<=0 or not math.isfinite(radius) or radius<=0:raise ValueError('High-grade restriction requires positive threshold and radius')
+            self.high_grade={'threshold':threshold,'radius_m':radius}
+        self.dynamic=None
+        if params.get('dynamic_anisotropy'):
+            from .geostat_tools import DynamicOrientation
+            self.dynamic=DynamicOrientation(params['dynamic_anisotropy'])
+        self.world_tree=cKDTree(self.xyz) if self.dynamic else None
         self._within_cache={}
         gamma_spherical(1,*self.variogram)
         self.covariance_ranges=params.get('variogram_ranges')
@@ -96,10 +106,17 @@ class Estimator:
             if self.covariance_ranges.shape!=(3,) or not np.isfinite(self.covariance_ranges).all() or (self.covariance_ranges<=0).any():
                 raise ValueError('Variogram-ийн 3 range эерэг байна.')
 
-    def semivariance(self,delta):
+    def restricted_values(self,point,indices):
+        values=self.values[indices].copy()
+        if self.high_grade:
+            outside=np.linalg.norm(self.xyz[indices]-point,axis=1)>self.high_grade['radius_m']
+            values[outside]=np.minimum(values[outside],self.high_grade['threshold'])
+        return values
+
+    def semivariance(self,delta,basis=None):
         if self.covariance_ranges is None:
             return gamma_model(np.linalg.norm(delta,axis=-1),*self.variogram,self.variogram_model)
-        distance=np.linalg.norm((np.asarray(delta)@self.covariance_basis)/self.covariance_ranges,axis=-1)
+        distance=np.linalg.norm((np.asarray(delta)@(self.covariance_basis if basis is None else basis))/self.covariance_ranges,axis=-1)
         return gamma_model(distance,self.variogram[0],self.variogram[1],1.,self.variogram_model)
 
     def predict(self,point,excluded=None,exclude_hole=None,support_offsets=None):
@@ -111,23 +128,30 @@ class Estimator:
         if offsets.ndim!=2 or offsets.shape[1]!=3 or not 1<=len(offsets)<=64 or not np.isfinite(offsets).all():
             raise ValueError('Block support 1…64 XYZ offset байна.')
         if self.restore_fault_slip and (len(offsets)!=1 or np.any(offsets!=0)):raise ValueError('Fault slip restoration currently supports point targets only')
+        basis=self.dynamic.at(point) if self.dynamic else self.basis
+        covariance_basis=basis if self.dynamic else self.covariance_basis
+        semivariance=lambda delta:self.semivariance(delta,covariance_basis)
         diagnostics={'kriging_efficiency':None,'slope_of_regression':None,'block_variance':None}
         targets=point+offsets
-        candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
+        if self.dynamic:
+            sphere=self.world_tree.query_ball_point(point,float(self.radii.max()))
+            candidate=[i for i in sphere if np.linalg.norm(((self.xyz[i]-point)@basis)/self.radii)<=1+1e-12]
+        else:candidate=self.tree.query_ball_point(((point-self.origin)@basis)/self.radii,1.)
         candidate=[i for i in candidate if self.zones[i]==zone and i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
-        ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point) if self.method=='nearest' else ((self.xyz[i]-point)@self.basis)/self.radii)),i))
+        ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point) if self.method=='nearest' else ((self.xyz[i]-point)@basis)/self.radii)),i))
         candidate=[];hole_counts={}
         for i in ordered:
             hole=self.samples[i]['hole_id']
             if hole_counts.get(hole,0)>=self.max_per_hole:continue
             candidate.append(i);hole_counts[hole]=hole_counts.get(hole,0)+1
             if len(candidate)==self.k:break
-        if len(candidate)<self.minimum or len(hole_counts)<self.minimum_holes:return {'grade':None,'variance':None,'neighbors':len(candidate),'status':'insufficient_support'}
-        xyz=self.xyz[candidate];values=self.values[candidate];d=np.linalg.norm(xyz-point,axis=1)
+        support_diagnostics={'distinct_holes':len(hole_counts),'nearest_sample_distance_m':float(np.linalg.norm(self.xyz[candidate]-point,axis=1).min()) if candidate else None}
+        if len(candidate)<self.minimum or len(hole_counts)<self.minimum_holes:return {'grade':None,'variance':None,'neighbors':len(candidate),**support_diagnostics,'status':'insufficient_support'}
+        xyz=self.xyz[candidate];values=self.restricted_values(point,candidate);d=np.linalg.norm(xyz-point,axis=1)
         exact=np.flatnonzero(d<1e-9)
         if len(offsets)==1 and np.all(offsets==0) and len(exact):
             kriging=self.method in ('kriging','simple_kriging')
-            return {'grade':float(values[exact[0]]),'variance':0. if kriging else None,'neighbors':len(candidate),'status':'exact_sample',
+            return {'grade':float(values[exact[0]]),'variance':0. if kriging else None,'neighbors':len(candidate),**support_diagnostics,'status':'exact_sample',
                     'kriging_efficiency':1. if kriging else None,'slope_of_regression':1. if kriging else None,'block_variance':sum(self.variogram[:2]) if kriging else None}
         if self.method in ('idw','nearest'):
             target_distances=np.linalg.norm(xyz[:,None,:]-targets[None,:,:],axis=2)
@@ -141,42 +165,42 @@ class Estimator:
             grade=float(np.mean(predictions));variance=None
         elif self.method=='simple_kriging':
             sill=sum(self.variogram[:2]);n=len(candidate)
-            covariance=sill-self.semivariance(xyz[:,None,:]-xyz[None,:,:])
-            rhs=sill-self.semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1)
-            within=float(self.semivariance(offsets[:,None,:]-offsets[None,:,:]).mean())
+            covariance=sill-semivariance(xyz[:,None,:]-xyz[None,:,:])
+            rhs=sill-semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1)
+            within=float(semivariance(offsets[:,None,:]-offsets[None,:,:]).mean())
             try:
                 if np.linalg.cond(covariance)>1e12:raise np.linalg.LinAlgError('ill-conditioned')
                 weights=np.linalg.solve(covariance,rhs)
-            except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,'status':'singular_kriging_system'}
+            except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,**support_diagnostics,'status':'singular_kriging_system'}
             grade=float(self.mean+np.dot(weights,values-self.mean));variance=float(sill-within-np.dot(weights,rhs))
-            if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,'status':'invalid_variance'}
+            if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,**support_diagnostics,'status':'invalid_variance'}
             variance=max(0.,variance)
         else:
             n=len(candidate)
-            matrix=np.ones((n+1,n+1));matrix[:n,:n]=self.semivariance(xyz[:,None,:]-xyz[None,:,:]);matrix[n,n]=0
-            rhs=np.r_[self.semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1),1.]
-            key=offsets.tobytes()
+            matrix=np.ones((n+1,n+1));matrix[:n,:n]=semivariance(xyz[:,None,:]-xyz[None,:,:]);matrix[n,n]=0
+            rhs=np.r_[semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1),1.]
+            key=offsets.tobytes()+(covariance_basis.tobytes() if self.dynamic else b'')
             if key not in self._within_cache:
                 if len(self._within_cache)>64:self._within_cache.clear()
-                self._within_cache[key]=float(self.semivariance(offsets[:,None,:]-offsets[None,:,:]).mean())
+                self._within_cache[key]=float(semivariance(offsets[:,None,:]-offsets[None,:,:]).mean())
             within=self._within_cache[key]
             try:
                 if np.linalg.cond(matrix)>1e12:raise np.linalg.LinAlgError('ill-conditioned')
                 solution=np.linalg.solve(matrix,rhs)
-            except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,'status':'singular_kriging_system'}
+            except np.linalg.LinAlgError:return {'grade':None,'variance':None,'neighbors':n,**support_diagnostics,'status':'singular_kriging_system'}
             grade=float(np.dot(solution[:n],values));variance=float(np.dot(solution[:n],rhs[:n])+solution[n]-within)
-            if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,'status':'invalid_variance'}
+            if variance< -1e-8 or not math.isfinite(variance):return {'grade':None,'variance':None,'neighbors':n,**support_diagnostics,'status':'invalid_variance'}
             variance=max(0.,variance)
         if self.method in ('kriging','simple_kriging'):
             sill=sum(self.variogram[:2]);block_variance=sill-within
             w=weights if self.method=='simple_kriging' else solution[:n]
-            covariance=sill-self.semivariance(xyz[:,None,:]-xyz[None,:,:])
-            cross=sill-self.semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1)
+            covariance=sill-semivariance(xyz[:,None,:]-xyz[None,:,:])
+            cross=sill-semivariance(xyz[:,None,:]-targets[None,:,:]).mean(axis=1)
             prediction_variance=float(w@covariance@w)
             diagnostics={'kriging_efficiency':1.-variance/block_variance if block_variance>1e-12 else None,
                          'slope_of_regression':float(w@cross)/prediction_variance if prediction_variance>1e-12 else None,
                          'block_variance':float(block_variance)}
-        return {'grade':grade,'variance':variance,'neighbors':len(candidate),'status':'estimated',**diagnostics}
+        return {'grade':grade,'variance':variance,'neighbors':len(candidate),**support_diagnostics,'status':'estimated',**diagnostics}
 
 
 def make_blocks(bounds,size,domain=None,grid_angles=None):
@@ -217,13 +241,16 @@ def estimate_model(project,bounds,size,params,domain=None,cancel=None,progress=N
         if discretization!=[1,1,1]:raise ValueError('Rust backend currently supports point support only')
         from .native_engine import rust_predictions
         predictions=rust_predictions(estimator,[[b[k] for k in 'xyz'] for b in blocks],cancel,progress)
-        for block,prediction in zip(blocks,predictions):block.update(prediction)
+        for block,prediction in zip(blocks,predictions):
+            block.update(prediction)
+            if block.get('grade') is not None:block['estimation_pass']=1
     elif params.get('backend','python')=='python':
         for i,b in enumerate(blocks):
             if cancel and cancel():raise RuntimeError('Тооцоог цуцаллаа. Өмнөх төсөл өөрчлөгдөөгүй.')
             axes=[((np.arange(n)+.5)/n-.5)*b[key] for n,key in zip(discretization,('dx','dy','dz'))]
             offsets=np.array(np.meshgrid(*axes,indexing='ij')).reshape(3,-1).T@grid_basis.T
             b.update(estimator.predict((b['x'],b['y'],b['z']),support_offsets=offsets))
+            if b.get('grade') is not None:b['estimation_pass']=1
             if progress and i%50==0:progress(i,len(blocks))
     else:raise ValueError('Unknown estimation backend')
     if progress:progress(len(blocks),len(blocks))

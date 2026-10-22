@@ -1,0 +1,30 @@
+{
+  "kind": "normal_controls",
+  "maximum_distance_m": 100,
+  "controls": [
+    {
+      "xyz": [
+        0,
+        0,
+        0
+      ],
+      "normal": [
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "xyz": [
+        100,
+        0,
+        0
+      ],
+      "normal": [
+        1,
+        0,
+        1
+      ]
+    }
+  ]
+}

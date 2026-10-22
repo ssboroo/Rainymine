@@ -17,6 +17,7 @@ from .i18n import tr, language, set_language, UiLocalizer
 from .ribbon import RibbonButton
 from .ebmz_ui import EbmzTools
 from .v2_ui import V2Tools
+from .product_tools import ProductTools
 
 
 class BlockTableModel(QAbstractTableModel):
@@ -88,7 +89,7 @@ from .srs_ui import SrsTools
 from .pro_tools import ProTools
 
 
-class WorkspaceWorkbench(EbmzTools, V2Tools, ProTools, SrsTools, AdvancedWorkbench):
+class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
         self.labels_visible = False
@@ -403,6 +404,7 @@ class WorkspaceWorkbench(EbmzTools, V2Tools, ProTools, SrsTools, AdvancedWorkben
         self.ribbon.currentChanged.connect(lambda _: self.fit_ribbon_height())
         self.ribbon.tabBar().setUsesScrollButtons(True)
         self.ribbon.tabBar().setExpanding(False)
+        self.build_product_ribbon()
         self.fit_ribbon_height()
 
     def focus_search(self):

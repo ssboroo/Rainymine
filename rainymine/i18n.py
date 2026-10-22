@@ -373,3 +373,17 @@ CATALOG.update({
     'ЭБМЗ багц бэлэн':'EBMZ pack ready',
     'Хүснэгт, A4 тайлан, A3 зүсэлт, хяналтын жагсаалт үүслээ. Мэргэжилтний хяналт шаардлагатай.':'Tables, A4 report, A3 sections and review checklist exported. Professional review required.',
 })
+
+# Native engineering tool groups (source labels remain stable for command search).
+CATALOG.update({
+'Геостатистик':'Geostatistics','Агуулгын шинжилгээ':'Grade analysis','Top-cut шинжилгээ':'Top-cut analysis',
+'Өндөр агуулгын зай':'High-grade restriction','Локал модель':'Local model','Хувьсах эллипсоид':'Dynamic anisotropy',
+'Ангиллын санал':'Classification proposal','Өдөр тутмын ажил':'Daily operations','Хэмжилт ба хяналт':'Survey and control',
+'Өрөмдлөгийн тор':'Survey hole grid','Хүдэр / хоосон хил':'Ore / waste boundaries','Геотехник':'Geotechnical',
+'Хэвлэлт':'Plotting','Вектор зураг':'Vector maps','План / зүсэлт PDF':'Plan / section PDF','ЭБМЗ багц гаргах':'Export EBMZ draft pack',
+'Геологийн засвар':'Geological editing','Контакт / чиглүүлэгч':'Contact / guide editor','Автоматжуулалт':'Automation',
+'Локал копилот':'Local copilot','Блок шүүх / тооцох':'Filter / summarise blocks','QA/QC зөвлөх':'QA/QC advisor',
+'Аргачлалын ноорог':'Methodology draft','Бичлэг эхлэх':'Start recording','Бичлэг хадгалах':'Save recording',
+'Программын тусламж':'Application help','Төслийн өгөгдөл — зөвхөн унших':'Project data — read only',
+'Rainymine ашиглах, тохируулах болон төслийн өгөгдлийг зөвхөн уншиж шинжлэх туслах.\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.':'Help with Rainymine and read-only project analysis.\nProject data and chat history are not sent to cloud services.'
+})

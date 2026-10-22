@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "name": "Exploratory statistics — adjust to your deposit",
+  "steps": [
+    {
+      "tool": "validate",
+      "params": {}
+    },
+    {
+      "tool": "cap_analysis",
+      "params": {
+        "composite_length": 5,
+        "cap": 10
+      }
+    },
+    {
+      "tool": "decluster",
+      "params": {
+        "composite_length": 5,
+        "size": [
+          50,
+          50,
+          20
+        ]
+      }
+    }
+  ]
+}

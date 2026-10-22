@@ -193,5 +193,8 @@ def evaluate_controls(rows,blank_limit=.05,relative_limit=.2,z_limit=3):
             if other<0:raise ValueError('Хос сорьцын агуулга сөрөг.')
             statistic=0. if measured+other==0 else abs(measured-other)/((measured+other)/2);passed=statistic<=relative_limit
         else:raise ValueError(f'QA/QC төрөл дэмжигдэхгүй: {kind}')
-        result.append({'row':i,'sample_id':row.get('sample_id',''),'type':kind,'statistic':statistic,'passed':passed})
+        result.append({'row':i,'sample_id':row.get('sample_id',''),'type':kind,'statistic':statistic,'passed':passed,
+                       'lab':row.get('lab',''),'batch':row.get('batch',''),'measured':measured,
+                       'expected':float(row['expected']) if kind in ('standard','duplicate') else None,
+                       'sd':float(row['sd']) if kind=='standard' else None})
     return result

@@ -143,8 +143,9 @@ class LocalEngine:
             raw=response.read(1000001)
             if len(raw)>1000000:raise ValueError('Local AI response хэт их.')
             return json.loads(raw)
-    def complete(self,messages):
-        response=self.request('/v1/chat/completions',{'messages':messages,'temperature':0,'max_tokens':128,
+    def complete(self,messages,max_tokens=128):
+        if type(max_tokens)!=int or not 1<=max_tokens<=1024:raise ValueError('Local response token budget must be 1–1024')
+        response=self.request('/v1/chat/completions',{'messages':messages,'temperature':0,'max_tokens':max_tokens,
             'chat_template_kwargs':{'enable_thinking':False},'response_format':{'type':'json_object'}})
         return response['choices'][0]['message']['content']
     def stop(self):

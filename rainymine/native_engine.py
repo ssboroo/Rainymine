@@ -54,6 +54,7 @@ def rust_predictions(estimator,points,cancel=None,progress=None):
     are resolved before passing owned numeric arrays to native Rayon workers.
     """
     if estimator.method!='kriging' or estimator.variogram_model!='spherical':raise ValueError('Rust backend currently requires ordinary kriging / spherical variogram')
+    if estimator.dynamic is not None:raise ValueError('Dynamic orientation currently requires the Python backend; do not silently use a fixed Rust covariance frame')
     points=np.asarray(points,dtype=float)
     if points.ndim!=2 or points.shape[1]!=3 or not np.isfinite(points).all():raise ValueError('Invalid targets')
     original_points=points
@@ -81,10 +82,18 @@ def rust_predictions(estimator,points,cancel=None,progress=None):
                 if len(chosen)==estimator.k:break
             counts.append(len(chosen));good=len(chosen)>=estimator.minimum and len(holes)>=estimator.minimum_holes;supported.append(good)
             if good:ids[j,:len(chosen)]=chosen
-        result=np.asarray(kernel.ok_batch(np.ascontiguousarray(coords),np.ascontiguousarray(estimator.values),np.ascontiguousarray(targets[start:start+len(chunk)]),ids,*estimator.variogram[:2],range_m))
+        arguments=[np.ascontiguousarray(coords),np.ascontiguousarray(estimator.values),np.ascontiguousarray(targets[start:start+len(chunk)]),ids,*estimator.variogram[:2],range_m]
+        if estimator.high_grade:
+            capped=np.zeros(ids.shape,dtype=float)
+            for j,point in enumerate(chunk):
+                valid=ids[j]>=0;capped[j,valid]=estimator.restricted_values(point,ids[j,valid])
+            arguments.append(capped)
+        result=np.asarray(kernel.ok_batch(*arguments))
         if cancel and cancel():raise RuntimeError('Rust kriging cancelled')
         for j,row in enumerate(result):
             status=int(row[4]);record={'grade':None,'variance':None,'neighbors':counts[j],'status':'insufficient_support' if not supported[j] else 'singular_kriging_system' if status==2 else 'invalid_variance'}
+            valid=ids[j][ids[j]>=0]
+            record.update(distinct_holes=len({estimator.samples[i]['hole_id'] for i in valid}),nearest_sample_distance_m=float(np.linalg.norm(xyz[valid]-chunk[j],axis=1).min()) if len(valid) else None)
             if status==0:
                 exact=any(np.linalg.norm(xyz[i]-chunk[j])<1e-9 for i in ids[j] if i>=0)
                 record.update(grade=float(row[0]),variance=float(row[1]),kriging_efficiency=float(row[2]),slope_of_regression=float(row[3]) if np.isfinite(row[3]) else None,block_variance=sum(estimator.variogram[:2]),status='exact_sample' if exact else 'estimated')
