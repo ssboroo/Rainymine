@@ -42,6 +42,8 @@ jobs:
           "RAINYMINE_AI_SMOKE_MODEL=$model" >> $env:GITHUB_ENV
       - name: Geometry, file and scene tests
         run: python -m unittest discover -s tests -v
+      - name: One million disk blocks create estimate undo export benchmark
+        run: python scripts/benchmark_disk_workflow.py --side 100 --output windows-disk-workflow.json
       - name: Toolbar layout at 150 and 200 percent scaling
         shell: pwsh
         run: |
@@ -73,6 +75,7 @@ jobs:
         run: |
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\Rainymine.iss
           if ($LASTEXITCODE -ne 0) { throw 'Installer build failed' }
+          & ./scripts/sign_windows.ps1 -Path '.\dist\Rainymine-0.9.0-Setup-x64.exe'
       - name: Verify silent install and installed executable
         shell: pwsh
         run: |
@@ -80,6 +83,14 @@ jobs:
           $setup = Start-Process '.\dist\Rainymine-0.9.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
           if (-not $setup.WaitForExit(60000)) { $setup.Kill(); throw 'Install timed out' }
           if ($setup.ExitCode -ne 0) { throw 'Install failed' }
+          $userProject = Join-Path $env:RUNNER_TEMP 'Rainymine-upgrade-sentinel.rmine'
+          Copy-Item examples/demo.rmine $userProject
+          $projectHash = (Get-FileHash $userProject -Algorithm SHA256).Hash
+          # Reinstall into the same directory to exercise the upgrade path.
+          $again = Start-Process '.\dist\Rainymine-0.9.0-Setup-x64.exe' -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',"/DIR=$dest" -PassThru
+          if (-not $again.WaitForExit(60000)) { $again.Kill(); throw 'Reinstall timed out' }
+          if ($again.ExitCode -ne 0) { throw 'Reinstall failed' }
+          if ((Get-FileHash $userProject -Algorithm SHA256).Hash -ne $projectHash) { throw 'Upgrade modified user project' }
           $app = Start-Process (Join-Path $dest 'Rainymine.exe') -ArgumentList '--smoke' -PassThru
           if (-not $app.WaitForExit(180000)) { $app.Kill(); throw 'Installed app smoke test timed out' }
           if ($app.ExitCode -ne 0) { throw 'Installed app failed' }
@@ -89,6 +100,7 @@ jobs:
           $remove = Start-Process (Join-Path $dest 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
           if (-not $remove.WaitForExit(60000)) { $remove.Kill(); throw 'Uninstall timed out' }
           if ($remove.ExitCode -ne 0 -or (Test-Path (Join-Path $dest 'Rainymine.exe'))) { throw 'Uninstall failed' }
+          if ((Get-FileHash $userProject -Algorithm SHA256).Hash -ne $projectHash) { throw 'Uninstall modified user project' }
       - uses: actions/upload-artifact@v4
         with:
           name: Rainymine-Windows-x64
@@ -98,6 +110,7 @@ jobs:
             windows-smoke.png
             windows-smoke-en.png
             windows-startup.png
+            windows-disk-workflow.json
           if-no-files-found: error
       - name: Upload full offline AI portable
         uses: actions/upload-artifact@v4
@@ -119,6 +132,7 @@ jobs:
             windows-smoke-en.png
             windows-startup.png
             dist/Rainymine/*.log
+            windows-disk-workflow.json
           if-no-files-found: ignore
 
       - name: Upload release documents and checksums

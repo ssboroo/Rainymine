@@ -5,6 +5,8 @@ from pathlib import Path
 import csv
 import hashlib
 import math
+import json
+import zlib
 from .core import finite, Collar, Survey, Assay, Lithology, Structure, Geotech
 
 SCHEMAS={
@@ -25,17 +27,34 @@ def parse_cell(kind,field,raw):
     value=float(raw);finite(value);return value
 
 class History:
-    """Bounded full-project snapshots; edits are validated before commit."""
-    def __init__(self,limit=20):self.undo_items=[];self.redo_items=[];self.limit=limit
+    """Compressed snapshots bounded by both count and retained byte budget.
+
+    This bounds retained history, not the temporary memory needed by an edit.
+    Disk-backed block transactions remain a separate architecture milestone.
+    """
+    def __init__(self,limit=20,max_bytes=64*1024*1024):
+        if type(limit)!=int or limit<1 or type(max_bytes)!=int or max_bytes<1:raise ValueError('History budget must be positive')
+        self.undo_items=[];self.redo_items=[];self.limit=limit;self.max_bytes=max_bytes
+    def pack(self,project):
+        return zlib.compress(json.dumps(project.to_dict(),ensure_ascii=False,allow_nan=False,separators=(',',':')).encode('utf-8'),1)
+    def unpack(self,data):
+        from .core import Project
+        return Project.from_dict(json.loads(zlib.decompress(data)))
+    @property
+    def retained_bytes(self):return sum(len(data) for _,data in self.undo_items+self.redo_items)
+    def trim(self,stack):
+        while len(stack)>self.limit or (stack and self.retained_bytes>self.max_bytes):stack.pop(0)
     def apply(self,current,candidate,label):
-        candidate.validate();self.undo_items.append((label,deepcopy(current)))
-        self.undo_items=self.undo_items[-self.limit:];self.redo_items=[];return candidate
+        candidate.validate();self.redo_items=[];self.undo_items.append((label,self.pack(current)))
+        self.trim(self.undo_items);return candidate
     def undo(self,current):
         if not self.undo_items:return current
-        label,p=self.undo_items.pop();self.redo_items.append((label,deepcopy(current)));return p
+        label,p=self.undo_items.pop();restored=self.unpack(p)
+        self.redo_items.append((label,self.pack(current)));self.trim(self.redo_items);return restored
     def redo(self,current):
         if not self.redo_items:return current
-        label,p=self.redo_items.pop();self.undo_items.append((label,deepcopy(current)));return p
+        label,p=self.redo_items.pop();restored=self.unpack(p)
+        self.undo_items.append((label,self.pack(current)));self.trim(self.undo_items);return restored
 
 def validate_mapping(kind, mapping, headers=None):
     """Require complete, one-to-one mappings; never silently remap a profile."""

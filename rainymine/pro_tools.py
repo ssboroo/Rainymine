@@ -5,9 +5,10 @@ import csv
 import numpy as np
 from PySide6.QtWidgets import QFileDialog,QMessageBox,QDialog,QVBoxLayout,QLabel,QPushButton,QHBoxLayout
 from .background import Task
+from .foundation_ui import FoundationTools
 
 
-class ProTools:
+class ProTools(FoundationTools):
     def build_pro_menu(self):
         self._engineering_tasks=[];self._preview_dialogs=[];self._gizmo=None
         menu=self.menuBar().addMenu('Мэргэжлийн хэрэгсэл')
@@ -23,6 +24,7 @@ class ProTools:
                 action=self.action(submenu,title,lambda cb=callback:self.guard(cb));action.setProperty('toolCategory',name)
                 from .icons import semantic_icon,icon
                 action.setIcon(semantic_icon(title,icon('gear')))
+        self.build_foundation_menu(menu)
 
     def launch_task(self,title,operation,apply):
         if self._engineering_tasks:raise ValueError('Ажиллаж буй тооцоогоо дуусгах эсвэл цуцална уу.')

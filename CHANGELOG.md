@@ -1,3 +1,13 @@
+# Production foundations — 2026-10-22
+
+- Recover never-saved projects from atomic per-session snapshots; preserve v1/v2/v3 migration.
+- Bound compressed project history by retained bytes and step count.
+- Add explicit signing/readiness/update verification tools and same-path reinstall CI.
+- Add native workflow observations and HTML/JSON reference reports with dimensions, density, domain, tonnage and contained-metal comparisons.
+- Add linked SQLite regular block stores with streamed IDW, persistent transactional undo/redo, totals, sampled 3D previews and full CSV/metadata ZIP export; benchmark the one-million-block workflow on Linux and Windows CI.
+- Add ordered planar shear/parallel-contact classification, layer-isolated restored-coordinate IDW, vertex snapping edits, stockpile mass-balance replay and gradient-band haulage.
+- Keep owner credentials, independent deposit sign-off, physical-device validation and general geological/dispatch solvers explicitly pending.
+
 # Documentation refresh — 2026-10-22
 
 - Rewrite README around current desktop workflows and explicit format limits.

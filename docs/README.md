@@ -4,6 +4,7 @@
 
 | Хэрэгцээ | Заавар |
 |---|---|
+| Recovery, дискэн блок сан, шинэ workflow / инженерийн модулиуд | [Production foundations](PRODUCTION_FOUNDATIONS.mn.md) |
 | Суулгах / шинэчлэх / устгах | [Quick start](../release/QUICK_START.mn.md) |
 | Анхны импорт, хадгалалт, тооцоо, алдаа засах | [Ашиглах заавар](USER_GUIDE.mn.md) |
 | Бүх бүртгэлтэй shortcut, хулгана | [Shortcut](SHORTCUTS.mn.md) |

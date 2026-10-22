@@ -40,6 +40,7 @@ def verify_licensing():
 
 def verify(project):
     verify_licensing()
+    verify_foundations()
     from .cad import boolean_mesh
     from .mine_design import spiral_ramp,drill_ring
     from .formats import las_preview,read_dem
@@ -169,6 +170,27 @@ def verify(project):
             assert answer('Rainymine ашиглаад хайрын шүлэг бич',engine)==(OUT_OF_SCOPE,None)
         finally:engine.stop()
     return [implicit,envelope]
+
+
+def verify_foundations():
+    from .disk_model import DiskModel
+    from .recovery import RecoveryStore
+    from .acceptance_tools import stockpile_ledger,restore_planar_slip
+    with TemporaryDirectory() as directory:
+        root=Path(directory);recovery=RecoveryStore(root/'recovery','packaged')
+        recovery.write(Project(name='Хадгалаагүй'))
+        restored,_=recovery.read(recovery.path);assert restored.name=='Хадгалаагүй'
+        path=root/'blocks.rmdb';DiskModel.create(path,[500000,5300000,1400],[2,2,2],[10,10,10],'EPSG:32648','%',2.7)
+        with DiskModel(path) as store:
+            result=store.estimate_idw([[500005,5300005,1405,2]],100,1,1)
+            assert result['estimated']==8
+            assert abs(store.totals()['contained_metal_tonnes']-432)<1e-8
+            store.edit(0,1,2.7,'smoke');assert store.undo();assert store.undo(True)
+            store.export_bundle(root/'blocks.zip')
+    ledger=stockpile_ledger([dict(period=1,pile='A',received_t=100,received_grade=2,reclaimed_t=50,capacity_t=200)],'%',100,200)
+    assert abs(ledger['metal_balance_error_t'])<1e-10
+    restored=restore_planar_slip([[1,0,20]],[dict(point=[0,0,0],normal=[1,0,0],slip=[0,0,10])])
+    assert restored[0,2]==10
 
 
 def verify_professional_ui(window):
