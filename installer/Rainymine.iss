@@ -1,8 +1,10 @@
-#define AppVersion "0.9.0"
+#include "..\dist\Version.iss"
 [Setup]
 AppId={{9D7D9D47-CBAB-4076-85B0-4660DF0A9951}
 AppName=RAINYMINE
 AppVersion={#AppVersion}
+VersionInfoVersion={#AppNumericVersion}
+VersionInfoProductVersion={#AppNumericVersion}
 AppPublisher=RAINY STUDIO
 DefaultDirName={localappdata}\Programs\Rainymine
 DefaultGroupName=RAINYMINE

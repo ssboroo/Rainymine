@@ -1,4 +1,4 @@
-# Мэдэгдэж буй хязгаар — 0.9.0
+# Мэдэгдэж буй хязгаар — 1.0.0-rc.1
 
 - Туршилтын, UNCLASSIFIED үр дүн. Бодит ордын хараат бус reference, геологичийн дүгнэлт байхгүй.
 - Одоогийн нэмэлт боломж, хязгаарын эх сурвалж: [мэргэжлийн урсгал](../docs/PROFESSIONAL_WORKFLOWS.mn.md), [OMF/GeoPackage](../docs/OPEN_EXCHANGE.mn.md), [DH CSV](../docs/DH_IMPORT.mn.md).

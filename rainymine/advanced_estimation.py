@@ -84,12 +84,15 @@ def blend_schedule(tasks,mining_capacity,processing_capacity,periods,minimum_gra
     if solved.x is None:raise ValueError('Solver incumbent алга: '+solved.message)
     selected=np.rint(solved.x)
     if np.max(abs(selected-solved.x))>1e-5 or np.any(a@selected>upper+1e-6) or np.any(a@selected<lower-1e-6):raise ValueError('MILP residual failed.')
-    scheduled=[{'period':t+1,**task} for i,task in enumerate(tasks) for t in range(periods) if selected[i*periods+t]>.5]
+    scheduled=[{**task,'period':t+1} for i,task in enumerate(tasks) for t in range(periods) if selected[i*periods+t]>.5]
     periods_report=[]
     for t in range(1,periods+1):
         chosen=[task for task in scheduled if task['period']==t];feed=sum(task['process_tonnes'] for task in chosen)
         periods_report.append({'period':t,'mined_tonnes':sum(task['tonnes'] for task in chosen),'feed_tonnes':feed,
                                'feed_grade':sum(task['process_tonnes']*task['grade'] for task in chosen)/feed if feed else None})
-    return {'rows':scheduled,'periods':periods_report,'optimal':solved.status==0,'mip_gap':float(solved.mip_gap),
+    from .schedule_audit import audit_blend_schedule
+    audit=audit_blend_schedule(tasks,scheduled,mining_capacity,processing_capacity,periods,minimum_grade,maximum_grade,discount)
+    if not audit['passed']:raise ValueError('Independent row feasibility audit failed: '+str(audit['violations']))
+    return {'feasibility_audit':audit,'rows':scheduled,'periods':periods_report,'optimal':solved.status==0,'mip_gap':float(solved.mip_gap),
             'npv':float(-objective@selected),'unselected':[t['id'] for t in tasks if t['id'] not in {r['id'] for r in scheduled}],
             'scope':'joint optional extraction and same-period processing/blend; no stockpile'}

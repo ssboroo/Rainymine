@@ -291,10 +291,17 @@ def tonnage_grade(model,density,cutoffs):
     finite(density,*cutoffs)
     if density<=0 or any(c<0 for c in cutoffs):raise ValueError('Density > 0 т/м³, cutoff ≥ 0 байна.')
     rows=[];blocks=model['blocks'];total=sum(b['dx']*b['dy']*b['dz'] for b in blocks)
+    def mass(block):
+        rho=block.get('density')
+        rho=density if rho is None else rho
+        finite(rho)
+        if rho<=0:raise ValueError('Блокийн нягт эерэг байна.')
+        return block['dx']*block['dy']*block['dz']*rho
+    for block in blocks:mass(block)
     for cutoff in cutoffs:
         selected=[b for b in blocks if b.get('grade') is not None and b['grade']>=cutoff]
-        volume=sum(b['dx']*b['dy']*b['dz'] for b in selected);tonnes=volume*density
-        metal=sum(b['dx']*b['dy']*b['dz']*density*b['grade'] for b in selected)
+        volume=sum(b['dx']*b['dy']*b['dz'] for b in selected);tonnes=sum(mass(b) for b in selected)
+        metal=sum(mass(b)*b['grade'] for b in selected)
         missing=sum(b['dx']*b['dy']*b['dz'] for b in blocks if b.get('grade') is None)
-        rows.append({'cutoff':cutoff,'volume_m3':volume,'density_t_m3':density,'tonnes':tonnes,'mean_grade':metal/tonnes if tonnes else None,'unestimated_volume_m3':missing,'total_volume_m3':total,'classification':'UNCLASSIFIED; block-centre boundary approximation'})
+        rows.append({'cutoff':cutoff,'volume_m3':volume,'density_t_m3':tonnes/volume if volume else None,'fallback_density_t_m3':density,'density_basis':'per-block density; fallback for NULL','tonnes':tonnes,'mean_grade':metal/tonnes if tonnes else None,'unestimated_volume_m3':missing,'total_volume_m3':total,'classification':'UNCLASSIFIED; block-centre boundary approximation'})
     return rows

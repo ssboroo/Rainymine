@@ -11,7 +11,7 @@ class ProTools(FoundationTools):
     def build_pro_menu(self):
         self._engineering_tasks=[];self._preview_dialogs=[];self._gizmo=None
         menu=self.menuBar().addMenu('Мэргэжлийн хэрэгсэл')
-        groups=[('DH өгөгдөл',[('DH CSV багц импорт…',self.dh_import_dialog),('DH эх хүснэгт / CSV экспорт…',self.dh_source_browser),('DH сорьцын элемент солих…',self.dh_change_channel)]),('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
+        groups=[('Блок өгөгдөл',[('Micromine / CSV блок импорт…',self.block_csv_import),('Гадаад блок геометр / агуулга харьцуулах…',self.block_reference_check)]),('DH өгөгдөл',[('DH CSV багц импорт…',self.dh_import_dialog),('DH эх хүснэгт / CSV экспорт…',self.dh_source_browser),('DH сорьцын элемент солих…',self.dh_change_channel)]),('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
                 ('Файл / GIS',[('Surpac STR импорт…',self.surpac_import),('Surpac STR экспорт…',self.surpac_export),('Surpac ASCII DTM импорт…',self.surpac_dtm_import),('SHP импорт…',self.shapefile_import),('GeoTIFF DEM импорт…',self.dem_import),('LAS/LAZ шүүлт ба экспорт…',self.lidar_export),('DWG → DXF adapter…',self.dwg_import)]),
                 ('Геологи / Үнэлгээ',[('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
                 ('Уурхайн зураг төсөл',[('Спираль ramp…',self.ramp_dialog),('Шугамаар малталтын сүлжээ…',self.network_dialog),('Өрөмдлөгийн ring / fan…',self.ring_dialog),('Stope box MILP…',self.stope_dialog)]),
@@ -58,6 +58,76 @@ class ProTools(FoundationTools):
                 for row in report['scenarios']])
             self.chart('Pit-by-pit — base price',report['scenarios'],'revenue_factor','base_price_net_value')
         self.launch_task('Pit RF…',work,apply,with_progress=True)
+
+    def block_csv_import(self):
+        from .block_csv import read_block_csv, KEYS
+        path,_=QFileDialog.getOpenFileName(self,'Блок CSV — parent / rotated / sub-block','','CSV (*.csv)')
+        if not path:return
+        if Path(path).stat().st_size>32_000_000:raise ValueError('CSV 32 MB-аас их байна.')
+        with open(path,encoding='utf-8-sig',newline='') as stream:
+            headers=next(csv.reader(stream),[])
+        if not headers or len(headers)>256:raise ValueError('CSV header алга / хэт олон баганатай.')
+        geometry_settings=self.params('CSV геометр — vendor өнцгийг автоматаар хөрвүүлэхгүй',{'Geometry':['World-axis uniform parents','Explicit rotated / sub-block grid'],'Metadata rows after header':0})
+        if not geometry_settings:return
+        skip_rows=int(geometry_settings['Metadata rows after header'])
+        geometry=None
+        if geometry_settings['Geometry']=='Explicit rotated / sub-block grid':
+            config=self.params('RAINYMINE ENU: azimuth хойноос CW; dip дээш эерэг; roll local X',{'Origin X':0,'Origin Y':0,'Origin Z':0,'Parent X':10,'Parent Y':10,'Parent Z':10,'Azimuth':90,'Dip':0,'Roll':0})
+            if not config:return
+            geometry={'origin':[float(config['Origin '+a]) for a in 'XYZ'],'parent_size':[float(config['Parent '+a]) for a in 'XYZ'],'angles':[float(config[k]) for k in ('Azimuth','Dip','Roll')]}
+        defaults={key:([key]+[h for h in headers if h!=key] if key in headers else headers) for key in KEYS}
+        settings=self.params('Блокийн төв XYZ, хэмжээ DX/DY/DZ, агуулгын багана',defaults)
+        if not settings:return
+        attributes={};unused=[h for h in headers if h not in settings.values()]
+        if unused:
+            extra=self.params('Блокийн нэмэлт баганууд',{'Нягтын багана':['—']+unused,'Домэйны багана':['—']+unused,'Бусад багана':['Текстээр хадгалах','Оруулахгүй']})
+            if not extra:return
+            density=extra['Нягтын багана'];domain=extra['Домэйны багана']
+            if density!='—':attributes['density']={'column':density,'kind':'number','unit':'t/m3'}
+            if domain!='—':attributes['domain']={'column':domain,'kind':'text','unit':''}
+            if density==domain and density!='—':raise ValueError('Нягт / домэйн тусдаа багана байна.')
+            if extra['Бусад багана']=='Текстээр хадгалах':
+                for column in unused:
+                    if column not in (density,domain):attributes['source:'+column]={'column':column,'kind':'text','unit':''}
+        if QMessageBox.question(self,'Импортын нөхцөл',
+                'Эх CSV-ийн XYZ нь дэлхийн координат дахь төв, DX/DY/DZ нь local grid хэмжээ метрээр өгөгдсөн үү?\n'
+                'Геометр: '+geometry_settings['Geometry']+' · skipped metadata: '+str(skip_rows)+'\n'
+                'CRS: '+self.project.crs_code+' · Агуулгын нэгж: '+self.project.grade_unit+'\n'
+                'Нэгж / CRS автоматаар хөрвүүлэхгүй. Нэмэлт багана: '+str(len(attributes))+'\n'
+                'Одоогийн блок модель солигдоно. Нөөцийн ангиллыг UNCLASSIFIED болгоно.')!=QMessageBox.StandardButton.Yes:return
+        crs=self.project.crs_code;unit=self.project.grade_unit
+        def apply(result):
+            model,report=result
+            p=deepcopy(self.project);p.workspace['block_model']=model
+            p.workspace.pop('block_slice_positions',None)
+            stale=('tonnage_grade','schedule','optimization','stope_box_optimization','joint_blend_schedule','external_benchmark')
+            report['invalidated_workspace_results']=[key for key in stale if key in p.workspace]
+            for key in stale:p.workspace.pop(key,None)
+            p.workspace['block_display']='blocks'
+            p.workspace.setdefault('engineering_runs',[]).append(report)
+            from .core import project_text
+            project_text(p)  # Reject unsavable desktop projects before replacing active data.
+            self.commit(p)
+            QMessageBox.information(self,'Блок CSV импорт',f"{report['blocks']} блок; {report['null_grades']} хоосон агуулга.\n"
+                                    +'Оруулаагүй багана: '+', '.join(report['extra_columns']))
+        self.launch_task('Блок CSV унших…',lambda cancel:read_block_csv(path,settings,crs,unit,cancel=cancel,geometry=geometry,skip_rows=skip_rows,attributes=attributes),apply)
+
+    def block_reference_check(self):
+        from .benchmark import compare_block_geometry
+        model=deepcopy(self.project.workspace.get('block_model'))
+        if not model:raise ValueError('Блок модель алга.')
+        path,_=QFileDialog.getOpenFileName(self,'Гадаад reference — x,y,z,dx,dy,dz,grade','','CSV (*.csv)')
+        if not path:return
+        config=self.params('Reference RAINYMINE ENU өнцөг ба хүлцэл — инженерийн баталгаа биш',{'Reference azimuth':90,'Reference dip':0,'Reference roll':0,'Coordinate tolerance m':.001,'Dimension tolerance m':.001,'Grade absolute':.001,'Grade relative':.01})
+        if not config:return
+        angles=[float(config['Reference '+k]) for k in ('azimuth','dip','roll')]
+        def apply(report):
+            p=deepcopy(self.project);p.workspace.setdefault('engineering_runs',[]).append({'tool':'External block geometry reference','report':report})
+            self.commit(p)
+            QMessageBox.information(self,'Reference comparison','Numerical pass: '+str(report['numerical_pass'])+'\nIndependent review: PENDING')
+            self.show_rows('Geometry / grade reference',report['rows'])
+        self.launch_task('Reference харьцуулах…',lambda cancel:compare_block_geometry(model,path,angles,cancel=cancel,**dict(zip(('coordinate_tolerance','dimension_tolerance','grade_absolute','grade_relative'),[float(config[k]) for k in ('Coordinate tolerance m','Dimension tolerance m','Grade absolute','Grade relative')]))),apply)
+
 
     def add_mesh(self,mesh,report=None):
         p=deepcopy(self.project);p.workspace.setdefault('meshes',[]).append(mesh)

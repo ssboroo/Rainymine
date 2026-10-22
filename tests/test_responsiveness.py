@@ -100,14 +100,14 @@ class ResponsiveMenus(unittest.TestCase):
         with self.assertRaises(RuntimeError):implicit_surface(samples,[0,0,0,1,1,1],.5,5,neighbors=4,cancel=lambda:True)
 
     def test_large_report_only_fetches_requested_rows(self):
-        from rainymine.report_table import ReportModel,ReportDialog
+        from rainymine.results_table import ResultTableModel,ResultsDialog
         class Rows:
             def __len__(self):return 50000
             def __getitem__(self,index):return {'grade':index,'missing':None}
             def __iter__(self):raise AssertionError('Eager report materialization')
-        rows=Rows();model=ReportModel(rows,['grade','missing']);self.assertIs(model.rows,rows)
-        self.assertEqual(model.rowCount(),50000);self.assertEqual(model.data(model.index(49999,0)),'49999');self.assertEqual(model.data(model.index(0,1)),'—')
-        dialog=ReportDialog(None,['grade','missing'],rows,'Report');self.addCleanup(dialog.close)
+        rows=Rows();model=ResultTableModel(['grade','missing'],rows);self.assertIs(model.rows,rows)
+        self.assertEqual(model.rowCount(),50000);self.assertEqual(model.data(model.index(49999,0)),'49999');self.assertEqual(model.data(model.index(0,1)),'')
+        dialog=ResultsDialog(None,['grade','missing'],rows,'Report');self.addCleanup(dialog.close)
         self.assertEqual(dialog.table.model().rowCount(),50000)
 
     def test_cross_validation_reports_progress_and_can_cancel(self):

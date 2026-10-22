@@ -1,12 +1,12 @@
-# RAINYMINE 0.9.0 — суулгах, эхлэх заавар
+# RAINYMINE 1.0.0-rc.1 — суулгах, эхлэх заавар
 
 [Ашиглах дэлгэрэнгүй заавар](../docs/USER_GUIDE.mn.md) · [Бүх shortcut](../docs/SHORTCUTS.mn.md) · [Баримтын индекс](../docs/README.md)
 
 ## 1. Тохирох багцаа сонгох
 
-- Ердийн суулгалт: `Rainymine-0.9.0-Setup-x64.exe`.
-- Суулгахгүй ашиглах: `Rainymine-0.9.0-Windows-x64.zip`.
-- Моделийг дахин татахгүй, оффлайн ашиглах: `Rainymine-0.9.0-AI-Offline-x64.zip`.
+- Ердийн суулгалт: `Rainymine-1.0.0-rc.1-Setup-x64.exe`.
+- Суулгахгүй ашиглах: `Rainymine-1.0.0-rc.1-Windows-x64.zip`.
+- Моделийг дахин татахгүй, оффлайн ашиглах: `Rainymine-1.0.0-rc.1-AI-Offline-x64.zip`.
 
 EXE багцад Python, Ollama эсвэл API key тусад нь хэрэггүй. Ердийн багцын AI модель анх татахад интернэт хэрэгтэй. Байгууллагын SQL холболт ашиглавал сервер болон тохирох ODBC driver тусдаа шаардлагатай.
 
@@ -15,7 +15,7 @@ EXE багцад Python, Ollama эсвэл API key тусад нь хэрэгг�
 `SHA256SUMS.txt`-ийг хамт татна. PowerShell-д жишээ нь:
 
 ```powershell
-Get-FileHash .\Rainymine-0.9.0-Setup-x64.exe -Algorithm SHA256
+Get-FileHash .\Rainymine-1.0.0-rc.1-Setup-x64.exe -Algorithm SHA256
 ```
 
 Гарсан утгыг checksum файл дахь яг ижил нэртэй файлын утгатай харьцуулна. Зөрвөл файлыг ажиллуулахгүй, дахин татаж шалгана. Hash нь тоон гарын үсэг биш.
