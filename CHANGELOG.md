@@ -1,3 +1,10 @@
+# Documentation refresh — 2026-10-22
+
+- Rewrite README around current desktop workflows and explicit format limits.
+- Document all 12 registered global shortcuts, contextual keys and mouse controls.
+- Add daily user guide, documentation and release indexes; refresh quick start, known issues and release notes.
+- Preserve previous detailed README as DEVELOPMENT_REFERENCE.md for technical history.
+
 # Readable workspace — 2026-10-22
 
 - Full Mongolian/English command captions in a measured two-row ribbon; horizontal overflow preserves access on narrow/high-DPI screens.
