@@ -4,6 +4,16 @@
 
 Монгол хэлд төвлөрсөн Windows x64 геологи, уурхайн ажлын программ. Энэ нь туршилтын түгээлт; Micromine-ийн бүрэн орлуулалт, баталгаажсан нөөцийн тайлан эсвэл батлагдсан уурхайн төлөвлөгөө биш.
 
+## Сүүлийн шинэчлэлтүүд — 2026-10-22
+
+- Бүтэн нэртэй хоёр мөрийн ribbon, хэвтээ гүйлгэх удирдлага, Ө/Ү дэмжих 3D фонт, эвхэгддэг / гүйлгэх блокийн шинж чанар; 150% / 200% layout шалгалт.
+- DH CSV bundle, long/pivot элемент ба нэгж сонголт, qualifier / NULL тайлан, portable эх архив, 200 мөрийн raw хүснэгт ба яг эх CSV экспорт.
+- OMF 2.0-beta.1 экспорт, GeoPackage vector солилцоо, CRS / нэгж / NULL metadata бүхий CSV–CAD ZIP.
+- CAD CSG / gizmo, нэмэлт формат, constrained RBF, IK / multipass, ramp / tunnel / ring, хязгаартай stope / blend MILP ба external preview.
+- README, [12 shortcut](../docs/SHORTCUTS.mn.md), [өдөр тутмын заавар](../docs/USER_GUIDE.mn.md), [баримтын индекс](../docs/README.md) шинэчлэгдсэн.
+
+Форматын нарийн хүрээ, scientific ба performance acceptance-ийг [мэргэжлийн урсгал](../docs/PROFESSIONAL_WORKFLOWS.mn.md), [DH](../docs/DH_IMPORT.mn.md), [солилцоо](../docs/OPEN_EXCHANGE.mn.md)-оос шалгана.
+
 ## Татах хувилбар
 
 | Файл | Зориулалт |
