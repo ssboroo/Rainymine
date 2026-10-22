@@ -18,7 +18,7 @@ class FoundationTools:
         return None if values is None else {key:values[display[key]] for key in fields}
 
     def build_foundation_menu(self,menu):
-        groups=[('Ажлын урсгал', [('Импорт → QA/QC → Үнэлгээ → Экспорт…',self.workflow_dialog)]),
+        groups=[('Төслийн багц',[('Төслийн бүрэн багц хадгалах…',self.project_pack_export),('Төслийн багц сэргээх…',self.project_pack_import)]),('Ажлын урсгал', [('Импорт → QA/QC → Үнэлгээ → Экспорт…',self.workflow_dialog)]),
                 ('Дискэн блок сан',[('Том блок сан үүсгэх…',self.disk_create),('Блок сан холбох…',self.disk_attach),('Дискэн IDW үнэлгээ…',self.disk_estimate),('Дискэн блок засах…',self.disk_edit),('Дискэн өөрчлөлт буцаах',lambda:self.disk_undo(False)),('Дискэн өөрчлөлт сэргээх',lambda:self.disk_undo(True)),('Дискэн блок 3D харах…',self.disk_preview),('Дискэн тонн / металл…',self.disk_totals),('Дискэн блок CSV экспорт…',self.disk_export)]),
                 ('Хяналттай инженерийн загвар',[('Давхарга / хавтгай хагарлын шилжилт…',self.stratigraphy_dialog),('Давхаргаар тусгаарласан IDW үнэлгээ…',self.stratigraphy_estimate_dialog),('Овоолго / дахин таталтын баланс…',self.stockpile_dialog),('Замын хэсэгчилсэн тээвэр…',self.segment_haul_dialog),('Зангилааг бусад шугамд тааруулах…',self.snap_edit_dialog)])]
         for title,commands in groups:
@@ -27,6 +27,32 @@ class FoundationTools:
                 action=self.action(submenu,label,lambda cb=callback:self.guard(cb));action.setProperty('toolCategory',title)
                 from .icons import semantic_icon,icon
                 action.setIcon(semantic_icon(label,icon('gear')))
+
+    def project_pack_export(self):
+        from .project_pack import export_project_pack
+        path,_=QFileDialog.getSaveFileName(self,'Төсөл + холбоотой блок сангийн snapshot','Project.rmpack','RAINYMINE project pack (*.rmpack)')
+        if not path:return
+        if not path.lower().endswith('.rmpack'):path+='.rmpack'
+        project=deepcopy(self.project)
+        self.launch_task('Төслийн багц хадгалж байна…',lambda cancel:export_project_pack(path,project,cancel),lambda report:self.statusBar().showMessage('Төслийн багц хадгаллаа: '+path))
+
+    def project_pack_import(self):
+        from .project_pack import import_project_pack
+        if self._engineering_tasks:raise ValueError('Эхлээд тооцоогоо дуусгана уу.')
+        if not self.may_discard():return
+        path,_=QFileDialog.getOpenFileName(self,'Төслийн багц сэргээх','','RAINYMINE project pack (*.rmpack)')
+        if not path:return
+        parent=QFileDialog.getExistingDirectory(self,'Шинэ төслийн эх хавтас')
+        if not parent:return
+        name,ok=QInputDialog.getText(self,'Шинэ хавтас','Шинэ төслийн хавтасны нэр',text=Path(path).stem)
+        if not ok:return
+        if not name or name in ('.','..') or any(c in name for c in '/\\:<>"|?*') or '\x00' in name:raise ValueError('Хавтасны нэр буруу.')
+        destination=Path(parent)/name
+        def apply(result):
+            from .data_tools import History
+            project,project_path,report=result
+            self.recovery.clear();self.history=History();self.project=project;self.path=str(project_path);self.dirty=False;self.refresh()
+        self.launch_task('Төслийн багц шалгаж сэргээж байна…',lambda cancel:import_project_pack(path,destination,cancel),apply)
 
     def workflow_dialog(self):
         from .i18n import language

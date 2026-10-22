@@ -54,6 +54,8 @@ class UnicodePackagingTests(unittest.TestCase):
             config = {'source_commit': 'fixture', 'draft': True, 'prerelease': True,
                       'version': '0.7.0', 'title': 'Шинэ ажлын талбар — Монгол', 'files': ['fixture.exe']}
             (root / 'release/config.json').write_text(json.dumps(config, ensure_ascii=False), encoding='utf-8')
+            (root/'docs').mkdir()
+            (root/'docs'/'V1_0.mn.md').write_text('RC заавар',encoding='utf-8')
             original = Path.read_text
             def strict_read(path, *args, **kwargs):
                 self.assertEqual(kwargs.get('encoding'), 'utf-8')
@@ -64,3 +66,6 @@ class UnicodePackagingTests(unittest.TestCase):
             self.assertEqual(manifest['title'], config['title'])
             self.assertFalse(manifest['production_ready'])
             self.assertTrue((dist / 'SHA256SUMS.txt').exists())
+            with zipfile.ZipFile(dist/'Rainymine-0.7.0-Release-Kit.zip') as kit:
+                self.assertEqual(kit.read('docs/V1_0.mn.md').decode('utf-8'),'RC заавар')
+                self.assertEqual(len(kit.namelist()),len(set(kit.namelist())))

@@ -1,4 +1,6 @@
-# RAINYMINE 2026 · 0.9.0
+# RAINYMINE 2026 · 1.0.0-rc.1
+
+**v1.0 release candidate:** [Шинэ боломж, турших дараалал ба үлдсэн release шалгуур](docs/V1_0.mn.md). Эцсийн үйлдвэрлэлийн баталгаа биш.
 
 **Монгол / English хэлтэй, Windows x64 дээр интернэтгүй ажиллах геологи, 3D загварчлал ба уурхайн тооцооны программ.** PySide6 + VTK native desktop. RAINY STUDIO · Лиценз, дэмжлэг: **90220101**.
 
@@ -6,14 +8,14 @@
 
 ## Татах, суулгах
 
-[Windows build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтын artifacts, эсвэл [Releases](https://github.com/ssboroo/Rainymine/releases)-д бодитоор нийтлэгдсэн assets-ийг сонгоно. Ижил `0.9.0` нэртэй багцууд өөр commit агуулж болох тул build-ийн огноо, commit болон manifest-ийг шалгана.
+[Windows build](https://github.com/ssboroo/Rainymine/actions/workflows/windows.yml)-ийн хамгийн сүүлийн **амжилттай** ажиллуулалтын artifacts, эсвэл [Releases](https://github.com/ssboroo/Rainymine/releases)-д бодитоор нийтлэгдсэн assets-ийг сонгоно. Ижил `1.0.0-rc.1` нэртэй багцууд өөр commit агуулж болох тул build-ийн огноо, commit болон manifest-ийг шалгана.
 
 | Багц | Зориулалт |
 |---|---|
-| `Rainymine-0.9.0-Setup-x64.exe` | Ердийн Windows суулгагч |
-| `Rainymine-0.9.0-Windows-x64.zip` | Бүхлээр нь задалж ажиллуулах portable |
-| `Rainymine-0.9.0-AI-Offline-x64.zip` | AI модель хамт багтсан offline portable |
-| `Rainymine-0.9.0-Release-Kit.zip` | Заавар, шаардлага, түгээлтийн бүртгэл |
+| `Rainymine-1.0.0-rc.1-Setup-x64.exe` | Ердийн Windows суулгагч |
+| `Rainymine-1.0.0-rc.1-Windows-x64.zip` | Бүхлээр нь задалж ажиллуулах portable |
+| `Rainymine-1.0.0-rc.1-AI-Offline-x64.zip` | AI модель хамт багтсан offline portable |
+| `Rainymine-1.0.0-rc.1-Release-Kit.zip` | Заавар, шаардлага, түгээлтийн бүртгэл |
 
 EXE-д Python, Ollama, API key тусад нь хэрэггүй. Үндсэн тооцоо интернэтгүй ажиллана. Ердийн багцын AI анхны таталт, эх кодын dependency таталт интернэт шаарддаг; SQL холболтод байгууллагын сервер хэрэгтэй. SHA256 нь файлын бүрэн бүтэн байдлыг шалгана; Windows суулгагч одоогоор тоон гарын үсэггүй.
 
@@ -67,7 +69,7 @@ DWG хөрвүүлэлт нь тусдаа суулгасан ODA хэрэгсл
 - Үндсэн төсөл `.rmine` format v3; хуучин v1/v2 уншина. Форматын дээд хэмжээ 32 MB. DH эх файлууд шахсан архивтайгаа төсөлд багтана.
 - Үндсэн scientific өгөгдөлд 5,000 амсар, 100,000 мөр, 50,000 блокийн хязгаар бий. DH эх архивын хязгаар тусдаа; [DH зааврыг](docs/DH_IMPORT.mn.md) мөрдөнө.
 - Том Parquet/LAS харагдац нь хязгаартай preview/ROI ашиглана. 10 сая блок / 50 сая цэгийг бүрэн ачаалж 60 FPS ажиллана гэж баталгаажаагүй.
-- Хадгалсан, өөрчлөгдсөн төсөлд хоёр минут тутам `.rmine.autosave` нөөц үүсгэнэ. Анх хадгалаагүй төсөлд нөөц үүсэхгүй. **Ctrl+S**-ийг тогтмол хэрэглэнэ.
+- Хадгалаагүй шинэ төсөл ч dirty үед хоёр минут тутам per-session recovery snapshot-тай. Өмнөх `.rmine.autosave` нь хадгалсан төсөлд нэмэлт нөөц. **Ctrl+S**-ийг тогтмол хэрэглэнэ.
 - Үр дүн нь мэргэжлийн хяналт шаардана; JORC / NI 43-101 / ЭБМЗ ангиллыг автоматаар баталгаажуулахгүй.
 - Windows CI нь build, тест, EXE/суулгалтын smoke шалгана. Бүх бодит Windows 10/11 төхөөрөмж, GPU болон уурхайн reference acceptance дуусаагүй.
 
@@ -102,3 +104,7 @@ Dependency-ийн тогтоосон хувилбарууд `requirements.txt`-�
 [Баримтын индекс](docs/README.md) · [Шинэчлэлтийн түүх](CHANGELOG.md) · [Түгээлтийн тэмдэглэл](release/RELEASE_NOTES.mn.md) · [Дэмжлэгийн маягт](release/SUPPORT_TEMPLATE.mn.md) · [Брэндбүүк](docs/BRANDBOOK.mn.md)
 
 [Өмнөх дэлгэрэнгүй техникийн лавлагаа](DEVELOPMENT_REFERENCE.md) — түүхэн тайлбар; шинэ модулийн зааврыг давхар мөрдөнө.
+
+## Үйлдвэрлэлийн түвшний хөгжүүлэлт
+
+[Acceptance ба эхний блок CSV импорт](docs/PRODUCTION_READINESS.mn.md): Micromine-оос CSV болгон гаргасан блокийг mapping, CRS/нэгжийн баталгаа, NULL ба geometry шалгалттай оруулна. Explicit origin/parent size/RAINYMINE ENU angles-аар эргэлттэй freeform sub-block дэмжинэ; vendor Euler metadata-г таахгүй. Гадаад reference-ийн geometry/NULL/grade comparator, joint-blend schedule-ийн тусдаа feasibility аудиттай. Density/domain-ийг тусад нь mapping хийж, бусад баганыг source text attributes хэлбэрээр хадгална. Native DAT reader дэмжихгүй.

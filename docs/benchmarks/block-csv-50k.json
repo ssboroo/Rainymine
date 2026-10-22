@@ -1,0 +1,12 @@
+{
+  "operation": "explicit parent geometry CSV import",
+  "blocks": 50000,
+  "elapsed_seconds": 2.802,
+  "bytes": 1600022,
+  "source_sha256": "34122836d6248cb7944208a535fb3f249f0dddcb647603a7a6d5b3e60fc1ba40",
+  "python": "3.12.14",
+  "system": "Linux",
+  "numpy": "2.3.5",
+  "pyproj": "3.8.0",
+  "scope": "synthetic CPU import only; not GPU FPS, not real mine acceptance"
+}

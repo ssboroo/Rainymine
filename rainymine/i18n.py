@@ -342,3 +342,5 @@ def set_language(code, root=None, persist=True):
         for widget in app.topLevelWidgets():
             if root is not None:
                 root.localizer.apply(widget)
+
+CATALOG.update({'Төслийн багц':'Project bundle','Төслийн бүрэн багц хадгалах…':'Save complete project bundle…','Төслийн багц сэргээх…':'Restore project bundle…'})

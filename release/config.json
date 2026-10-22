@@ -1,16 +1,16 @@
 {
   "product": "RAINYMINE 2026",
-  "version": "0.9.0",
-  "tag": "v0.9.0-preview.4",
-  "title": "RAINYMINE 2026 — 0.9.0 · Монгол / English · Брэндийн шинэ ажлын орчин",
+  "version": "1.0.0-rc.1",
+  "tag": "v1.0.0-rc.1",
+  "title": "RAINYMINE 2026 — 1.0.0 RC1 · Төслийн багц, блок импорт, дискэн сан",
   "source_commit": "CURRENT_BUILD",
   "source_tree": null,
   "source_run_id": null,
   "source_run_url": null,
   "files": [
-    "Rainymine-0.9.0-Setup-x64.exe",
-    "Rainymine-0.9.0-Windows-x64.zip",
-    "Rainymine-0.9.0-AI-Offline-x64.zip"
+    "Rainymine-1.0.0-rc.1-Setup-x64.exe",
+    "Rainymine-1.0.0-rc.1-Windows-x64.zip",
+    "Rainymine-1.0.0-rc.1-AI-Offline-x64.zip"
   ],
   "draft": true,
   "prerelease": true,
