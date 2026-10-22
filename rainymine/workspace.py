@@ -15,6 +15,7 @@ from .icons import brand_icon, semantic_icon
 from .presentation import CommandPalette
 from .i18n import tr, language, set_language, UiLocalizer
 from .ribbon import RibbonButton
+from .ebmz_ui import EbmzTools
 
 
 class BlockTableModel(QAbstractTableModel):
@@ -86,7 +87,7 @@ from .srs_ui import SrsTools
 from .pro_tools import ProTools
 
 
-class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
+class WorkspaceWorkbench(EbmzTools, ProTools, SrsTools, AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
         self.labels_visible = False
@@ -144,6 +145,9 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.build_ribbon()
         self.build_srs_menu()
         self.build_pro_menu()
+        report_menu = self.menuBar().addMenu('ЭБМЗ тайлан')
+        self.action(report_menu, 'ЭБМЗ багц гаргах', self.ebmz_export)
+        self.action(report_menu, 'Тайлангийн тохиргоо…', lambda:self.guard(self.ebmz_settings))
         # Reuse every existing layer/section control instead of replacing behavior.
         original = [dock for dock in self.findChildren(QDockWidget) if dock not in (self.layer_dock, self.support)]
         project_dock, section_dock, table_dock = original[:3]
@@ -284,6 +288,16 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.build_view_tools()
 
     def build_ribbon(self):
+        report_group = QGroupBox('ЭБМЗ тайлан')
+        report_layout = QHBoxLayout(report_group)
+        for title, callback in [('ЭБМЗ багц гаргах', self.ebmz_export),
+                                ('Тайлангийн тохиргоо…', lambda:self.guard(self.ebmz_settings))]:
+            command = RibbonButton()
+            command.setText(title)
+            command.setIcon(icon('file'))
+            command.clicked.connect(callback)
+            report_layout.addWidget(command)
+        self.ribbon.widget(3).layout().addWidget(report_group)
         # Integrate advanced tools into the six categories shown in the reference.
         advanced = self.ribbon.widget(7)
         extra_groups = {}

@@ -214,3 +214,8 @@
 - Strict reviewed-help-ID output; no arbitrary generated instructions, project access, file changes, commands or general chat.
 - Localhost-only authenticated process, no proxy/redirect, no cloud inference or API credentials.
 - Offline manual help when model unavailable; scope, invalid output, asset integrity and process-boundary tests.
+# Unreleased — ЭБМЗ хяналтын багц
+
+- Нэг удаагийн тохиргооны дараа нэг товчоор хүснэгт, A4 тайлан, A3 блокийн XZ/YZ зүсэлт, хяналтын жагсаалт, SHA-256 manifest гаргана.
+- Масштаб, нягтын эх үүсвэр, дутуу өгөгдөл, CRS болон баталгаажуулалтын төлөвийг ил тод тэмдэглэнэ. Ангилал, нягтыг зохиож бөглөхгүй.
+- Эргүүлээгүй, санах ой дахь 200,000 хүртэл блок дэмжинэ. Албан маягтын бүрэн нийцэл болон Windows хэвлэлийн баталгаа хийгдээгүй.

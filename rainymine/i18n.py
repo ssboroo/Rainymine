@@ -350,3 +350,20 @@ CATALOG.update({'Муруй хагарлын сүлжээ JSON…':'Curved fault
 CATALOG.update({'Шинж':'Properties','Шинж ба туслах':'Properties and help','3D эсвэл хүснэгтээс блок сонгоно уу.':'Select a block in 3D or the table.'})
 
 CATALOG.update({'Тоо':'Count','Эзлэхүүн (м³)':'Volume (m³)','Төлөв':'Status'})
+
+CATALOG.update({
+    'ЭБМЗ тайлан':'EBMZ reports', 'ЭБМЗ багц гаргах':'Export EBMZ pack',
+    'Тайлангийн тохиргоо…':'Report settings…',
+    'ЭБМЗ багцын тохиргоо — хянах төсөл':'EBMZ pack settings — review draft',
+    'Ашигт малтмал':'Commodity', 'Байгууллага':'Company',
+    'Тусгай зөвшөөрлийн дугаар':'Licence number', 'Боловсруулсан':'Prepared by',
+    'Хянасан':'Reviewed by', 'Заагийн агуулга':'Cutoff grade',
+    'Орлуулах нягт т/м³ (хоосон = хэрэглэхгүй)':'Fallback density t/m³ (blank = none)',
+    'A3 масштаб (auto эсвэл 1000 гэх мэт)':'A3 scale (auto or e.g. 1000)',
+    'YZ зүсэлтийн X (хоосон = загварын төв)':'YZ section X (blank = model centre)',
+    'XZ зүсэлтийн Y (хоосон = загварын төв)':'XZ section Y (blank = model centre)',
+    'Тайлангийн багц хадгалах үндсэн хавтас':'Report pack output folder',
+    'ЭБМЗ хяналтын багц үүсгэж байна…':'Building EBMZ review pack…',
+    'ЭБМЗ багц бэлэн':'EBMZ pack ready',
+    'Хүснэгт, A4 тайлан, A3 зүсэлт, хяналтын жагсаалт үүслээ. Мэргэжилтний хяналт шаардлагатай.':'Tables, A4 report, A3 sections and review checklist exported. Professional review required.',
+})
