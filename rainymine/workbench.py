@@ -184,8 +184,8 @@ class Workbench(Window):
         return {k:(w.currentText() if isinstance(w,QComboBox) else w.text()) for k,w in inputs.items()}
     def show_rows(self,title,rows):
         if not rows:QMessageBox.information(self,title,'Өгөгдөл / анхааруулга алга.');return
-        columns=list(dict.fromkeys(k for row in rows for k in row));dlg=GridDialog(self,columns,rows,title);dlg.box.button(QDialogButtonBox.StandardButton.Save).setText('CSV экспорт')
-        dlg.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        from .results_table import ResultsDialog
+        columns=list(dict.fromkeys(k for row in rows for k in row));dlg=ResultsDialog(self,columns,rows,title)
         def save():
             path=self.destination(title,'csv')
             if path:self.guard(lambda:write_records(path,rows,columns))

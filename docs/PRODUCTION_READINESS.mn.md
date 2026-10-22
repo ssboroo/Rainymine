@@ -57,3 +57,7 @@ Joint mining/feed blend MILP нь сонгосон мөрүүдийг solver м�
 ## Native DAT-ийн төлөв
 
 Бие даасан native DAT decoder **хэрэгжээгүй**. Micromine-ийн [MMpy.BlockModel.open](https://webhelp.micromine.com/mm/24.5/English/Content/mmpython/MMpy-BlockModel-open.htm) нь Micromine орчны API бөгөөд RAINYMINE-д бие даан ажиллах reader гэж үзэхгүй. Дараагийн ажилд DAT-ийн хувилбар/төрөл, дагалдах файлууд, лицензтэй SDK буюу хэрэгжүүлэхэд хангалттай форматын баримт, мөн reference экспорт ба нууцлалгүй бодит жишээ шаардлагатай. Одоогийн шилжүүлэх зам нь CSV / DXF зэрэг солилцооны формат.
+
+### Том тайлангийн хүснэгт
+
+Read-only тооцооны тайланг QAbstractTableModel / QTableView-ээр харуулна. Нүд бүрт QTableWidgetItem үүсгэхгүй; дэлгэцэд шаардлагатай утгыг хүсэх үед уншина. CSV экспорт бүтэн үр дүнг гаргана. Editable scientific grid тусдаа хэвээр. Сая мөрийн виртуал эх дээрх model тест нь индекс/NULL/0-ийг шалгасан болохоос сая блокийн 3D FPS буюу бүх өгөгдлийн RAM SLA-г батлаагүй.
