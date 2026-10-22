@@ -23,3 +23,5 @@ SRS баримтууд нь хэрэгжилтийн үеийн тайлбар. 
 [Үйлдвэрлэлийн acceptance ба блок CSV импорт](PRODUCTION_READINESS.mn.md)
 
 [1.0 RC боломж, хүлээн авах шалгуур](V1_0.mn.md)
+
+- [Native pseudoflow, муруй fault network, Rust kriging](NATIVE_ENGINES.mn.md)

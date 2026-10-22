@@ -36,7 +36,7 @@ def maximum_closure(values, precedences, time_limit=30):
             'precedence_count':len(edges),'discounted':False,'scheduling_included':False}
 
 
-def economic_pit(model,density,price_per_grade_tonne,recovery,mining_cost,processing_cost,slope=45):
+def economic_pit(model,density,price_per_grade_tonne,recovery,mining_cost,processing_cost,slope=45,backend='milp'):
     """Uniform complete rectangular parent blocks; conservative square slope stencil.
 
     Price is currency per (one project grade-unit * tonne). No inferred %/g/t conversion.
@@ -49,7 +49,9 @@ def economic_pit(model,density,price_per_grade_tonne,recovery,mining_cost,proces
     if model.get('subblock_levels',0) or not np.allclose(model_basis(model),np.eye(3),atol=1e-10):
         raise ValueError('Pit optimizer нь world-axis parent grid шаарддаг; rotated/sub-block дэмжихгүй.')
     blocks=model['blocks']
-    if not 1<=len(blocks)<=5000:raise ValueError('Pit optimizer 5000 хүртэл блок дэмжинэ.')
+    if backend not in ('milp','pseudoflow'):raise ValueError('Unknown pit backend')
+    limit=5000 if backend=='milp' else 50000
+    if not 1<=len(blocks)<=limit:raise ValueError(f'Pit optimizer limit: {limit}')
     size=np.asarray([blocks[0][a] for a in ('dx','dy','dz')],dtype=float)
     if not np.isfinite(size).all() or (size<=0).any():raise ValueError('Блокийн хэмжээ буруу.')
     lookup={};origin=None
@@ -69,9 +71,9 @@ def economic_pit(model,density,price_per_grade_tonne,recovery,mining_cost,proces
     counts=[max(k[a] for k in lookup)+1 for a in range(3)]
     if math.prod(counts)!=len(blocks):raise ValueError('Pit optimizer бүтэн тэгш өнцөгт grid шаарддаг.')
     radius=size[2]/math.tan(math.radians(slope));nx=math.ceil(radius/size[0]-1e-10);ny=math.ceil(radius/size[1]-1e-10)
-    if len(blocks)*(2*nx+1)*(2*ny+1)>250000:raise ValueError('Налуугийн precedence хэт олон; grid-ийг өөрчилнө үү.')
+    if backend=='milp' and len(blocks)*(2*nx+1)*(2*ny+1)>250000:raise ValueError('Налуугийн precedence хэт олон; grid-ийг өөрчилнө үү.')
     edges=[]
-    for (i,j,k),index in lookup.items():
+    for (i,j,k),index in (lookup.items() if backend=='milp' else []):
         if k==counts[2]-1:continue
         for di in range(-nx,nx+1):
             for dj in range(-ny,ny+1):
@@ -81,7 +83,14 @@ def economic_pit(model,density,price_per_grade_tonne,recovery,mining_cost,proces
     for b in blocks:
         margin=b['grade']*price_per_grade_tonne*recovery-processing_cost
         ore.append(margin>0);values.append(tonnes*(max(0.,margin)-mining_cost))
-    result=maximum_closure(values,edges)
+    if backend=='milp':result=maximum_closure(values,edges)
+    else:
+        from .native_engine import grid_pseudoflow
+        ordered=[lookup[(i,j,k)] for k in range(counts[2]) for j in range(counts[1]) for i in range(counts[0])]
+        mask,result=grid_pseudoflow(np.asarray(values)[ordered],counts,size,slope)
+        result['selected_indices']=[ordered[i] for i in np.flatnonzero(mask)]
+        result['precedence_count']='implicit grid stencil'
+
     selected=result['selected_indices']
     result.update({'density_t_m3':density,'price_per_grade_tonne':price_per_grade_tonne,'recovery':recovery,
                    'mining_cost_per_tonne':mining_cost,'processing_cost_per_tonne':processing_cost,
@@ -115,7 +124,7 @@ def pit_mesh(model,indices):
 
 
 def nested_pits(model,density,price_per_grade_tonne,recovery,mining_cost,processing_cost,
-                slope=45,rf_start=.30,rf_end=1.20,rf_step=.05,cancel=None,progress=None):
+                slope=45,rf_start=.30,rf_end=1.20,rf_step=.05,cancel=None,progress=None,backend='milp'):
     """Auditable RF sensitivity using the bounded exact MILP, not pseudoflow/MSO.
 
     Tied optima may differ in membership. Report that explicitly rather than
@@ -131,7 +140,7 @@ def nested_pits(model,density,price_per_grade_tonne,recovery,mining_cost,process
         if cancel and cancel():raise RuntimeError('Pit RF cancelled.')
         factor=round(rf_start+index*rf_step,12)
         report=economic_pit(model,density,price_per_grade_tonne*factor,recovery,
-                            mining_cost,processing_cost,slope)
+                            mining_cost,processing_cost,slope,backend=backend)
         if cancel and cancel():raise RuntimeError('Pit RF cancelled.')
         selected=set(report['selected_indices']);nested=previous<=selected
         all_nested=all_nested and nested
@@ -144,5 +153,5 @@ def nested_pits(model,density,price_per_grade_tonne,recovery,mining_cost,process
         scenarios.append(report);previous=selected
         if progress:progress(index+1,count)
     return {'scenarios':scenarios,'all_nested':all_nested,
-            'algorithm':'repeated exact HiGHS MILP maximum closure',
+            'algorithm':('repeated MineFlow pseudoflow (rounded values)' if backend=='pseudoflow' else 'repeated exact HiGHS MILP maximum closure'),
             'engineering_review':False,'discounted':False,'haul_roads_included':False}

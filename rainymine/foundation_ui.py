@@ -19,7 +19,7 @@ class FoundationTools:
 
     def build_foundation_menu(self,menu):
         groups=[('Төслийн багц',[('Төслийн бүрэн багц хадгалах…',self.project_pack_export),('Төслийн багц сэргээх…',self.project_pack_import)]),('Ажлын урсгал', [('Импорт → QA/QC → Үнэлгээ → Экспорт…',self.workflow_dialog)]),
-                ('Дискэн блок сан',[('Том блок сан үүсгэх…',self.disk_create),('Блок сан холбох…',self.disk_attach),('Дискэн IDW үнэлгээ…',self.disk_estimate),('Дискэн блок засах…',self.disk_edit),('Дискэн өөрчлөлт буцаах',lambda:self.disk_undo(False)),('Дискэн өөрчлөлт сэргээх',lambda:self.disk_undo(True)),('Дискэн блок 3D харах…',self.disk_preview),('Дискэн тонн / металл…',self.disk_totals),('Дискэн блок CSV экспорт…',self.disk_export)]),
+                ('Дискэн блок сан',[('Том блок сан үүсгэх…',self.disk_create),('Блок сан холбох…',self.disk_attach),('Дискэн IDW үнэлгээ…',self.disk_estimate),('Дискэн Pseudoflow pit…',self.disk_pit),('Дискэн блок засах…',self.disk_edit),('Дискэн өөрчлөлт буцаах',lambda:self.disk_undo(False)),('Дискэн өөрчлөлт сэргээх',lambda:self.disk_undo(True)),('Дискэн блок 3D харах…',self.disk_preview),('Дискэн тонн / металл…',self.disk_totals),('Дискэн блок CSV экспорт…',self.disk_export)]),
                 ('Хяналттай инженерийн загвар',[('Давхарга / хавтгай хагарлын шилжилт…',self.stratigraphy_dialog),('Давхаргаар тусгаарласан IDW үнэлгээ…',self.stratigraphy_estimate_dialog),('Овоолго / дахин таталтын баланс…',self.stockpile_dialog),('Замын хэсэгчилсэн тээвэр…',self.segment_haul_dialog),('Зангилааг бусад шугамд тааруулах…',self.snap_edit_dialog)])]
         for title,commands in groups:
             submenu=menu.addMenu(title)
@@ -127,6 +127,25 @@ class FoundationTools:
         def apply(report):
             p=deepcopy(self.project);p.workspace.setdefault('disk_estimation_runs',[]).append(dict(report,path=path));self.commit(p);self.show_rows('Дискэн IDW',[report])
         self.launch_task('Дискэн IDW…',work,apply)
+
+    def disk_pit(self):
+        from .disk_pit import optimize_disk_pit
+        path=self.disk_path()
+        if not path:return
+        output,_=QFileDialog.getSaveFileName(self,'Pseudoflow сонголт / бүх блок','Pit-selection.csv','CSV (*.csv)')
+        if not output:return
+        settings=self.foundation_params('Дискэн pseudoflow — RAM budget / value rounding',{
+            'Price / grade-unit / tonne':100.,'Recovery 0–1':.9,'Mining cost / tonne':3.,
+            'Processing cost / tonne':12.,'Density fallback t/m3':2.7,'Slope degrees':45.,
+            'Value scale':1000000.,'Memory budget MiB':2048.})
+        if not settings:return
+        keys=('Price / grade-unit / tonne','Recovery 0–1','Mining cost / tonne',
+              'Processing cost / tonne','Density fallback t/m3','Slope degrees','Value scale','Memory budget MiB')
+        def work(cancel,progress):return optimize_disk_pit(path,output,*[float(settings[k]) for k in keys],cancel=cancel,progress=progress)
+        def apply(report):
+            p=deepcopy(self.project);p.workspace.setdefault('engineering_runs',[]).append({'tool':'Disk pseudoflow pit','report':report})
+            self.commit(p);self.show_rows('Pseudoflow — инженерийн хяналт хийгдээгүй',[report])
+        self.launch_task('Pseudoflow pit…',work,apply,with_progress=True)
 
     def disk_edit(self):
         from .disk_model import DiskModel

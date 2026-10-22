@@ -52,9 +52,14 @@ class Estimator:
     def __init__(self,samples,params):
         if not samples:raise ValueError('Тооцох сорьц алга. Композитын coverage-ийг шалгана уу.')
         self.samples=samples;self.params=deepcopy(params)
-        self.faults=deepcopy(params.get('faults',[]));validate_faults(self.faults)
-        self.zones=[fault_zone(s['xyz'],self.faults) for s in samples]
-        self.xyz=np.asarray([r['xyz'] for r in samples],dtype=float);self.values=np.asarray([r['grade'] for r in samples],dtype=float)
+        self.faults=deepcopy(params.get('faults',[]))
+        from .fault_network import FaultNetwork
+        self.fault_network=FaultNetwork(self.faults)
+        self.zones=self.fault_network.classify([s['xyz'] for s in samples]).tolist()
+        self.restore_fault_slip=bool(params.get('restore_fault_slip',False))
+        self.xyz=np.asarray([r['xyz'] for r in samples],dtype=float)
+        if self.restore_fault_slip:self.xyz=self.fault_network.restore(self.xyz)
+        self.values=np.asarray([r['grade'] for r in samples],dtype=float)
         if not np.isfinite(self.xyz).all() or not np.isfinite(self.values).all():raise ValueError('Sample утга буруу.')
         if self.xyz.shape!=(len(samples),3):raise ValueError('Sample XYZ бүтэц буруу.')
         self.top_cut=params.get('top_cut')
@@ -100,13 +105,15 @@ class Estimator:
     def predict(self,point,excluded=None,exclude_hole=None,support_offsets=None):
         point=np.asarray(point,dtype=float)
         if point.shape!=(3,) or not np.isfinite(point).all():raise ValueError('Target цэг буруу.')
+        zone=self.fault_network.zone(point)
+        if self.restore_fault_slip:point=self.fault_network.restore([point])[0]
         offsets=np.zeros((1,3)) if support_offsets is None else np.asarray(support_offsets,dtype=float)
         if offsets.ndim!=2 or offsets.shape[1]!=3 or not 1<=len(offsets)<=64 or not np.isfinite(offsets).all():
             raise ValueError('Block support 1…64 XYZ offset байна.')
+        if self.restore_fault_slip and (len(offsets)!=1 or np.any(offsets!=0)):raise ValueError('Fault slip restoration currently supports point targets only')
         diagnostics={'kriging_efficiency':None,'slope_of_regression':None,'block_variance':None}
         targets=point+offsets
         candidate=self.tree.query_ball_point(((point-self.origin)@self.basis)/self.radii,1.)
-        zone=fault_zone(point,self.faults)
         candidate=[i for i in candidate if self.zones[i]==zone and i!=excluded and (exclude_hole is None or self.samples[i]['hole_id']!=exclude_hole)]
         ordered=sorted(candidate,key=lambda i:(float(np.linalg.norm((self.xyz[i]-point) if self.method=='nearest' else ((self.xyz[i]-point)@self.basis)/self.radii)),i))
         candidate=[];hole_counts={}
@@ -206,12 +213,19 @@ def estimate_model(project,bounds,size,params,domain=None,cancel=None,progress=N
     samples=sample_support(project,params.get('composite_length',5),params.get('minimum_coverage',1.))
     if domain:samples=[s for s in samples if inside_polygon(s['xyz'][0],s['xyz'][1],domain['points']) and 0<=((np.asarray(s['xyz'])-bounds[:3])@grid_basis)[2]<=bounds[5]-bounds[2]]
     estimator=Estimator(samples,params)
-    for i,b in enumerate(blocks):
-        if cancel and cancel():raise RuntimeError('Тооцоог цуцаллаа. Өмнөх төсөл өөрчлөгдөөгүй.')
-        axes=[((np.arange(n)+.5)/n-.5)*b[key] for n,key in zip(discretization,('dx','dy','dz'))]
-        offsets=np.array(np.meshgrid(*axes,indexing='ij')).reshape(3,-1).T@grid_basis.T
-        b.update(estimator.predict((b['x'],b['y'],b['z']),support_offsets=offsets))
-        if progress and i%50==0:progress(i,len(blocks))
+    if params.get('backend','python')=='rust':
+        if discretization!=[1,1,1]:raise ValueError('Rust backend currently supports point support only')
+        from .native_engine import rust_predictions
+        predictions=rust_predictions(estimator,[[b[k] for k in 'xyz'] for b in blocks],cancel,progress)
+        for block,prediction in zip(blocks,predictions):block.update(prediction)
+    elif params.get('backend','python')=='python':
+        for i,b in enumerate(blocks):
+            if cancel and cancel():raise RuntimeError('Тооцоог цуцаллаа. Өмнөх төсөл өөрчлөгдөөгүй.')
+            axes=[((np.arange(n)+.5)/n-.5)*b[key] for n,key in zip(discretization,('dx','dy','dz'))]
+            offsets=np.array(np.meshgrid(*axes,indexing='ij')).reshape(3,-1).T@grid_basis.T
+            b.update(estimator.predict((b['x'],b['y'],b['z']),support_offsets=offsets))
+            if progress and i%50==0:progress(i,len(blocks))
+    else:raise ValueError('Unknown estimation backend')
     if progress:progress(len(blocks),len(blocks))
     inputs={'collars':[asdict(h) for h in project.collars],'surveys':[asdict(s) for s in project.surveys],'assays':[asdict(a) for a in project.assays],'crs':project.crs_code,'unit':project.grade_unit}
     fingerprint=hashlib.sha256(json.dumps(inputs,sort_keys=True).encode()).hexdigest()

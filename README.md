@@ -110,3 +110,5 @@ Dependency-ийн тогтоосон хувилбарууд `requirements.txt`-�
 ## Үйлдвэрлэлийн түвшний хөгжүүлэлт
 
 [Acceptance ба эхний блок CSV импорт](docs/PRODUCTION_READINESS.mn.md): Micromine-оос CSV болгон гаргасан блокийг mapping, CRS/нэгжийн баталгаа, NULL ба geometry шалгалттай оруулна. Explicit origin/parent size/RAINYMINE ENU angles-аар эргэлттэй freeform sub-block дэмжинэ; vendor Euler metadata-г таахгүй. Гадаад reference-ийн geometry/NULL/grade comparator, joint-blend schedule-ийн тусдаа feasibility аудиттай. Density/domain-ийг тусад нь mapping хийж, бусад баганыг source text attributes хэлбэрээр хадгална. Native DAT reader дэмжихгүй.
+
+Шинэ native модулиуд: [Pseudoflow, муруй fault DAG, Rust kriging — заавар ба хэмжилт](docs/NATIVE_ENGINES.mn.md).

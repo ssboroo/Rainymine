@@ -1,0 +1,3 @@
+# Preserve the pinned upstream source verbatim, including its original whitespace.
+native/rainymine_core/vendor/mineflow/mineflow.cpp -whitespace
+native/rainymine_core/vendor/mineflow/mineflow.h -whitespace

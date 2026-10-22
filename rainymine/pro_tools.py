@@ -13,7 +13,7 @@ class ProTools(FoundationTools):
         menu=self.menuBar().addMenu('Мэргэжлийн хэрэгсэл')
         groups=[('Блок өгөгдөл',[('Micromine / CSV блок импорт…',self.block_csv_import),('Гадаад блок геометр / агуулга харьцуулах…',self.block_reference_check)]),('DH өгөгдөл',[('DH CSV багц импорт…',self.dh_import_dialog),('DH эх хүснэгт / CSV экспорт…',self.dh_source_browser),('DH сорьцын элемент солих…',self.dh_change_channel)]),('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
                 ('Файл / GIS',[('Surpac STR импорт…',self.surpac_import),('Surpac STR экспорт…',self.surpac_export),('Surpac ASCII DTM импорт…',self.surpac_dtm_import),('SHP импорт…',self.shapefile_import),('GeoTIFF DEM импорт…',self.dem_import),('LAS/LAZ шүүлт ба экспорт…',self.lidar_export),('DWG → DXF adapter…',self.dwg_import)]),
-                ('Геологи / Үнэлгээ',[('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
+                ('Геологи / Үнэлгээ',[('Муруй хагарлын сүлжээ JSON…',self.fault_network_import),('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
                 ('Уурхайн зураг төсөл',[('Спираль ramp…',self.ramp_dialog),('Шугамаар малталтын сүлжээ…',self.network_dialog),('Өрөмдлөгийн ring / fan…',self.ring_dialog),('Stope box MILP…',self.stope_dialog)]),
                 ('Төлөвлөлт',[('Pit RF хувилбар / үе шат…',self.nested_pit_dialog),('Олборлолт + feed blend MILP…',self.joint_schedule)]),
                 ('Том өгөгдөл',[('LAS / LAZ GPU preview…',self.lidar_preview),('Parquet GPU block preview…',self.large_blocks)])]
@@ -25,20 +25,49 @@ class ProTools(FoundationTools):
                 action.setIcon(semantic_icon(title,icon('gear')))
         self.build_foundation_menu(menu)
 
+    def fault_network_import(self):
+        import json
+        from .fault_network import FaultNetwork,fault_mesh
+        path,_=QFileDialog.getOpenFileName(self,'Муруй / хавтгай хагарлын DAG','','Fault network (*.json)')
+        if not path:return
+        if Path(path).stat().st_size>1_000_000:raise ValueError('Fault JSON exceeds 1 MB')
+        payload=json.loads(Path(path).read_text(encoding='utf-8'))
+        faults=payload['faults'];bounds=payload['bounds'];resolution=payload.get('resolution',25)
+        def work(cancel):
+            network=FaultNetwork(faults)
+            meshes=[fault_mesh(network,i,bounds,resolution,cancel) for i in range(len(faults))]
+            return meshes
+        def apply(meshes):
+            p=deepcopy(self.project);p.workspace['faults']=faults
+            p.workspace['meshes']=[m for m in p.workspace.get('meshes',[]) if m.get('role')!='fault_guide']+meshes
+            for mesh in p.workspace['meshes']:
+                if mesh.get('role') in ('implicit_contact','implicit_grade'):mesh['stale_after_fault_edit']=True
+            model=p.workspace.get('block_model')
+            if model:
+                for block in model['blocks']:
+                    block.update(grade=None,variance=None,status='fault_network_changed')
+                    for key in ('kriging_efficiency','slope_of_regression','block_variance'):block.pop(key,None)
+                model.pop('run_sha256',None);model['faults']=deepcopy(faults)
+            self.commit(p)
+            self.show_rows('Хагарлын сүлжээ — агуулгыг дахин үнэлнэ',[
+                {'name':f['name'],'kind':f.get('kind','plane'),'active_if':f.get('active_if',{}),
+                 'slip':f.get('slip',[0,0,0]),'geological_review':False} for f in faults])
+        self.launch_task('Хагарлын RBF / DAG…',work,apply)
+
     def nested_pit_dialog(self):
         from .optimization import nested_pits,pit_mesh
         model=self.project.workspace.get('block_model')
         if not model:raise ValueError('Эхлээд блок модель үүсгэнэ үү.')
-        settings=self.params('Pit RF — 5000 хүртэл блок; инженерийн хяналт шаардлагатай',{
+        settings=self.params('Pit RF — MILP 5000 / pseudoflow 50000; инженерийн хяналт шаардлагатай',{
             'Density t/m3':2.7,'Price / grade-unit / tonne':100,'Recovery 0–1':.9,
             'Mining cost / tonne':3,'Processing cost / tonne':12,'Slope degrees':45,
-            'RF start':.30,'RF end':1.20,'RF step':.05})
+            'RF start':.30,'RF end':1.20,'RF step':.05,'Backend':['milp','pseudoflow']})
         if not settings:return
         model=deepcopy(model)
         keys=('Density t/m3','Price / grade-unit / tonne','Recovery 0–1',
               'Mining cost / tonne','Processing cost / tonne','Slope degrees','RF start','RF end','RF step')
         def work(cancel,progress):
-            report=nested_pits(model,*[float(settings[k]) for k in keys],cancel=cancel,progress=progress)
+            report=nested_pits(model,*[float(settings[k]) for k in keys],cancel=cancel,progress=progress,backend=settings['Backend'])
             meshes=[]
             for scenario in report['scenarios']:
                 if cancel():raise RuntimeError('Pit RF cancelled.')

@@ -25,6 +25,15 @@ jobs:
         run: python scripts/verify_merge_resolution.py
       - name: Install dependencies
         run: python -m pip install -r requirements.txt pyinstaller==6.12.0
+      - name: Build Rust kriging and C++ pseudoflow kernels
+        shell: pwsh
+        run: |
+          rustup toolchain install 1.85.1 --profile minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain failed' }
+          python -m pip install maturin==1.7.8
+          python scripts/build_native.py
+          if ($LASTEXITCODE -ne 0) { throw 'Native kernel build failed' }
+          "RAINYMINE_REQUIRE_NATIVE=1" >> $env:GITHUB_ENV
       - name: Validate release version
         shell: pwsh
         run: |
@@ -50,6 +59,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: One million disk blocks create estimate undo export benchmark
         run: python scripts/benchmark_disk_workflow.py --side 100 --output windows-disk-workflow.json
+      - name: Native pseudoflow million-block and kriging reference benchmark
+        run: python scripts/benchmark_native.py --output windows-native-benchmark.json
       - name: Toolbar layout at 150 and 200 percent scaling
         shell: pwsh
         run: |
@@ -117,6 +128,7 @@ jobs:
             windows-smoke-en.png
             windows-startup.png
             windows-disk-workflow.json
+            windows-native-benchmark.json
           if-no-files-found: error
       - name: Upload full offline AI portable
         uses: actions/upload-artifact@v4
@@ -139,6 +151,7 @@ jobs:
             windows-startup.png
             dist/Rainymine/*.log
             windows-disk-workflow.json
+            windows-native-benchmark.json
           if-no-files-found: ignore
 
       - name: Upload release documents and checksums

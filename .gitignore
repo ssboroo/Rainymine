@@ -12,3 +12,8 @@ software-rendering/
 
 ai/
 *.gguf
+
+native/rainymine_core/target/
+*.whl
+
+assets/NATIVE-NOTICES.txt

@@ -8,27 +8,15 @@ from .geometry import inside_polygon,validate_polygon
 
 
 def validate_faults(faults):
-    if not isinstance(faults,list) or len(faults)>8:
-        raise ValueError('8 хүртэл planar fault дэмжинэ.')
-    names=set()
-    for fault in faults:
-        name=fault.get('name')
-        if not isinstance(name,str) or not name.strip() or name in names:raise ValueError('Fault нэр хоосон/давхардсан.')
-        names.add(name)
-        for key in ('point','normal'):
-            a=np.asarray(fault[key],dtype=float)
-            if a.shape!=(3,) or not np.isfinite(a).all():raise ValueError('Fault point/normal XYZ шаардлагатай.')
-        if np.linalg.norm(fault['normal'])<1e-12:raise ValueError('Fault normal тэг байж болохгүй.')
+    from .fault_network import FaultNetwork
+    FaultNetwork(faults)
     return faults
 
 
 def fault_zone(point,faults):
     """Each infinite plane is a hard barrier. Points on a plane use its + side."""
-    code=0
-    for i,fault in enumerate(faults):
-        normal=np.asarray(fault['normal'],dtype=float);normal=normal/np.linalg.norm(normal)
-        if np.dot(np.asarray(point)-fault['point'],normal)>=-1e-9:code|=1<<i
-    return code
+    from .fault_network import FaultNetwork
+    return (faults if isinstance(faults,FaultNetwork) else FaultNetwork(faults)).zone(point)
 
 
 def fault_patch(fault,extent):
@@ -45,14 +33,15 @@ def adaptive_blocks(parents,bounds,angles,domain,faults,levels,cancel=None):
     Boundary geometry is approximate at the selected resolution, never exact clipping.
     """
     if type(levels) is not int or not 0<=levels<=3:raise ValueError('Sub-block levels 0…3 байна.')
-    validate_faults(faults)
+    from .fault_network import FaultNetwork
+    network=FaultNetwork(faults)
     if domain:validate_polygon(domain['points'])
     if len(parents)*8**levels>200000:raise ValueError('Sub-block sampling 200000-аас их. Grid/level-ийг багасгана уу.')
     basis=search_basis(*angles);pivot=np.array(bounds[:3]);out=[]
     def classify(center):
         world=pivot+(center-pivot)@basis.T
         if domain and not inside_polygon(world[0],world[1],domain['points']):return None
-        return fault_zone(world,faults)
+        return network.zone(world)
     def node(center,dims,level,parent,path):
         if cancel and cancel():raise RuntimeError('Sub-block тооцоо цуцлагдлаа.')
         if level==levels:
