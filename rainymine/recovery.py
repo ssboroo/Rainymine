@@ -3,7 +3,7 @@ import json
 import time
 import uuid
 from pathlib import Path
-from .core import Project, MAX_FILE, atomic_write
+from .core import Project, MAX_FILE, atomic_write, finite
 
 
 class RecoveryStore:
@@ -32,8 +32,11 @@ class RecoveryStore:
         if path.stat().st_size > MAX_FILE:
             raise ValueError('Recovery exceeds project size limit')
         document = json.loads(path.read_text(encoding='utf-8'))
-        if document.get('schema') != 1:
+        if not isinstance(document,dict) or document.get('schema') != 1:
             raise ValueError('Unsupported recovery schema')
+        finite(document.get('saved_at'))
+        if document['saved_at']<=0 or (document.get('original_path') is not None and not isinstance(document['original_path'],str)):
+            raise ValueError('Invalid recovery metadata')
         return Project.from_dict(document['project']), document
 
     def candidates(self):

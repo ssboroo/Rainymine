@@ -23,8 +23,11 @@ class DiskModel:
         self.db=sqlite3.connect(self.path)
         try:
             if self.db.execute('PRAGMA application_id').fetchone()[0]!=0x524d4442:raise ValueError('Not a RAINYMINE block store')
-            self.meta=json.loads(self.db.execute('SELECT value FROM metadata WHERE key="model"').fetchone()[0])
-            if self.meta.get('version')!=1:raise ValueError('Unsupported block-store schema')
+            row=self.db.execute('SELECT value FROM metadata WHERE key="model"').fetchone()
+            if not row or not isinstance(row[0],str) or len(row[0])>1048576:raise ValueError('Invalid block-store metadata')
+            self.meta=json.loads(row[0])
+            if not isinstance(self.meta,dict) or self.meta.get('version')!=1:raise ValueError('Unsupported block-store schema')
+            if self.meta.get('grade_unit') not in ('%','ppm','g/t') or not isinstance(self.meta.get('crs'),str):raise ValueError('Invalid block-store units/CRS')
         except Exception:self.db.close();raise
 
     def __enter__(self):return self

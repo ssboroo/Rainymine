@@ -32,6 +32,8 @@ class RecoveryTests(unittest.TestCase):
             self.assertEqual(path.read_bytes(),before)
             bad=Path(directory)/'bad.recovery';bad.write_text('{broken')
             self.assertEqual(len(RecoveryStore(directory,'two').candidates()),1);self.assertTrue(bad.exists())
+            for malformed in ([],dict(schema=1,saved_at='bad',project=Project().to_dict())):
+                bad.write_text(json.dumps(malformed));self.assertEqual(len(RecoveryStore(directory,'two').candidates()),1)
             with self.assertRaises(ValueError):store.read(Path(directory)/'other.txt')
     def test_legacy_project_versions_remain_readable(self):
         with tempfile.TemporaryDirectory() as directory:
