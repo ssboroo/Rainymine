@@ -79,16 +79,18 @@ class FaultNetwork:
     def zone(self,point):return int(self.classify([point])[0])
 
     def restore(self,points,cancel=None):
-        """Explicit piecewise translation, youngest (DAG parent) first.
+        """Sum explicit translations using memberships in the original frame.
 
-        Parent relationships are geometric scopes, not inferred fault chronology.
-        Input order defines restoration chronology when faults are independent.
+        Scope cannot change merely because another translation crosses a surface.
+        This is a piecewise displacement field, not inferred historical restoration.
         """
         restored=np.array(points,dtype=float,copy=True)
         if restored.size==0:restored=restored.reshape(0,3)
         if restored.ndim!=2 or restored.shape[1]!=3 or not np.isfinite(restored).all():raise ValueError('Restoration targets must be finite N×3')
+        codes=self.classify(restored,cancel)
         for i in self.order:
-            codes=self.classify(restored,cancel);enabled=(codes&(1<<i))!=0
+            if cancel and cancel():raise RuntimeError('Fault restoration cancelled')
+            enabled=(codes&(1<<i))!=0
             if self.faults[i].get('active_if'):enabled&=(codes&(1<<(len(self.faults)+i)))!=0
             restored[enabled]-=np.asarray(self.faults[i].get('slip',[0,0,0]))
         return restored

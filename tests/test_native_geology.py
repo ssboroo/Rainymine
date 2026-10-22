@@ -47,6 +47,9 @@ class FaultNetworkTests(unittest.TestCase):
   points=np.array([[-1.,0,5],[1.,0,5]])
   np.testing.assert_allclose(FaultNetwork([f]).restore(points),[[-1,0,5],[1,0,2]])
   self.assertEqual(points[1,2],5)
+  parent=dict(name='P',point=[0,0,0],normal=[1,0,0],slip=[2,0,0])
+  child=dict(name='C',point=[0,0,0],normal=[0,1,0],active_if={'P':1},slip=[0,0,3])
+  np.testing.assert_allclose(FaultNetwork([parent,child]).restore([[1,1,5]]),[[-1,1,2]])
   with self.assertRaises(RuntimeError):FaultNetwork([curved()]).classify(points,cancel=lambda:True)
 
  def test_curved_barrier_prevents_cross_fault_estimation(self):
