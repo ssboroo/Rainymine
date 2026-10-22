@@ -17,8 +17,8 @@ class ReleaseVersionTests(unittest.TestCase):
             shutil.copyfile(root/'release/config.json',target/'release/config.json')
             text=module.write_installer(target).read_text(encoding='utf-8')
             self.assertIn('AppVersion "1.0.0-rc.1"',text);self.assertIn('AppNumericVersion "1.0.0.0"',text)
-            config=json.loads((target/'release/config.json').read_text());config['prerelease']=False
-            (target/'release/config.json').write_text(json.dumps(config))
+            config=json.loads((target/'release/config.json').read_text(encoding='utf-8'));config['prerelease']=False
+            (target/'release/config.json').write_text(json.dumps(config),encoding='utf-8')
             with self.assertRaises(ValueError):module.check(target)
-            config['prerelease']=True;config['files']=['stale.zip'];(target/'release/config.json').write_text(json.dumps(config))
+            config['prerelease']=True;config['files']=['stale.zip'];(target/'release/config.json').write_text(json.dumps(config),encoding='utf-8')
             with self.assertRaises(ValueError):module.check(target)
