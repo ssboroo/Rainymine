@@ -7,6 +7,16 @@ from PySide6.QtWidgets import QDialog,QVBoxLayout,QLabel,QPushButton,QFileDialog
 
 
 class FoundationTools:
+    def foundation_params(self,title,fields):
+        """Localize field labels while retaining stable internal parameter keys."""
+        from .i18n import language
+        labels={'Density t/m³':'Нягт (т/м³)','Composite metres':'Композитын урт (м)','Minimum coverage':'Хамгийн бага бүрхэлт','Radius metres':'Хайлтын радиус (м)','Neighbours':'Хөрш сорьцын тоо','Minimum samples':'Хамгийн бага сорьц','Power':'Зэргийн илтгэгч','Block ID':'Блокийн дугаар','Grade (blank=NULL)':'Агуулга (хоосон = NULL)','Density (blank=NULL)':'Нягт (хоосон = NULL)','Domain (blank=NULL)':'Домэйн (хоосон = NULL)','Contacts ascending metres':'Давхаргын хил (өсөх дарааллаар, м)','Layer names bottom to top':'Давхаргын нэр (доороос дээш)','Fault slips JSON oldest to newest':'Хагарлын дараалал (JSON)','Processing tonnes / period':'Боловсруулах хүчин чадал (т/үе)','Haul tonnes / period':'Тээврийн хүчин чадал (т/үе)','Speed bands JSON':'Налуу / хурдны хүснэгт (JSON)','Payload tonnes':'Даац (т)','Trucks':'Машины тоо','Shift hours':'Ээлжийн хугацаа (цаг)','Utilization':'Ашиглалтын коэффициент','Load minutes':'Ачих хугацаа (мин)','Dump minutes':'Буулгах хугацаа (мин)','Queue minutes':'Хүлээлгийн хугацаа (мин)','Max gradient %':'Хамгийн их налуу (%)','Vertex index (0 based)':'Зангилааны индекс (0-ээс)','Tolerance metres':'Зөвшөөрөх зай (м)'}
+        for prefix,translated in (('Origin','Эх'),('Count','Блокийн тоо'),('Size','Блокийн хэмжээ'),('Normal','Нормал')):
+            labels.update({prefix+' '+axis:translated+' '+axis for axis in 'XYZ'})
+        display={key:(key if language()=='en' else labels.get(key,key)) for key in fields}
+        values=self.params(title,{display[key]:value for key,value in fields.items()})
+        return None if values is None else {key:values[display[key]] for key in fields}
+
     def build_foundation_menu(self,menu):
         groups=[('Ажлын урсгал', [('Импорт → QA/QC → Үнэлгээ → Экспорт…',self.workflow_dialog)]),
                 ('Дискэн блок сан',[('Том блок сан үүсгэх…',self.disk_create),('Блок сан холбох…',self.disk_attach),('Дискэн IDW үнэлгээ…',self.disk_estimate),('Дискэн блок засах…',self.disk_edit),('Дискэн өөрчлөлт буцаах',lambda:self.disk_undo(False)),('Дискэн өөрчлөлт сэргээх',lambda:self.disk_undo(True)),('Дискэн блок 3D харах…',self.disk_preview),('Дискэн тонн / металл…',self.disk_totals),('Дискэн блок CSV экспорт…',self.disk_export)]),
@@ -26,14 +36,17 @@ class FoundationTools:
         status=QLabel();status.setWordWrap(True);layout.addWidget(status)
         def refresh_status():
             p=self.project;model=p.workspace.get('block_model',{});controls=p.workspace.get('qaqc_controls',{})
-            status.setText(f"Collars: {len(p.collars)} · Assays: {len(p.assays)} · CRS: {p.crs_code or 'UNSPECIFIED'}\nQA/QC control rows: {len(controls.get('results',[]))} · Blocks: {len(model.get('blocks',[]))}\nUnestimated: {sum(b.get('grade') is None for b in model.get('blocks',[]))} · Observations: {len(p.workspace.get('workflow_observations',[]))}")
+            labels=('Collars','Assays','QA/QC rows','Blocks','Unestimated','Observations') if en else ('Амсар','Сорьц','QA/QC мөр','Блок','Тооцоогүй','Тэмдэглэл')
+            status.setText(f"{labels[0]}: {len(p.collars)} · {labels[1]}: {len(p.assays)} · CRS: {p.crs_code or '—'}\n{labels[2]}: {len(controls.get('results',[]))} · {labels[3]}: {len(model.get('blocks',[]))}\n{labels[4]}: {sum(b.get('grade') is None for b in model.get('blocks',[]))} · {labels[5]}: {len(p.workspace.get('workflow_observations',[]))}")
         stages=[('Import DH bundle' if en else '1. DH багц импорт',self.dh_import_dialog),('Validate data' if en else '2. Өгөгдөл шалгах',self.validate_data),('Laboratory QA/QC' if en else '3. Лабораторийн QA/QC',self.controls),('Build / estimate model' if en else '4. Модель / үнэлгээ',self.block_dialog),('Reference comparison' if en else '5. Reference харьцуулалт',self.external_benchmark),('Export exchange bundle' if en else '6. Солилцооны экспорт',self.exchange_bundle)]
         for label,callback in stages:
             button=QPushButton(label);layout.addWidget(button)
             def invoke(checked=False,cb=callback,title=label):
                 started=time.perf_counter();self.guard(cb);elapsed=time.perf_counter()-started;refresh_status()
-                outcome,ok=QInputDialog.getItem(dialog,'Observed outcome' if en else 'Ажигласан үр дүн','This records the interaction duration, including dialogs; background jobs may still be running.' if en else 'Хугацаанд цонх ашигласан хугацаа орно. Арын тооцоо үргэлжилж байж болно.',['completed','blocked','cancelled'],0,False)
+                choices=['completed','blocked','cancelled'] if en else ['Дууссан','Саатсан','Цуцалсан']
+                outcome,ok=QInputDialog.getItem(dialog,'Observed outcome' if en else 'Ажигласан үр дүн','This records the interaction duration, including dialogs; background jobs may still be running.' if en else 'Хугацаанд цонх ашигласан хугацаа орно. Арын тооцоо үргэлжилж байж болно.',choices,0,False)
                 if ok:
+                    outcome=['completed','blocked','cancelled'][choices.index(outcome)]
                     note,accepted=QInputDialog.getText(dialog,'Review note' if en else 'Хяналтын тэмдэглэл','Reviewer / errors / note' if en else 'Шалгасан хүн / алдаа / тэмдэглэл')
                     if accepted:
                         def record():
@@ -66,7 +79,7 @@ class FoundationTools:
     def disk_create(self):
         from .disk_model import DiskModel
         if not self.project.crs_code:raise ValueError('Төслийн projected metre CRS-ийг эхлээд тохируулна уу.')
-        settings=self.params('Дискэн тогтмол grid — төвийн үнэлгээ',{'Origin X':500000.,'Origin Y':5300000.,'Origin Z':1200.,'Count X':100,'Count Y':100,'Count Z':100,'Size X':10.,'Size Y':10.,'Size Z':10.,'Density t/m³':2.7})
+        settings=self.foundation_params('Дискэн тогтмол grid — төвийн үнэлгээ',{'Origin X':500000.,'Origin Y':5300000.,'Origin Z':1200.,'Count X':100,'Count Y':100,'Count Z':100,'Size X':10.,'Size Y':10.,'Size Z':10.,'Density t/m³':2.7})
         if not settings:return
         path,_=QFileDialog.getSaveFileName(self,'Дискэн блок сан','Blocks.rmdb','RAINYMINE block database (*.rmdb)')
         if not path:return
@@ -79,7 +92,7 @@ class FoundationTools:
         path=self.disk_path()
         if not path:return
         self.link_disk(path)
-        settings=self.params('Дискэн IDW — centre support; no geological certification',{'Composite metres':5.,'Minimum coverage':1.,'Radius metres':100.,'Neighbours':12,'Minimum samples':3,'Power':2.})
+        settings=self.foundation_params('Дискэн IDW — centre support; no geological certification',{'Composite metres':5.,'Minimum coverage':1.,'Radius metres':100.,'Neighbours':12,'Minimum samples':3,'Power':2.})
         if not settings:return
         samples=sample_support(self.project,float(settings['Composite metres']),float(settings['Minimum coverage']))
         values=[[*s['xyz'],s['grade']] for s in samples]
@@ -93,7 +106,7 @@ class FoundationTools:
         from .disk_model import DiskModel
         path=self.disk_path()
         if not path:return
-        settings=self.params('Дискэн блок засах — хоосон утга NULL',{'Block ID':0,'Grade (blank=NULL)':'','Density (blank=NULL)':'','Domain (blank=NULL)':''})
+        settings=self.foundation_params('Дискэн блок засах — хоосон утга NULL',{'Block ID':0,'Grade (blank=NULL)':'','Density (blank=NULL)':'','Domain (blank=NULL)':''})
         if settings:
             parse=lambda key:float(settings[key]) if settings[key].strip() else None
             with DiskModel(path) as store:store.edit(int(settings['Block ID']),parse('Grade (blank=NULL)'),parse('Density (blank=NULL)'),settings['Domain (blank=NULL)'] or None)
@@ -137,7 +150,7 @@ class FoundationTools:
         from .acceptance_tools import classify_stratigraphy
         model=self.project.workspace.get('block_model')
         if not model:raise ValueError('Эхлээд үндсэн блок загвар үүсгэнэ үү.')
-        settings=self.params('Зэрэгцээ давхарга — grade хүчингүй болж дахин үнэлнэ',{'Normal X':0.,'Normal Y':0.,'Normal Z':1.,'Origin X':0.,'Origin Y':0.,'Origin Z':0.,'Contacts ascending metres':'1200,1250,1300','Layer names bottom to top':'L1,L2,L3,L4','Fault slips JSON oldest to newest':'[]'})
+        settings=self.foundation_params('Зэрэгцээ давхарга — grade хүчингүй болж дахин үнэлнэ',{'Normal X':0.,'Normal Y':0.,'Normal Z':1.,'Origin X':0.,'Origin Y':0.,'Origin Z':0.,'Contacts ascending metres':'1200,1250,1300','Layer names bottom to top':'L1,L2,L3,L4','Fault slips JSON oldest to newest':'[]'})
         if settings:
             import json
             result,report=classify_stratigraphy(model,[float(settings['Normal '+a]) for a in 'XYZ'],[float(settings['Origin '+a]) for a in 'XYZ'],[float(v) for v in settings['Contacts ascending metres'].split(',')],[v.strip() for v in settings['Layer names bottom to top'].split(',')],json.loads(settings['Fault slips JSON oldest to newest']))
@@ -147,7 +160,7 @@ class FoundationTools:
         from .acceptance_tools import stockpile_ledger
         path,_=QFileDialog.getOpenFileName(self,'period,pile,received_t,received_grade,reclaimed_t,capacity_t CSV','','CSV (*.csv)')
         if not path:return
-        settings=self.params('Овоолгын баланс — perfect mixing; no optimization',{'Processing tonnes / period':100000.,'Haul tonnes / period':200000.})
+        settings=self.foundation_params('Овоолгын баланс — perfect mixing; no optimization',{'Processing tonnes / period':100000.,'Haul tonnes / period':200000.})
         if not settings:return
         with open(path,encoding='utf-8-sig',newline='') as stream:
             rows=[]
@@ -163,7 +176,7 @@ class FoundationTools:
         from .acceptance_tools import estimate_stratigraphy
         model=deepcopy(self.project.workspace.get('block_model',{}))
         if not model.get('stratigraphy'):raise ValueError('Эхлээд давхаргын ангилал үүсгэнэ үү.')
-        settings=self.params('Давхаргаар тусгаарласан IDW — restored coordinates / point support',{'Radius metres':200.,'Neighbours':12,'Minimum samples':3,'Composite metres':5.,'Minimum coverage':1.,'Power':2.})
+        settings=self.foundation_params('Давхаргаар тусгаарласан IDW — restored coordinates / point support',{'Radius metres':200.,'Neighbours':12,'Minimum samples':3,'Composite metres':5.,'Minimum coverage':1.,'Power':2.})
         if not settings:return
         radius=float(settings['Radius metres']);params={'method':'idw','radii':[radius]*3,'neighbors':int(settings['Neighbours']),'minimum':int(settings['Minimum samples']),'power':float(settings['Power']),'composite_length':float(settings['Composite metres']),'minimum_coverage':float(settings['Minimum coverage'])}
         project=deepcopy(self.project)
@@ -175,7 +188,7 @@ class FoundationTools:
         from .acceptance_tools import segment_haul
         strings=self.project.workspace.get('strings',[]);index=self.choose('Тээврийн зам',[s['name'] for s in strings])
         if index is None:return
-        settings=self.params('Хэсэгчилсэн тээвэр — supplied speed bands',{'Speed bands JSON':'[{"min_gradient":-10,"max_gradient":0,"loaded_kmh":25,"empty_kmh":30},{"min_gradient":0,"max_gradient":10,"loaded_kmh":15,"empty_kmh":20}]','Payload tonnes':90.,'Trucks':5,'Shift hours':8.,'Utilization':.8,'Load minutes':3.,'Dump minutes':2.,'Queue minutes':1.,'Max gradient %':10.})
+        settings=self.foundation_params('Хэсэгчилсэн тээвэр — supplied speed bands',{'Speed bands JSON':'[{"min_gradient":-10,"max_gradient":0,"loaded_kmh":25,"empty_kmh":30},{"min_gradient":0,"max_gradient":10,"loaded_kmh":15,"empty_kmh":20}]','Payload tonnes':90.,'Trucks':5,'Shift hours':8.,'Utilization':.8,'Load minutes':3.,'Dump minutes':2.,'Queue minutes':1.,'Max gradient %':10.})
         if settings:
             import json
             report=segment_haul(strings[index]['points'],json.loads(settings['Speed bands JSON']),float(settings['Payload tonnes']),int(settings['Trucks']),float(settings['Shift hours']),float(settings['Utilization']),float(settings['Load minutes']),float(settings['Dump minutes']),float(settings['Queue minutes']),float(settings['Max gradient %']))
@@ -186,7 +199,7 @@ class FoundationTools:
         from .geometry import validate_workspace
         strings=self.project.workspace.get('strings',[]);index=self.choose('Засах шугам',[s['name'] for s in strings])
         if index is None:return
-        settings=self.params('Зангилааг бусад шугамд тааруулах',{'Vertex index (0 based)':0,'Tolerance metres':5.})
+        settings=self.foundation_params('Зангилааг бусад шугамд тааруулах',{'Vertex index (0 based)':0,'Tolerance metres':5.})
         if not settings:return
         vertex=int(settings['Vertex index (0 based)'])
         if not 0<=vertex<len(strings[index]['points']):raise ValueError('Invalid vertex index')

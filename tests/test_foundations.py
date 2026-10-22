@@ -193,5 +193,11 @@ class FoundationUI(unittest.TestCase):
         from rainymine.i18n import tr
         window=self.window();texts=[a.text() for a in window.findChildren(QAction)]
         self.assertIn('Том блок сан үүсгэх…',texts);self.assertIn('Давхаргаар тусгаарласан IDW үнэлгээ…',texts)
+        with patch.object(window,'params',side_effect=lambda title,fields:fields) as params:
+            self.assertEqual(window.foundation_params('Test',{'Radius metres':100}),{'Radius metres':100})
+            self.assertIn('Хайлтын радиус (м)',params.call_args.args[1])
         window.set_language('en',persist=False);self.assertEqual(tr('Том блок сан үүсгэх…'),'Create large block store…')
+        with patch.object(window,'params',side_effect=lambda title,fields:fields) as params:
+            self.assertEqual(window.foundation_params('Test',{'Radius metres':100}),{'Radius metres':100})
+            self.assertIn('Radius metres',params.call_args.args[1])
         window.set_language('mn',persist=False)
