@@ -1,3 +1,10 @@
+# Production migration baseline — 2026-10-22
+
+- Add strict mapped parent-block CSV import with projected-metre CRS confirmation, NULL preservation, finite values, uniform grid and duplicate checks.
+- Connect cancellable background UI import, undoable model replacement, slice reset and source SHA256/mapping report.
+- Add synthetic save/load and cutoff/volume/tonnage acceptance tests and production-readiness criteria.
+- Scope: unrotated uniform parent blocks only; native Micromine DAT and source classification/extra attributes are not imported.
+
 # Documentation refresh — 2026-10-22
 
 - Rewrite README around current desktop workflows and explicit format limits.

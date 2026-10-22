@@ -11,7 +11,7 @@ class ProTools:
     def build_pro_menu(self):
         self._engineering_tasks=[];self._preview_dialogs=[];self._gizmo=None
         menu=self.menuBar().addMenu('Мэргэжлийн хэрэгсэл')
-        groups=[('DH өгөгдөл',[('DH CSV багц импорт…',self.dh_import_dialog),('DH эх хүснэгт / CSV экспорт…',self.dh_source_browser),('DH сорьцын элемент солих…',self.dh_change_channel)]),('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
+        groups=[('Блок өгөгдөл',[('Micromine / CSV блок импорт…',self.block_csv_import)]),('DH өгөгдөл',[('DH CSV багц импорт…',self.dh_import_dialog),('DH эх хүснэгт / CSV экспорт…',self.dh_source_browser),('DH сорьцын элемент солих…',self.dh_change_channel)]),('Нээлттэй солилцоо',[('OMF 2.0-beta.1 экспорт…',self.omf_export),('GeoPackage экспорт…',self.gpkg_export),('GeoPackage импорт…',self.gpkg_import),('CSV / CAD + metadata багц…',self.exchange_bundle)]),('CAD / Solid',[('Boolean union / intersection / difference…',self.solid_boolean),('Mesh repair…',self.solid_repair),('Шилжүүлэх / эргүүлэх / scale…',self.transform_dialog),('3D gizmo — сонгосон mesh…',self.start_gizmo),('Vertex / segment snap…',self.snap_dialog)]),
                 ('Файл / GIS',[('Surpac STR импорт…',self.surpac_import),('Surpac STR экспорт…',self.surpac_export),('Surpac ASCII DTM импорт…',self.surpac_dtm_import),('SHP импорт…',self.shapefile_import),('GeoTIFF DEM импорт…',self.dem_import),('LAS/LAZ шүүлт ба экспорт…',self.lidar_export),('DWG → DXF adapter…',self.dwg_import)]),
                 ('Геологи / Үнэлгээ',[('Contact / trend / fault RBF…',self.contact_rbf),('Литологийн fault/trend RBF…',self.lithology_rbf),('Indicator kriging…',self.indicator_dialog),('Олон шаттай үнэлгээ…',self.multipass_dialog),('Variogram family fit…',self.family_fit)]),
                 ('Уурхайн зураг төсөл',[('Спираль ramp…',self.ramp_dialog),('Шугамаар малталтын сүлжээ…',self.network_dialog),('Өрөмдлөгийн ring / fan…',self.ring_dialog),('Stope box MILP…',self.stope_dialog)]),
@@ -23,6 +23,34 @@ class ProTools:
                 action=self.action(submenu,title,lambda cb=callback:self.guard(cb));action.setProperty('toolCategory',name)
                 from .icons import semantic_icon,icon
                 action.setIcon(semantic_icon(title,icon('gear')))
+
+    def block_csv_import(self):
+        from .block_csv import read_block_csv, KEYS
+        path,_=QFileDialog.getOpenFileName(self,'Блок CSV — эргэлтгүй parent grid','','CSV (*.csv)')
+        if not path:return
+        if Path(path).stat().st_size>32_000_000:raise ValueError('CSV 32 MB-аас их байна.')
+        with open(path,encoding='utf-8-sig',newline='') as stream:
+            headers=next(csv.reader(stream),[])
+        if not headers or len(headers)>256:raise ValueError('CSV header алга / хэт олон баганатай.')
+        defaults={key:([key]+[h for h in headers if h!=key] if key in headers else headers) for key in KEYS}
+        settings=self.params('Блокийн төв XYZ, хэмжээ DX/DY/DZ, агуулгын багана',defaults)
+        if not settings:return
+        if QMessageBox.question(self,'Импортын нөхцөл',
+                'Эх CSV нь эргэлтгүй, ижил хэмжээтэй parent grid, XYZ төв ба хэмжээ метрээр өгөгдсөн үү?\n'
+                'CRS: '+self.project.crs_code+' · Агуулгын нэгж: '+self.project.grade_unit+'\n'
+                'Нэгж / CRS автоматаар хөрвүүлэхгүй. Нэмэлт баганууд импортлогдохгүй.\n'
+                'Одоогийн блок модель солигдоно. Нөөцийн ангиллыг UNCLASSIFIED болгоно.')!=QMessageBox.StandardButton.Yes:return
+        crs=self.project.crs_code;unit=self.project.grade_unit
+        def apply(result):
+            model,report=result
+            p=deepcopy(self.project);p.workspace['block_model']=model
+            p.workspace.pop('block_slice_positions',None)
+            p.workspace['block_display']='blocks'
+            p.workspace.setdefault('engineering_runs',[]).append(report)
+            self.commit(p)
+            QMessageBox.information(self,'Блок CSV импорт',f"{report['blocks']} блок; {report['null_grades']} хоосон агуулга.\n"
+                                    +'Оруулаагүй багана: '+', '.join(report['extra_columns']))
+        self.launch_task('Блок CSV унших…',lambda cancel:read_block_csv(path,settings,crs,unit,cancel=cancel),apply)
 
     def launch_task(self,title,operation,apply):
         if self._engineering_tasks:raise ValueError('Ажиллаж буй тооцоогоо дуусгах эсвэл цуцална уу.')

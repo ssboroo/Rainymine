@@ -100,3 +100,7 @@ Dependency-ийн тогтоосон хувилбарууд `requirements.txt`-�
 [Баримтын индекс](docs/README.md) · [Шинэчлэлтийн түүх](CHANGELOG.md) · [Түгээлтийн тэмдэглэл](release/RELEASE_NOTES.mn.md) · [Дэмжлэгийн маягт](release/SUPPORT_TEMPLATE.mn.md) · [Брэндбүүк](docs/BRANDBOOK.mn.md)
 
 [Өмнөх дэлгэрэнгүй техникийн лавлагаа](DEVELOPMENT_REFERENCE.md) — түүхэн тайлбар; шинэ модулийн зааврыг давхар мөрдөнө.
+
+## Үйлдвэрлэлийн түвшний хөгжүүлэлт
+
+[Acceptance ба эхний блок CSV импорт](docs/PRODUCTION_READINESS.mn.md): Micromine-оос CSV болгон гаргасан эргэлтгүй, ижил хэмжээтэй parent block grid-ийг багана mapping, CRS/нэгжийн баталгаа, NULL, давхардал ба торны шалгалттай оруулна. Native DAT, rotated/sub-block болон нэмэлт attribute импорт энэ reader-т дэмжихгүй.
