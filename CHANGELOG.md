@@ -1,3 +1,11 @@
+# Rotated leaf exchange and verification — 2026-10-22
+
+- Extend CSV exchange with explicit ENU orientation, parent origin/size and bounded freeform leaf validation; reject overlap and parent-boundary crossing.
+- Add external geometry/NULL/grade comparison with explicit reference orientation, coverage, volume and model/reference hashes; independent sign-off remains pending.
+- Add separate row-level capacity/precedence/feed/NPV audit to joint blend MILP, and prevent task-supplied period from overriding solver decisions.
+- Invalidate stale block-derived reports on import; add UI flow and rotated VTK geometry tests.
+- Add reproducible synthetic 50k CPU CSV import benchmark; no GPU/FPS or real-mine certification claim.
+
 # Production migration baseline — 2026-10-22
 
 - Add strict mapped parent-block CSV import with projected-metre CRS confirmation, NULL preservation, finite values, uniform grid and duplicate checks.
