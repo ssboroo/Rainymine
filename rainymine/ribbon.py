@@ -37,7 +37,7 @@ class RibbonButton(QToolButton):
         width = max(width, longest+50)
         while self.caption_bounds(width).height() > self.fontMetrics().lineSpacing()*2:
             width += 12
-        height = max(46, self.fontMetrics().lineSpacing()*2+14)
+        height = max(36, self.caption_bounds(width).height()+12)
         self.setFixedSize(width, height)
         self.setAccessibleName(self.caption())
         self.setToolTip(self.caption())

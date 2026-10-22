@@ -359,13 +359,13 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
                 group = QGroupBox(title)
                 group.setObjectName('ribbonGroup')
                 grid = QGridLayout(group)
-                grid.setContentsMargins(5, 3, 5, 22)
+                grid.setContentsMargins(5, 2, 5, 18)
                 grid.setHorizontalSpacing(2)
                 grid.setVerticalSpacing(2)
                 for number, button in enumerate(buttons):
                     grid.addWidget(button, number % 2, number // 2)
                     button.fit_caption()
-                row.addWidget(group)
+                row.addWidget(group, 0, Qt.AlignmentFlag.AlignTop)
             row.addStretch()
             content.setObjectName('ribbonPage')
             content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -384,6 +384,7 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         for index, kind in enumerate(('folder', 'holes', 'layers', 'cube', 'pit', 'surface')):
             self.ribbon.setTabIcon(index, icon(kind))
         self.ribbon.setCurrentIndex(0)
+        self.ribbon.currentChanged.connect(lambda _: self.fit_ribbon_height())
         self.ribbon.tabBar().setUsesScrollButtons(True)
         self.ribbon.tabBar().setExpanding(False)
         self.fit_ribbon_height()
@@ -643,10 +644,12 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         if self.ribbon_collapsed:
             self.ribbon.setFixedHeight(self.ribbon.tabBar().sizeHint().height()+2)
             return
-        content=max(self.ribbon.widget(i).widget().minimumSizeHint().height()
-                    for i in range(self.ribbon.count()))
-        scrollbar=max(self.ribbon.widget(i).horizontalScrollBar().sizeHint().height()
-                      for i in range(self.ribbon.count()))
+        page = self.ribbon.currentWidget()
+        if page is None:
+            return
+        content = page.widget().minimumSizeHint().height()
+        overflow = page.widget().minimumSizeHint().width() > page.viewport().width()
+        scrollbar = page.horizontalScrollBar().sizeHint().height() if overflow else 0
         self.ribbon.setFixedHeight(content+self.ribbon.tabBar().sizeHint().height()+scrollbar+6)
 
     def collapse_ribbon(self):
