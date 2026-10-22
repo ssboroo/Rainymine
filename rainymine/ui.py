@@ -4,7 +4,8 @@ import csv
 import io
 import math
 import sys
-from PySide6.QtCore import Qt, QTimer
+import sqlite3
+from PySide6.QtCore import Qt, QTimer, QStandardPaths
 from PySide6.QtGui import QAction, QKeySequence, QIcon, QColor
 from PySide6.QtWidgets import (QApplication,QMainWindow,QWidget,QHBoxLayout,QVBoxLayout,
     QLabel,QPushButton,QFileDialog,QMessageBox,QDockWidget,QTreeWidget,QTreeWidgetItem,
@@ -42,6 +43,8 @@ class Window(QMainWindow):
     def __init__(self,empty=False):
         super().__init__();self.setWindowTitle(f'RAINYMINE {__version__} • Геологи ба 3D өрөмдлөг');self.resize(1440,900);self.setMinimumSize(1050,700)
         self.project=Project() if empty else demo();self.path=None;self.dirty=False;self.pick_points=[];self.measure_mode=False
+        from .recovery import RecoveryStore
+        self.recovery = RecoveryStore(Path(QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppLocalDataLocation)) / 'recovery')
         self.setStyleSheet(STYLE)
         self.build_ui();self.scene=Scene(self.vtk.GetRenderWindow())
         self.vtk.GetRenderWindow().SetMultiSamples(0)
@@ -59,6 +62,7 @@ class Window(QMainWindow):
         menu=self.menuBar().addMenu('Файл')
         for label,fn,key in [('Шинэ төсөл',self.new,'Ctrl+N'),('Төсөл нээх…',self.open,'Ctrl+O'),('Хадгалах',self.save,'Ctrl+S'),('Өөрөөр хадгалах…',lambda:self.save(True),'Ctrl+Shift+S')]:self.action(menu,label,fn,key)
         menu.addSeparator();self.action(menu,'Жишээ төсөл',self.open_demo);self.action(menu,'Төслийн тохиргоо',self.settings)
+        self.action(menu, 'Хадгалаагүй төсөл сэргээх…', self.recover_project)
         imports=self.menuBar().addMenu('Өгөгдөл')
         for kind,label in [('collars','Цооногийн амсар'),('surveys','Замналын хэмжилт'),('assays','Сорьцын агуулга'),('surface','Гадаргын XYZ')]:
             self.action(imports,label+' CSV импорт…',lambda k=kind:self.import_data(k))
@@ -115,7 +119,7 @@ class Window(QMainWindow):
     def guard(self,callback):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:return callback()
-        except (OSError,ValueError,TypeError,RuntimeError,KeyError,IndexError,OverflowError) as exc:
+        except (OSError,ValueError,TypeError,RuntimeError,KeyError,IndexError,OverflowError,sqlite3.Error) as exc:
             QMessageBox.critical(self,'Үйлдэл амжилтгүй',str(exc));return False
         finally:QApplication.restoreOverrideCursor()
 
@@ -168,15 +172,15 @@ class Window(QMainWindow):
         if result==QMessageBox.StandardButton.Save:return bool(self.save())
         return result==QMessageBox.StandardButton.Discard
     def new(self):
-        if self.may_discard():self.project=Project();self.path=None;self.dirty=False;self.refresh()
+        if self.may_discard():self.recovery.clear();self.project=Project();self.path=None;self.dirty=False;self.refresh()
     def open_demo(self):
-        if self.may_discard():self.project=demo();self.path=None;self.dirty=False;self.refresh()
+        if self.may_discard():self.recovery.clear();self.project=demo();self.path=None;self.dirty=False;self.refresh()
     def open(self):
         if not self.may_discard():return
         path,_=QFileDialog.getOpenFileName(self,'Төсөл нээх','','RAINYMINE төсөл (*.rmine)')
         if path:
             def run():
-                p=load_project(path);self.project=p;self.path=path;self.dirty=False;self.refresh();return True
+                p=load_project(path);self.recovery.clear();self.project=p;self.path=path;self.dirty=False;self.refresh();return True
             self.guard(run)
     def save(self,save_as=False):
         path=self.path if not save_as else None
@@ -184,12 +188,32 @@ class Window(QMainWindow):
         if not path:return False
         if not path.lower().endswith('.rmine'):path+='.rmine'
         def run():
-            save_project(path,self.project);self.path=path;self.dirty=False;self.update_title();self.statusBar().showMessage('Хадгалсан: '+path);return True
+            save_project(path,self.project);self.path=path;self.dirty=False
+            try:self.recovery.clear()
+            except OSError:pass
+            self.update_title();self.statusBar().showMessage('Хадгалсан: '+path);return True
         return self.guard(run)
     def backup(self):
-        if not self.dirty or not self.path:return
-        try:save_project(str(self.path)+'.autosave',self.project)
+        if not self.dirty:return
+        try:self.recovery.write(self.project,self.path)
         except (OSError,ValueError):self.statusBar().showMessage('Автомат нөөц хадгалж чадсангүй. Ctrl+S ашиглана уу.')
+
+    def recover_project(self):
+        from datetime import datetime
+        entries=self.recovery.candidates()
+        if not entries:return
+        labels=[f"{item['name']} · {datetime.fromtimestamp(item['saved_at']):%Y-%m-%d %H:%M:%S} · {item['path'].stem}" for item in entries]
+        label,ok=QInputDialog.getItem(self,'Хадгалаагүй төсөл сэргээх','Нөөцөөс шинэ хуулбар нээнэ. Эх файл өөрчлөгдөхгүй.',labels,0,False)
+        if not ok or not self.may_discard():return
+        def restore():
+            project,_=self.recovery.read(entries[labels.index(label)]['path'])
+            self.project=project;self.path=None;self.dirty=True
+            if hasattr(self,'history'):
+                from .data_tools import History
+                self.history=History()
+            self.refresh();self.backup()
+            return True
+        self.guard(restore)
     def import_data(self,kind):
         if kind=='collars' and self.project.collars:
             if QMessageBox.question(self,'Амсрын сан солих','Амсар импортлоход одоогийн цооног, survey, сорьцын сан солигдоно. Үргэлжлүүлэх үү?')!=QMessageBox.StandardButton.Yes:return
@@ -267,7 +291,10 @@ class Window(QMainWindow):
     def help(self):
         QMessageBox.information(self,'RAINYMINE — Ашиглах заавар','1. Төсөл табаас шинэ төсөл нээх, хадгалах, оруулах, гаргах үйлдлийг сонгоно.\n2. Өрөмдлөг табаас амсар → замнал → сорьц/литологи дарааллаар импортлоно.\n3. Геологи табаас гадарга, шугам, биетээ удирдана.\n4. Блок загвар табаас үнэлгээ, домэйн, хагарал, харьцуулалтыг тохируулна.\n5. Уурхайн төлөвлөлт табаас зам/тээвэр ба оновчлолын сценарий үүсгэнэ.\n6. Харагдац табаас огтлол, давхарга, камер, экспортын хэрэгслүүдийг ашиглана.\n\nЗүүн талд давхарга/цооног/огтлол, төвд бодит 3D геометр, доор блок/цооногийн хүснэгт, баруунд локал хиймэл оюуны туслах байрлана. AI модель төслийн өгөгдөл авахгүй.\n\n7 хоногийн туршилтыг Лиценз цэснээс шалгана. Төслөө .rmine файлд хадгална. Жишээ нь бодит орд биш. Инженерийн хязгааруудыг README болон release/KNOWN_ISSUES.mn.md-ээс уншина.\n\nRAINY STUDIO · 90220101')
     def closeEvent(self,event):
-        if self.may_discard():self.vtk.Finalize();event.accept()
+        if self.may_discard():
+            try:self.recovery.clear()
+            except OSError:pass
+            self.vtk.Finalize();event.accept()
         else:event.ignore()
 
 def main(app=None,splash=None):
@@ -309,6 +336,7 @@ def main(app=None,splash=None):
     window=WorkspaceWorkbench()
     if args.language:window.set_language(args.language, persist=not args.smoke)
     window.show()
+    if not args.smoke:QTimer.singleShot(0,window.recover_project)
     if args.screenshot:
         window.setFixedSize(1440,900);QApplication.processEvents()
     if splash:

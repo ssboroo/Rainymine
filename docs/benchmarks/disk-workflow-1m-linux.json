@@ -1,0 +1,49 @@
+{
+  "synthetic": true,
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "logical_cpus": 9,
+  "python": "3.12.14",
+  "sqlite": "3.53.1",
+  "blocks": 1000000,
+  "physical_gpu_fps_measured": false,
+  "cache": "single run, warm; no cold-cache comparison",
+  "timings_seconds": {
+    "create_grid": 1.569319,
+    "estimate_idw": 3.170748,
+    "edit_one_block": 0.004758,
+    "undo_edit": 0.00126,
+    "redo_edit": 0.001317,
+    "undo_estimation": 0.628182,
+    "redo_estimation": 0.643125,
+    "aggregate_all_blocks": 0.29858,
+    "sample_preview": 0.184215,
+    "vtk_preview_buffers": 0.292285,
+    "export_all_blocks_csv": 3.110857
+  },
+  "preview_blocks": 100000,
+  "preview_origin": [
+    500455.0,
+    5300500.0,
+    1500.0
+  ],
+  "totals": {
+    "blocks": 1000000,
+    "unestimated_blocks": 0,
+    "volume_m3": 1000000000.0,
+    "tonnes": 2700000000.0,
+    "estimated_tonnes": 2700000000.0,
+    "contained_metal_tonnes": 54000000.0,
+    "grade_unit": "%",
+    "cutoff": null,
+    "metal_scope": "estimated blocks only",
+    "classification": "UNCLASSIFIED"
+  },
+  "export_sha256": "15153e37a961f9ed3585af573036116c04c541239bfd9b3223e5db6e9a40fa8e",
+  "csv_rows": 1000000,
+  "database_bytes": 94916608,
+  "csv_bytes": 57888933,
+  "process_peak_rss_mib": 286.711,
+  "analytic_fixture_pass": true,
+  "independent_deposit_validation": false
+}

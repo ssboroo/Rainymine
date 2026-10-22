@@ -97,6 +97,8 @@ Dependency-ийн тогтоосон хувилбарууд `requirements.txt`-�
 
 ## Баримт бичгийн сан
 
+Шинэ: [Recovery, түгээлтийн preflight, workflow хяналт, reference тайлан, дискэн блок сан, инженерийн analytic модулиуд](docs/PRODUCTION_FOUNDATIONS.mn.md). `.rmdb` нь `.rmine`-д замаар холбогдох тусдаа файл; хамт нөөцөлж/зөөвөрлөнө. Нэг сая блокийн synthetic workflow хэмжилт баримтад бий; энэ нь ордын хараат бус баталгаа биш.
+
 [Баримтын индекс](docs/README.md) · [Шинэчлэлтийн түүх](CHANGELOG.md) · [Түгээлтийн тэмдэглэл](release/RELEASE_NOTES.mn.md) · [Дэмжлэгийн маягт](release/SUPPORT_TEMPLATE.mn.md) · [Брэндбүүк](docs/BRANDBOOK.mn.md)
 
 [Өмнөх дэлгэрэнгүй техникийн лавлагаа](DEVELOPMENT_REFERENCE.md) — түүхэн тайлбар; шинэ модулийн зааврыг давхар мөрдөнө.

@@ -467,9 +467,14 @@ class Workbench(Window):
             if not model:raise ValueError('Эхлээд model үүсгэнэ үү.')
             path,_=QFileDialog.getOpenFileName(self,'Гадаад reference — x,y,z,grade CSV','','CSV (*.csv)')
             if not path:return
-            f=self.params('External numerical comparison — review pending',{'Coordinate tolerance metres':.01,'Grade absolute tolerance':.001,'Grade relative tolerance':.01})
+            f=self.params('External numerical comparison — review pending',{'Coordinate tolerance metres':.01,'Grade absolute tolerance':.001,'Grade relative tolerance':.01,'Geometry relative tolerance':.000001,'Fallback density t/m³ (blank=none)':''})
             if not f:return
-            result=compare_reference(model,path,float(f['Coordinate tolerance metres']),float(f['Grade absolute tolerance']),float(f['Grade relative tolerance']))
+            density=f['Fallback density t/m³ (blank=none)'].strip()
+            result=compare_reference(model,path,float(f['Coordinate tolerance metres']),float(f['Grade absolute tolerance']),float(f['Grade relative tolerance']),self.project.grade_unit,float(density) if density else None,float(f['Geometry relative tolerance']))
             p=deepcopy(self.project);p.workspace['external_benchmark']=result;self.commit(p)
             QMessageBox.information(self,'Харьцуулалт — хараат бус баталгаа биш',json.dumps({k:v for k,v in result.items() if k!='rows'},ensure_ascii=False,indent=2));self.show_rows('Reference errors',result['rows'])
+            output,_=QFileDialog.getSaveFileName(self,'Хяналтын тайлан хадгалах','RAINYMINE-reference.html','HTML (*.html);;JSON (*.json)')
+            if output:
+                from .benchmark import write_comparison_report
+                write_comparison_report(output,result)
         self.guard(run)

@@ -16,6 +16,9 @@ Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 UninstallDisplayIcon={app}\Rainymine.exe
+CloseApplications=yes
+RestartApplications=no
+MinVersion=10.0
 [Files]
 Source: "..\dist\Rainymine\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
