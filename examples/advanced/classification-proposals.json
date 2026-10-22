@@ -1,0 +1,24 @@
+[
+  {
+    "name": "Measured",
+    "maximum_variance": 0.2,
+    "minimum_sor": 0.8,
+    "maximum_sample_distance_m": 25,
+    "minimum_holes": 3,
+    "maximum_pass": 1
+  },
+  {
+    "name": "Indicated",
+    "maximum_variance": 0.5,
+    "minimum_sor": 0.6,
+    "maximum_sample_distance_m": 50,
+    "minimum_holes": 2,
+    "maximum_pass": 2
+  },
+  {
+    "name": "Inferred",
+    "maximum_sample_distance_m": 100,
+    "minimum_holes": 1,
+    "maximum_pass": 3
+  }
+]

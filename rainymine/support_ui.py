@@ -26,10 +26,11 @@ class SupportDock(QDockWidget):
         self.settings=QSettings();engine,model=default_paths()
         self.engine_path=self.settings.value('local_ai/engine',str(engine));self.model_path=self.settings.value('local_ai/model',str(model))
         panel=QWidget();layout=QVBoxLayout(panel);self.setWidget(panel);self.setMinimumWidth(340)
-        note=QLabel('Зөвхөн Rainymine ашиглах, тохируулах, алдаа засах туслах.\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.');note.setWordWrap(True);layout.addWidget(note)
+        note=QLabel('Rainymine ашиглах, тохируулах болон төслийн өгөгдлийг зөвхөн уншиж шинжлэх туслах.\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.');note.setWordWrap(True);layout.addWidget(note)
         row=QHBoxLayout();self.setup_button=QPushButton('AI бэлтгэх');self.setup_button.setToolTip('Анх тохируулах · 1.28 GB');self.setup_button.clicked.connect(self.setup)
         self.files_button=QPushButton('Файл сонгох');self.files_button.clicked.connect(self.choose_files);row.addWidget(self.setup_button);row.addWidget(self.files_button);layout.addLayout(row)
         self.status=QLabel('Локал загвар бэлэн бол асуултаа бичнэ. Анх татахад интернэт хэрэгтэй.');self.status.setWordWrap(True);layout.addWidget(self.status)
+        self.mode=QComboBox();self.mode.addItems(['Программын тусламж','Төслийн өгөгдөл — зөвхөн унших']);layout.addWidget(self.mode)
         self.chat=QTextEdit();self.chat.setReadOnly(True);self.chat.setAcceptRichText(False);layout.addWidget(self.chat,1)
         self.question=QLineEdit();self.question.setMaxLength(2000);self.question.setPlaceholderText('Жишээ: CSV импортын алдааг яаж засах вэ?');self.question.returnPressed.connect(self.ask);layout.addWidget(self.question)
         row=QHBoxLayout();self.ask_button=QPushButton('Асуух');self.ask_button.clicked.connect(self.ask);self.cancel_button=QPushButton('Зогсоох');self.cancel_button.setToolTip('Зогсоох / Санах ой чөлөөлөх');self.cancel_button.clicked.connect(self.cancel);row.addWidget(self.ask_button);row.addWidget(self.cancel_button);layout.addLayout(row)
@@ -86,6 +87,8 @@ class SupportDock(QDockWidget):
         question=self.question.text().strip()
         if not question:return
         self.question.clear();self.append('Та',question)
+        if self.mode.currentIndex()==1:
+            self.parent().guard(lambda:self.parent().run_copilot_question(question,self));return
         if not candidates(question,self.previous):self.append('Assistant' if language()=='en' else 'Туслах',out_of_scope(language()));return
         if self.engine is None:self.engine=LocalEngine(self.engine_path,self.model_path)
         engine=self.engine;previous=self.previous;locale=language()

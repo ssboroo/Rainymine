@@ -1,3 +1,13 @@
+# Native engineering tools - 2026-10-22
+
+- Add four bilingual ribbon groups: geostatistics, daily operations, plotting and automation.
+- Add Python/Rust target-specific high-grade restriction, Python local anisotropy, exploratory cap/declustering statistics and guarded classification proposals.
+- Add terrain-overlay cut/fill, sample-coordinate patterns, ore/waste/NULL DXF + SHP boundaries and preliminary stereonet screening.
+- Add vector A3/A1/A0 PDF/SVG principal-axis plots and clickable signed-contact RBF guides.
+- Add read-only allowlisted local block queries, factual QA/QC diagnostics, methodology drafts and declarative workflow recording/replay.
+- Include Shapely/GEOS packaging licences and an optional, separately unvalidated Nuitka recipe.
+- Validation: 321 Linux tests passed with native Rust/C++ kernels; independent-deposit and Windows release acceptance remain open.
+
 # Workspace layout polish - 2026-10-22
 
 - Fit compact ribbon height to measured captions and keep MN/EN names accessible.

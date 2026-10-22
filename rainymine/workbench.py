@@ -277,6 +277,8 @@ class Workbench(Window):
                 result=evaluate_controls(rows,float(params['Blank limit']),float(params['Duplicate RPD limit']),float(params['Standard Z limit']))
                 import hashlib
                 p=deepcopy(self.project);p.workspace['qaqc_controls']={'source_sha256':hashlib.sha256(Path(path).read_bytes()).hexdigest(),'limits':params,'results':result};self.commit(p);self.show_rows('QA/QC — өгөгдөл устгаагүй',result)
+                from .quality_advisor import quality_advice
+                if hasattr(self,'support'):self.support.append('QA/QC',quality_advice(result)['text'])
             self.guard(run)
     def edit_string(self,index=None):
         strings=self.project.workspace.get('strings',[]);old=strings[index] if index is not None else {'name':'Domain / String','points':[],'closed':True}
@@ -354,6 +356,7 @@ class Workbench(Window):
             bounds=[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ'];size=[float(settings['Size '+a]) for a in 'XYZ']
             def apply(model):
                 p=deepcopy(self.project);p.workspace['block_model']=model;p.workspace.pop('block_slice_positions',None);self.commit(p)
+                if hasattr(self,'record_step'):self.record_step('estimate',{'bounds':bounds,'size':size,'params':parameters,'domain':domain})
                 QMessageBox.information(self,'Блок модель',f"{len(model['blocks'])} блок.\nНөөцийн ангилалгүй. Support: {model['support']}.")
             self.launch_task('Блокийн агуулга тооцож байна…',lambda cancel,progress:estimate_model(project,bounds,size,parameters,domain,cancel=cancel,progress=progress),apply,with_progress=True)
         self.guard(run)
