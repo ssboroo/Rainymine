@@ -22,7 +22,7 @@ class SupportWorker(QThread):
 
 class SupportDock(QDockWidget):
     def __init__(self,parent):
-        super().__init__('ХИЙМЭЛ ОЮУНЫ ТУСЛАХ',parent);self.worker=None;self.engine=None;self.previous=None;self._conversation_started=False
+        super().__init__('ХИЙМЭЛ ОЮУНЫ ТУСЛАХ',parent);self._agent_task=None;self.worker=None;self.engine=None;self.previous=None;self._conversation_started=False
         self.settings=QSettings();engine,model=default_paths()
         self.engine_path=self.settings.value('local_ai/engine',str(engine));self.model_path=self.settings.value('local_ai/model',str(model))
         panel=QWidget();layout=QVBoxLayout(panel);self.setWidget(panel);self.setMinimumWidth(340)
@@ -30,7 +30,7 @@ class SupportDock(QDockWidget):
         row=QHBoxLayout();self.setup_button=QPushButton('AI бэлтгэх');self.setup_button.setToolTip('Анх тохируулах · 1.28 GB');self.setup_button.clicked.connect(self.setup)
         self.files_button=QPushButton('Файл сонгох');self.files_button.clicked.connect(self.choose_files);row.addWidget(self.setup_button);row.addWidget(self.files_button);layout.addLayout(row)
         self.status=QLabel('Локал загвар бэлэн бол асуултаа бичнэ. Анх татахад интернэт хэрэгтэй.');self.status.setWordWrap(True);layout.addWidget(self.status)
-        self.mode=QComboBox();self.mode.addItems(['Программын тусламж','Төслийн өгөгдөл — зөвхөн унших']);layout.addWidget(self.mode)
+        self.mode=QComboBox();self.mode.addItems(['Программын тусламж','Төслийн өгөгдөл — зөвхөн унших','Программд ажил гүйцэтгэх']);layout.addWidget(self.mode)
         self.chat=QTextEdit();self.chat.setReadOnly(True);self.chat.setAcceptRichText(False);layout.addWidget(self.chat,1)
         self.question=QLineEdit();self.question.setMaxLength(2000);self.question.setPlaceholderText('Жишээ: CSV импортын алдааг яаж засах вэ?');self.question.returnPressed.connect(self.ask);layout.addWidget(self.question)
         row=QHBoxLayout();self.ask_button=QPushButton('Асуух');self.ask_button.clicked.connect(self.ask);self.cancel_button=QPushButton('Зогсоох');self.cancel_button.setToolTip('Зогсоох / Санах ой чөлөөлөх');self.cancel_button.clicked.connect(self.cancel);row.addWidget(self.ask_button);row.addWidget(self.cancel_button);layout.addLayout(row)
@@ -47,7 +47,7 @@ class SupportDock(QDockWidget):
         cursor=self.chat.textCursor();cursor.movePosition(cursor.MoveOperation.End)
         cursor.insertText(who+'\n'+text+'\n');self.chat.setTextCursor(cursor)
     def clear(self):self.chat.clear();self.previous=None;self._conversation_started=False
-    def busy(self):return self.worker is not None and self.worker.isRunning()
+    def busy(self):return self._agent_task is not None or (self.worker is not None and self.worker.isRunning())
     def start_worker(self,callback,on_result):
         if self.busy():return
         self.setup_button.setEnabled(False);self.files_button.setEnabled(False);self.ask_button.setEnabled(False)
@@ -55,7 +55,7 @@ class SupportDock(QDockWidget):
         worker.progress.connect(self.status.setText);worker.result.connect(on_result);worker.failure.connect(self.failed)
         worker.finished.connect(self.finished);worker.start()
     def finished(self):
-        self.setup_button.setEnabled(True);self.files_button.setEnabled(True);self.ask_button.setEnabled(True)
+        self.setup_button.setEnabled(True);self.files_button.setEnabled(True);self.ask_button.setEnabled(self._agent_task is None)
         worker=self.worker;self.worker=None
         if worker:worker.deleteLater()
     def failed(self,message):
@@ -87,6 +87,9 @@ class SupportDock(QDockWidget):
         question=self.question.text().strip()
         if not question:return
         self.question.clear();self.append('Та',question)
+        if self.mode.currentIndex()==2:
+            from .agent_ui import run_question
+            self.parent().guard(lambda:run_question(self.parent(),question,self));return
         if self.mode.currentIndex()==1:
             self.parent().guard(lambda:self.parent().run_copilot_question(question,self));return
         if not candidates(question,self.previous):self.append('Assistant' if language()=='en' else 'Туслах',out_of_scope(language()));return
@@ -101,6 +104,7 @@ class SupportDock(QDockWidget):
             text,self.previous=result;self.append('Local AI туслах',text);self.status.setText('Local model ажиллаж байна. Зогсоох товч RAM чөлөөлнө.')
         self.start_worker(run,done)
     def cancel(self):
+        if self._agent_task:self._agent_task.cancel.set()
         if self.worker:self.worker.cancelled.set()
         if self.engine:self.engine.stop();self.engine=None
         self.status.setText('Local AI зогсоолоо. Таталт явж байсан бол цуцлагдаж дуусахыг хүлээнэ.')

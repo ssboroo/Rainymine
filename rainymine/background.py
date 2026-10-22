@@ -16,11 +16,14 @@ class Worker(QThread):
 
 
 class Task(QObject):
-    def __init__(self,window,title,operation,apply,with_progress=False):
-        super().__init__(window);self.window=window;self.source=window.project;self.apply=apply;self.cancel=threading.Event()
+    def __init__(self,window,title,operation,apply,with_progress=False,on_event=None):
+        super().__init__(window);self.on_event=on_event;self.terminal=False;self.window=window;self.source=window.project;self.apply=apply;self.cancel=threading.Event()
         self.progress=QProgressDialog(title,'Цуцлах',0,0,window);self.progress.setWindowModality(Qt.WindowModality.NonModal);self.progress.setMinimumDuration(0);self.progress.canceled.connect(self.cancel.set)
         self.worker=Worker(operation,self.cancel,self,with_progress);self.worker.result.connect(self.done);self.worker.failed.connect(self.failed);self.worker.progress.connect(self.update_progress);self.worker.finished.connect(self.finished)
         window._engineering_tasks.append(self);self.progress.show();self.worker.start()
+    def notify_state(self,state,**details):
+        self.terminal=True
+        if self.on_event:self.on_event(state,**details)
     @Slot(int,int)
     def update_progress(self,value,total):
         if self.cancel.is_set():return
@@ -30,12 +33,15 @@ class Task(QObject):
         self.progress.hide()
         if self.cancel.is_set():return
         if self.source is not self.window.project:
+            self.notify_state('stale')
             QMessageBox.information(self.window,'Үр дүн хэрэгжээгүй','Тооцоо явж байх хооронд төсөл өөрчлөгдсөн. Шинэ өгөгдөл дээр дахин ажиллуулна уу.');return
-        self.window.guard(lambda:self.apply(result))
+        applied=self.window.guard(lambda:self.apply(result))
+        self.notify_state('failed' if applied is False else 'completed')
     @Slot(str)
-    def failed(self,message):self.progress.hide();QMessageBox.warning(self.window,'Ажиллагаа амжилтгүй',message)
+    def failed(self,message):self.notify_state('failed',error=message);self.progress.hide();QMessageBox.warning(self.window,'Ажиллагаа амжилтгүй',message)
     @Slot()
     def finished(self):
+        if not self.terminal:self.notify_state('cancelled' if self.cancel.is_set() else 'discarded')
         self.progress.hide();self.progress.deleteLater()
         if self in self.window._engineering_tasks:self.window._engineering_tasks.remove(self)
         self.worker.deleteLater();self.deleteLater()

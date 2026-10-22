@@ -139,10 +139,10 @@ class Workbench(Window):
             history.undo_items=undo;history.redo_items=redo;self._history_generation=generation;self.refresh()
         return result
 
-    def launch_task(self,title,operation,apply,with_progress=False):
+    def launch_task(self,title,operation,apply,with_progress=False,on_event=None):
         from .background import Task
         if self.computing or self._engineering_tasks:raise ValueError('Ажиллаж буй тооцоогоо дуусгах эсвэл цуцална уу.')
-        return Task(self,title,operation,apply,with_progress=with_progress)
+        return Task(self,title,operation,apply,with_progress=with_progress,on_event=on_event)
     def commit(self,candidate):
         candidate.validate();self.project=candidate;self.dirty=True;self.refresh()
     def undo(self):
