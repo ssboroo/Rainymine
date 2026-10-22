@@ -84,7 +84,9 @@ class FaultNetwork:
         Parent relationships are geometric scopes, not inferred fault chronology.
         Input order defines restoration chronology when faults are independent.
         """
-        restored=np.array(points,dtype=float,copy=True).reshape(-1,3)
+        restored=np.array(points,dtype=float,copy=True)
+        if restored.size==0:restored=restored.reshape(0,3)
+        if restored.ndim!=2 or restored.shape[1]!=3 or not np.isfinite(restored).all():raise ValueError('Restoration targets must be finite N×3')
         for i in self.order:
             codes=self.classify(restored,cancel);enabled=(codes&(1<<i))!=0
             if self.faults[i].get('active_if'):enabled&=(codes&(1<<(len(self.faults)+i)))!=0

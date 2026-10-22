@@ -143,3 +143,8 @@ class NativeKernelTests(unittest.TestCase):
    with self.assertRaises(RuntimeError):optimize_disk_pit(path,output,1,1,2,1,1,cancel=lambda:True)
    self.assertEqual(output.read_bytes(),original)
    with self.assertRaises(ValueError):optimize_disk_pit(path,output,1,1,2,1,1,memory_budget_mib=.0001)
+
+   with DiskModel(path) as store:
+    store.db.execute('UPDATE blocks SET x=x+1 WHERE id=0');store.db.commit()
+   with self.assertRaisesRegex(ValueError,'geometry'):optimize_disk_pit(path,output,1,1,2,1,1)
+   self.assertEqual(output.read_bytes(),original)
