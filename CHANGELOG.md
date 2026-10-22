@@ -1,3 +1,11 @@
+# Render controls and acceptance evidence - 2026-10-23
+
+- Add validated render profiles, fixed grade scales, NULL block display, six-plane world-space clipping and persistent world-coordinate camera bookmarks.
+- Add bounded multiple block outlines, Ctrl-click selection, idle hover information and cancellable per-device render timing.
+- Add interaction-only GPU preview LOD retaining source IDs, grade, sizes and orientation; restore full preview on interaction end.
+- Record a scoped Linux render measurement and actual production blockers, without claiming commercial parity.
+- Fix explicit UTF-8 reads for three Windows CI report tests and UTF-8 CAD/GIS sidecar writes.
+
 # Local AI command execution - 2026-10-23
 
 - Connect the local assistant to five strictly validated application commands in a separate execution mode.

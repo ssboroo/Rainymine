@@ -65,7 +65,7 @@ class ReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             target=Path(folder)/'pack'
             export_pack(project(),{},target)
-            manifest=json.loads((target/'manifest.json').read_text())
+            manifest=json.loads((target/'manifest.json').read_text(encoding='utf-8'))
             self.assertEqual(manifest['status'],'DRAFT_REVIEW_REQUIRED')
             self.assertEqual(len(manifest['files_sha256']),9)
             for name,digest in manifest['files_sha256'].items():

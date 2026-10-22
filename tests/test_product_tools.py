@@ -140,7 +140,7 @@ class MapTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             for paper in ('A3','A1','A0'):
                 target=Path(folder)/paper;export_map(p,{'view':'XZ','position':0,'paper':paper,'scale':'auto','slab_width':10},target)
-                self.assertTrue((target/'map.pdf').read_bytes().startswith(b'%PDF'));self.assertIn('<svg',(target/'map.svg').read_text());self.assertEqual(json.loads((target/'layout.json').read_text())['paper'],paper)
+                self.assertTrue((target/'map.pdf').read_bytes().startswith(b'%PDF'));self.assertIn('<svg',(target/'map.svg').read_text(encoding='utf-8'));self.assertEqual(json.loads((target/'layout.json').read_text(encoding='utf-8'))['paper'],paper)
 
 
 if __name__=='__main__':unittest.main()

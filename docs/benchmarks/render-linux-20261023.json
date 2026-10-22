@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-23",
+  "scene": "synthetic desktop demo; 720 source blocks, 20 drillholes",
+  "environment": "Linux Xvfb, software OpenGL; not a physical Windows acceptance test",
+  "records": [
+    {
+      "os": "Linux-6.18.55-x86_64-with-glibc2.39",
+      "vtk": "9.3.1",
+      "frames": 12,
+      "viewport_px": "(1002, 509)",
+      "median_frame_ms": 25.00676999989082,
+      "p95_frame_ms": 28.883814699975115,
+      "median_fps": 39.989170932686065,
+      "depth_peeling_used": true,
+      "profile": "quality",
+      "scope": "current desktop scene, not a 10M-block workflow or Windows certification"
+    }
+  ],
+  "interaction_check": {
+    "external_preview_blocks": 60000,
+    "interaction_budget": 25000,
+    "restored_points": 60000,
+    "native_qt_vtk_render_and_close": "passed"
+  },
+  "scope": "12-frame current-scene timing, not comparative speedup, sustained stress or 10M-block benchmark"
+}

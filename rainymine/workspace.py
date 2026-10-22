@@ -111,6 +111,7 @@ class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, A
         for scene in (self.scene, self.secondary):
             scene.configure_presentation()
         self._workspace_ready = True
+        self.setup_render_hover()
         self.support.show()
         self.resizeDocks([self.layer_dock, self.support], [270, 300], Qt.Orientation.Horizontal)
         self.workspace_split.setSizes([590, 170])
@@ -233,7 +234,8 @@ class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, A
         self.block_table.setModel(self.block_model)
         self.block_table.setAlternatingRowColors(True)
         self.block_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.block_table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.block_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.block_table.selectionModel().selectionChanged.connect(self.block_selection_changed)
         self.block_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.block_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         self.block_table.horizontalHeader().setMinimumSectionSize(105)
@@ -404,7 +406,7 @@ class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, A
         self.ribbon.currentChanged.connect(lambda _: self.fit_ribbon_height())
         self.ribbon.tabBar().setUsesScrollButtons(True)
         self.ribbon.tabBar().setExpanding(False)
-        self.build_product_ribbon()
+        self.build_product_ribbon();self.build_render_controls()
         self.fit_ribbon_height()
 
     def focus_search(self):
@@ -506,6 +508,12 @@ class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, A
         self.project_summary.setText(f'{self.project.name}\n\n{len(self.project.collars):,} цооног\n{len(self.project.assays):,} сорьц\n{len(blocks):,} блок\n\nКоординат: {self.project.crs_code or "Локал метр"}\nАгуулгын нэгж: {self.project.grade_unit}\n\nТөслийн мэдээлэл энэ самбарт локал харагдана. AI модельд төслийн өгөгдөл дамжуулахгүй.\n\nRAINY STUDIO · 90220101')
         if language()=='en':self.update_english_summary()
 
+    def block_selection_changed(self,*args):
+        if self._table_sync:return
+        indices=[index.row() for index in self.block_table.selectionModel().selectedRows()]
+        displayed=self.scene.highlight_blocks(indices)
+        if len(indices)>displayed:self.statusBar().showMessage(f'{len(indices):,} selected; {displayed:,} outlines displayed (bounded rendering)')
+
     def block_row_selected(self, index):
         if self._table_sync or not index.isValid():
             return
@@ -529,7 +537,10 @@ class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, A
                 row = info['block_index']
                 if row < self.block_model.rowCount():
                     self.show_block_properties(row)
-                    self.block_table.selectRow(row)
+                    if QApplication.keyboardModifiers() & Qt.KeyboardModifier.ControlModifier:
+                        from PySide6.QtCore import QItemSelectionModel
+                        self.block_table.selectionModel().select(self.block_model.index(row,0),QItemSelectionModel.SelectionFlag.Toggle|QItemSelectionModel.SelectionFlag.Rows)
+                    else:self.block_table.selectRow(row)
                     self.block_table.scrollTo(self.block_model.index(row, 0))
 
 
@@ -874,7 +885,7 @@ class WorkspaceWorkbench(ProductTools, EbmzTools, V2Tools, ProTools, SrsTools, A
             if not scene:continue
             if scene.coordinate_grid:scene.coordinate_grid.SetVisibility(grid)
             if scene.coordinate_text:scene.coordinate_text.SetVisibility(grid)
-            if 'blocks' in scene.actors:scene.actors['blocks'].GetProperty().SetEdgeVisibility(edges)
+            if 'blocks' in scene.actors:scene.actors['blocks'].GetProperty().SetEdgeVisibility(edges and self.project.workspace.get('render_options',{}).get('profile')!='fast')
 
     def layer_selected(self, item, *args):
         if item is None or item.data(0, Qt.ItemDataRole.UserRole) is None:

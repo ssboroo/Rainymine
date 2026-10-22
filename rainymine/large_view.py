@@ -77,11 +77,19 @@ def pick_blocks_ray(ray_origin,ray_direction,payload):
 
 
 
+def interaction_lod(poly,maximum=25000):
+    """Bounded display-only thinning, preserving original IDs and all point arrays."""
+    import vtk
+    if type(maximum) is not int or maximum<1:raise ValueError('Positive LOD point budget required')
+    mask=vtk.vtkMaskPoints();mask.SetInputData(poly);mask.RandomModeOff();mask.SetOnRatio(max(1,math.ceil(poly.GetNumberOfPoints()/maximum)));mask.SetMaximumNumberOfPoints(maximum);mask.GenerateVerticesOn();mask.Update()
+    return mask
+
+
 class LargePreviewFactory:
     @staticmethod
     def show(parent,payload,title):
         import vtk
-        from PySide6.QtWidgets import QDialog,QVBoxLayout,QLabel,QPushButton
+        from PySide6.QtWidgets import QDialog,QVBoxLayout,QLabel,QPushButton,QCheckBox
         from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
         from .spatial import search_basis
         from PySide6.QtCore import Qt
@@ -124,6 +132,13 @@ class LargePreviewFactory:
         for prop in (legend.GetLabelTextProperty(),legend.GetTitleTextProperty(),legend.GetAnnotationTextProperty()):
             prop.SetColor(.1,.2,.3);prop.SetFontSize(11);readable_text(prop)
         renderer.AddActor2D(legend)
+        lod=interaction_lod(poly);lod_toggle=QCheckBox('Хөдөлгөөний LOD ≤25,000 · зогсоход бүтэн preview');lod_toggle.setChecked(poly.GetNumberOfPoints()>50000);layout.addWidget(lod_toggle)
+        def moving(obj,event):
+            if lod_toggle.isChecked():mapper.SetInputData(lod.GetOutput())
+        def stopped(obj,event):mapper.SetInputData(poly);widget.GetRenderWindow().Render()
+        widget.AddObserver('StartInteractionEvent',moving);widget.AddObserver('EndInteractionEvent',stopped)
+        lod_toggle.toggled.connect(lambda enabled:stopped(None,None) if not enabled else None)
+        dialog.lod_pipeline=lod
         note='Саарал = харьяалалгүй материал.' if payload.get('categories') else 'Саарал = агуулгагүй (NULL).'
         picked=QLabel('Эх файлын индексийг хадгалсан GPU preview. '+note+' FPS нь төхөөрөмжөөс хамаарна.');picked.setWordWrap(True);layout.addWidget(picked)
         def select(obj,event):
