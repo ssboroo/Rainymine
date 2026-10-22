@@ -1,3 +1,11 @@
+# Local AI command execution - 2026-10-23
+
+- Connect the local assistant to five strictly validated application commands in a separate execution mode.
+- Compute on detached candidates; apply successful multi-step plans as one Undo/Redo transaction, with existing-grid and approved-class protection.
+- Add progress/cancellation, stale-result rejection, durable local audit events (including Undo/Redo), and a saved composite table.
+- Preserve source assays and known block density/domain/rock; reject missing variograms and candidates exceeding project save limits.
+- Keep arbitrary code, source deletion and resource approval outside the AI command allowlist.
+
 # Native engineering tools - 2026-10-22
 
 - Add four bilingual ribbon groups: geostatistics, daily operations, plotting and automation.

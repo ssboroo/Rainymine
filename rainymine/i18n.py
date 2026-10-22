@@ -387,3 +387,7 @@ CATALOG.update({
 'Программын тусламж':'Application help','Төслийн өгөгдөл — зөвхөн унших':'Project data — read only',
 'Rainymine ашиглах, тохируулах болон төслийн өгөгдлийг зөвхөн уншиж шинжлэх туслах.\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.':'Help with Rainymine and read-only project analysis.\nProject data and chat history are not sent to cloud services.'
 })
+
+CATALOG.update({'Программд ажил гүйцэтгэх':'Execute application commands','AI команд ажиллуулах':'Run AI commands','AI үйлдлийн бүртгэл':'AI action history'})
+
+CATALOG['AI композитын хүснэгт']='AI composite table'

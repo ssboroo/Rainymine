@@ -25,7 +25,7 @@ class ProductTools:
             ('Вектор зураг',[('План / зүсэлт PDF',self.map_tool),('ЭБМЗ багц гаргах',self.ebmz_export)]),
             ('Геологийн засвар',[('Контакт / чиглүүлэгч',self.contact_editor)])]),
           ('Автоматжуулалт',[
-            ('Локал копилот',[('Блок шүүх / тооцох',self.copilot_tool),('QA/QC зөвлөх',self.qaqc_advisor),('Аргачлалын ноорог',self.methodology_tool)]),
+            ('Локал копилот',[('Блок шүүх / тооцох',self.copilot_tool),('AI команд ажиллуулах',self.agent_tool),('AI үйлдлийн бүртгэл',self.agent_history),('AI композитын хүснэгт',self.agent_composites),('QA/QC зөвлөх',self.qaqc_advisor),('Аргачлалын ноорог',self.methodology_tool)]),
             ('Workflow',[('Бичлэг эхлэх',self.record_start),('Бичлэг хадгалах',self.record_save),('Re-run All',self.replay_tool)])])]
         for title,sections in groups:
             content=QWidget();row=QHBoxLayout(content);row.setContentsMargins(6,4,6,2)
@@ -191,6 +191,38 @@ class ProductTools:
 
     def copilot_tool(self):
         self.support.show();self.assistant_tabs.setCurrentWidget(self.help_scroller);self.support.mode.setCurrentIndex(1);self.support.question.setFocus()
+
+    def undo(self):
+        return self._audited_history(False)
+
+    def redo(self):
+        return self._audited_history(True)
+
+    def _audited_history(self,redo):
+        stack=self.history.redo_items if redo else self.history.undo_items
+        label=stack[-1][0] if stack else ''
+        if self.computing:return
+        command_id=label[3:] if label.startswith('AI:') else None
+        if command_id:
+            from .agent_commands import AuditJournal
+            AuditJournal().append(command_id,'redo_requested' if redo else 'undo_requested')
+        before=self.project
+        result=super().redo() if redo else super().undo()
+        if command_id and before is not self.project:AuditJournal().append(command_id,'redone' if redo else 'undone')
+        return result
+
+    def agent_tool(self):
+        self.support.show();self.assistant_tabs.setCurrentWidget(self.help_scroller);self.support.mode.setCurrentIndex(2);self.support.question.setFocus()
+
+    def agent_composites(self):
+        data=self.project.workspace.get('ai_composites')
+        if not data:raise ValueError('Run an AI composite command first')
+        self.show_rows('AI композит — эх сорьц өөрчлөгдөөгүй',data['samples'])
+
+    def agent_history(self):
+        from .agent_commands import AuditJournal
+        rows=AuditJournal().tail()
+        self.show_rows('AI — үйлдлийн локал бүртгэл',rows or [{'event':'No recorded commands'}])
 
     def run_copilot_question(self,question,dock):
         from .copilot_tools import parse_query,validate_plan,model_query,disk_query

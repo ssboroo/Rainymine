@@ -51,7 +51,7 @@ MN/EN солиход шинэ tab, бүлэг, товчны нэр орчуул�
 
 Энгийн хүсэлтийг deterministic parser тайлна. Бусад хүсэлтэд суулгасан local engine/model байвал JSON tool plan санал болгоно. Ганц allowlisted `filter_blocks` tool; grade/x/y/z/density/domain, AND нөхцөл, numeric comparisons ба domain equality. AI-ийн бичсэн SQL/Python ажиллуулахгүй. SQLite нь mode=ro, query_only, bound parameters. Domain/нөхцөл болон үр дүнгийн query-г хэрэглэгчид харуулна.
 
-Бүх таарсан блокийн statistics, тусдаа хязгаартай хүснэгт ба 3D preview гарна. Анхдагч preview 50,000, дээд 250,000; statistics нь бүх match дээр. Үндсэн блок загвар/агуулгыг өөрчлөхгүй. Байхгүй grade/density-г зохиохгүй. Энэ нь бүрэн autonomous geology agent биш; LLM plan-ыг хянан хэрэглэнэ.
+Бүх таарсан блокийн statistics, тусдаа хязгаартай хүснэгт ба 3D preview гарна. Анхдагч preview 50,000, дээд 250,000; statistics нь бүх match дээр. Үндсэн блок загвар/агуулгыг өөрчлөхгүй. Байхгүй grade/density-г зохиохгүй. Энэ нь бүрэн autonomous geology agent биш; LLM plan-ыг хянан хэрэглэнэ. [Шинэ ажил гүйцэтгэх горим](AI_COMMANDS.mn.md) нь үүнээс тусдаа сонголт бөгөөд дэмжсэн засвар/тооцоог нэг Undo алхмаар гүйцэтгэнэ.
 
 QA/QC CSV-ээс lab/batch, CRM expected/SD, duplicate pair бодит утгыг хадгалж threshold давсан мөрийг зөвлөнө. CRM-д Shewhart Z, duplicate-д mean–absolute-difference diagnostic. Бүрэн calibrated Thompson–Howarth загвар биш. Methodology draft нь бүртгэлтэй параметр, статистик дээр тулгуурласан хянах ноорог; geological justification болон CP-ийн дүгнэлтийг зохиохгүй.
 
