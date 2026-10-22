@@ -22,7 +22,7 @@ class RecoveryTests(unittest.TestCase):
             path=store.write(project,source)
             restarted=RecoveryStore(root/'recovery','second');candidate=restarted.candidates()[0]
             restored,meta=restarted.read(candidate['path'])
-            self.assertEqual(restored.to_dict(),project.to_dict());self.assertEqual(meta['original_path'],str(source));self.assertEqual(source.read_text(),'unchanged')
+            self.assertEqual(restored.to_dict(),project.to_dict());self.assertEqual(meta['original_path'],str(source));self.assertEqual(source.read_text(encoding='utf-8'),'unchanged')
             store.clear();self.assertFalse(path.exists())
     def test_failed_snapshot_keeps_previous_and_corruption_is_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -84,7 +84,7 @@ class DiskModelTests(unittest.TestCase):
             self.assertEqual(store.totals(),before);self.assertTrue(store.undo());self.assertEqual(store.totals()['unestimated_blocks'],16)
             output=Path(self.temp.name)/'old.csv';output.write_text('old')
             with self.assertRaises(RuntimeError):store.export_csv(output,cancel=lambda:True)
-            self.assertEqual(output.read_text(),'old')
+            self.assertEqual(output.read_text(encoding='utf-8'),'old')
     def test_cancelled_grid_keeps_previous_store(self):
         before=self.path.read_bytes()
         with self.assertRaises(RuntimeError):DiskModel.create(self.path,[0]*3,[2]*3,[1]*3,'EPSG:32648','%',cancel=lambda:True)
@@ -116,7 +116,7 @@ class ExpandedReference(unittest.TestCase):
             model['blocks'][0]['dx']=20
             result=compare_reference(model,path,grade_unit='%');self.assertFalse(result['numerical_pass']);self.assertEqual(result['total_differences']['tonnes'],2700.)
             output=Path(directory)/'report.html';result['source_name']='<script>bad</script>';write_comparison_report(output,result)
-            self.assertNotIn('<script>',output.read_text());self.assertIn('&lt;script&gt;',output.read_text())
+            self.assertNotIn('<script>',output.read_text(encoding='utf-8'));self.assertIn('&lt;script&gt;',output.read_text(encoding='utf-8'))
     def test_null_is_not_zero_and_missing_geometry_not_invented(self):
         model={'blocks':[dict(x=1,y=2,z=3,grade=None)]}
         with tempfile.TemporaryDirectory() as directory:
