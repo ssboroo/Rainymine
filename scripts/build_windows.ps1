@@ -1,4 +1,4 @@
-param([switch]$Production)
+param([switch]$Production, [switch]$Installer)
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
 $version = (python scripts/release_version.py --write-installer).Trim()
@@ -47,4 +47,15 @@ if (Test-Path ai\models) {
     Compress-Archive -Path dist\Rainymine -DestinationPath dist\Rainymine-$version-AI-Offline-x64.zip -CompressionLevel Fastest -Force
     Remove-Item dist\Rainymine\ai\models -Recurse -Force
     Write-Host 'Full offline AI portable package ready.'
+}
+
+if ($Installer) {
+    $compiler = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+    if ($compiler) { $iscc = $compiler.Source }
+    else { $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" }
+    if (-not (Test-Path -LiteralPath $iscc)) { throw 'Inno Setup 6 is required to build the installer' }
+    & $iscc installer\Rainymine.iss
+    if ($LASTEXITCODE -ne 0) { throw 'Installer build failed' }
+    & "$PSScriptRoot\sign_windows.ps1" -Path "dist\Rainymine-$version-Setup-x64.exe" -Required:$Production
+    Write-Host "Installer ready: dist\Rainymine-$version-Setup-x64.exe"
 }

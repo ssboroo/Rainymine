@@ -59,39 +59,67 @@ def tunnel_network(points,width,height):
     return result
 
 
-def stope_boxes(model,cells,density,unit_value,mining_cost,seconds=20):
-    """MILP maximum-value non-overlapping FULL regular-grid boxes.
+def stope_boxes(model,cells,density,unit_value,mining_cost,seconds=20,*,
+                shapes=None,cutoff=0.,maximum_internal_dilution=1.,minimum_mean_grade=0.,cancel=None):
+    """Floating axis-aligned box candidates with mass-weighted dilution limits.
 
-    A finite candidate-shape optimisation, not commercial MSO wall-angle/dilution
-    equivalence. Units: unit_value per project grade-unit*tonne; cost per tonne.
+    MILP chooses non-overlapping full-grid candidates. No wall angles, pillars,
+    external dilution, geotechnical viability or commercial MSO equivalence.
+    unit_value is currency per project grade-unit*tonne (recovery included by user).
     """
-    finite(density,unit_value,mining_cost,seconds)
-    if min(density,seconds)<=0 or min(unit_value,mining_cost)<0 or len(cells)!=3 or any(type(v) is not int or v<1 for v in cells):raise ValueError('Stope тохиргоо буруу.')
+    finite(density,unit_value,mining_cost,seconds,cutoff,maximum_internal_dilution,minimum_mean_grade)
+    if min(density,seconds)<=0 or min(unit_value,mining_cost,cutoff,minimum_mean_grade)<0 or not 0<=maximum_internal_dilution<=1:raise ValueError('Stope тохиргоо буруу.')
+    options=[cells]+list(shapes or [])
+    if len(options)>8 or any(len(shape)!=3 or any(type(v)!=int or v<1 for v in shape) for shape in options):raise ValueError('1–8 positive XYZ integer candidate shapes required')
+    options=list(dict.fromkeys(tuple(shape) for shape in options))
     if not np.allclose(model_basis(model),np.eye(3),atol=1e-10) or model.get('subblock_levels',0):raise ValueError('Stope box зөвхөн world-axis parent grid дэмжинэ.')
     blocks=model['blocks']
     if not 1<=len(blocks)<=5000:raise ValueError('Stope 1…5000 блок байна.')
-    if math.prod(cells)>len(blocks):raise ValueError('Stope хайрцаг нийт блокоос олон нүдтэй байна.')
-    size=tuple(blocks[0][k] for k in ('dx','dy','dz'));lookup={}
+    size=tuple(blocks[0][k] for k in ('dx','dy','dz'));lookup={};masses=[];fallback_count=0
+    finite(*size)
+    if min(size)<=0:raise ValueError('Positive block dimensions required')
+    anchor=None
     for i,b in enumerate(blocks):
         if b.get('grade') is None or b.get('subblock_level',0) or tuple(b[k] for k in ('dx','dy','dz'))!=size:raise ValueError('Ижил хэмжээтэй, үнэлсэн parent blocks шаардлагатай.')
-        finite(b['grade'],b['dx'],b['dy'],b['dz'])
-        key=tuple(b[k] for k in ('i','j','k'))
-        if key in lookup:raise ValueError('Grid индекс давхардсан.')
-        lookup[key]=i
-    candidates=[];values=[]
-    for low in sorted(lookup):
-        ids=[lookup.get((low[0]+i,low[1]+j,low[2]+k)) for i in range(cells[0]) for j in range(cells[1]) for k in range(cells[2])]
-        if any(i is None for i in ids):continue
-        value=sum(blocks[i]['dx']*blocks[i]['dy']*blocks[i]['dz']*density*(blocks[i]['grade']*unit_value-mining_cost) for i in ids)
-        if value>0:candidates.append(ids);values.append(value)
-        if len(candidates)>3000:raise ValueError('Stope candidates >3000; grid / dimensions-ийг өөрчилнө үү.')
-    if not candidates:return {'selected':[],'objective':0.,'optimal':True,'candidate_count':0,'algorithm':'non-overlapping regular boxes MILP'}
+        finite(b['grade'],b['x'],b['y'],b['z'])
+        if b['grade']<0:raise ValueError('Negative stope grade')
+        key=tuple(b.get(k) for k in ('i','j','k'))
+        if any(type(k)!=int for k in key) or key in lookup:raise ValueError('Grid индекс буруу / давхардсан.')
+        xyz=np.array([b[k] for k in 'xyz'])
+        if anchor is None:anchor=xyz-(np.array(key)+.5)*size
+        if not np.allclose(xyz,anchor+(np.array(key)+.5)*size,atol=1e-6,rtol=0):raise ValueError('Block indices do not match regular-grid coordinates')
+        rho=b.get('density')
+        if rho is None:rho=density;fallback_count+=1
+        finite(rho)
+        if rho<=0:raise ValueError('Positive per-block density required')
+        mass=math.prod(size)*rho
+        finite(mass);masses.append(mass);lookup[key]=i
+    candidates=[];values=[];stats=[]
+    for shape in options:
+        if math.prod(shape)>len(blocks):continue
+        for low in sorted(lookup):
+            if cancel and cancel():raise RuntimeError('Stope candidate generation cancelled')
+            ids=[lookup.get((low[0]+i,low[1]+j,low[2]+k)) for i in range(shape[0]) for j in range(shape[1]) for k in range(shape[2])]
+            if any(i is None for i in ids):continue
+            tonnes=math.fsum(masses[i] for i in ids)
+            weighted=math.fsum(masses[i]*blocks[i]['grade'] for i in ids)
+            mean=weighted/tonnes;dilution=math.fsum(masses[i] for i in ids if blocks[i]['grade']<cutoff)/tonnes
+            value=weighted*unit_value-tonnes*mining_cost;finite(value)
+            if value<=0 or mean<minimum_mean_grade or dilution>maximum_internal_dilution+1e-12:continue
+            candidates.append(ids);values.append(value);stats.append({'shape_cells':list(shape),'tonnes':tonnes,'mean_grade':mean,'internal_dilution_fraction':dilution})
+            if len(candidates)>3000:raise ValueError('Stope candidates >3000; grid / dimensions-ийг өөрчилнө үү.')
+    common={'candidate_count':len(candidates),'algorithm':'floating regular boxes / multi-shape MILP',
+            'constraints':{'cutoff':cutoff,'maximum_internal_dilution':maximum_internal_dilution,'minimum_mean_grade':minimum_mean_grade},
+            'candidate_shapes':[list(s) for s in options],'fallback_density_blocks':fallback_count,
+            'engineering_review':False,'commercial_mso_equivalence':False,
+            'limitations':['no wall angles','no pillars or stand-off','no external dilution','no geotechnical acceptance']}
+    if not candidates:return {'selected':[],'objective':0.,'optimal':True,**common}
     matrix=lil_matrix((len(blocks),len(candidates)),dtype=float)
     for j,ids in enumerate(candidates):matrix[ids,j]=1.
     solution=milp(-np.asarray(values),integrality=np.ones(len(candidates)),bounds=Bounds(0,1),constraints=LinearConstraint(matrix.tocsr(),-np.inf,1.),options={'time_limit':seconds,'mip_rel_gap':.001})
+    if cancel and cancel():raise RuntimeError('Stope solve cancelled')
     if solution.x is None:raise ValueError('Stope solver incumbent алга: '+solution.message)
     chosen=[i for i,x in enumerate(solution.x) if x>.5];used=[b for i in chosen for b in candidates[i]]
     if len(used)!=len(set(used)):raise ValueError('Stope overlap residual илэрлээ.')
-    return {'selected':[{'candidate':i,'block_indices':candidates[i],'value':values[i]} for i in chosen],
-            'objective':sum(values[i] for i in chosen),'optimal':solution.status==0,'mip_gap':float(solution.mip_gap),
-            'candidate_count':len(candidates),'algorithm':'non-overlapping regular boxes MILP','engineering_review':False}
+    return {'selected':[{'candidate':i,'block_indices':candidates[i],'value':values[i],**stats[i]} for i in chosen],
+            'objective':sum(values[i] for i in chosen),'optimal':solution.status==0,'mip_gap':float(solution.mip_gap),**common}

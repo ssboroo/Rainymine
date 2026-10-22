@@ -121,12 +121,26 @@ class NavigationWorkbench(Workbench):
         super().on_click(obj,event)
 
     def block_selection_text(self,index,block):
+        from .i18n import language
+        en=language()=='en'
         grade='—' if block.get('grade') is None else f"{block['grade']:,.3f}"
         variance='—' if block.get('variance') is None else f"{block['variance']:.6g}"
-        return f"Блок #{index}\nX {block['x']:,.2f}  Y {block['y']:,.2f}\nZ {block['z']:,.2f}\nАгуулга: {grade} {self.project.grade_unit}\nVariance: {variance}\n{block.get('status','')}"
+        title='Block' if en else 'Блок';label='Grade' if en else 'Агуулга';var='Variance' if en else 'Дисперс'
+        return f"{title} #{index+1}\nX {block['x']:,.2f}  Y {block['y']:,.2f}\nZ {block['z']:,.2f}\n{label}: {grade} {self.project.grade_unit}\n{var}: {variance}\n{block_status_text(block.get('status',''))}"
+
 
     def closeEvent(self,event):
         if hasattr(self,'support') and self.support.busy():
             self.support.cancel();event.ignore();return
         super().closeEvent(event)
         if event.isAccepted() and hasattr(self,'support'):self.support.shutdown()
+
+
+def block_status_text(status):
+    from .i18n import language
+    labels={'estimated':('Үнэлэгдсэн','Estimated'),'exact_sample':('Сорьцын цэг','Exact sample'),
+            'unestimated':('Үнэлээгүй','Unestimated'),'insufficient_support':('Сорьц хүрэлцэхгүй','Insufficient support'),
+            'singular_kriging_system':('Систем сингуляр','Singular kriging system'),
+            'invalid_variance':('Дисперс буруу','Invalid variance'),
+            'fault_network_changed':('Хагарал өөрчлөгдсөн','Fault network changed')}
+    return labels.get(status,(status,status))[language()=='en']

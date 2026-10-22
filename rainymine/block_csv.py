@@ -121,6 +121,9 @@ def read_block_csv(path, mapping, crs, grade_unit, maximum=50000, cancel=None, g
     model = {'blocks':blocks,'bounds':low+high,'size':size,'grid_origin':low,'grid_angles':angles,
              'attribute_schema':attributes,'params':{},'classification':'UNCLASSIFIED','support':'imported block grades; source support unverified',
              'import_report':report}
+    if geometry and geometry.get('source_orientation'):
+        model['source_orientation']=geometry['source_orientation']
+        report['source_orientation']=geometry['source_orientation']
     return model, report
 
 

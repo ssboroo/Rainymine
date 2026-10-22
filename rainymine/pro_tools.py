@@ -96,14 +96,18 @@ class ProTools(FoundationTools):
         with open(path,encoding='utf-8-sig',newline='') as stream:
             headers=next(csv.reader(stream),[])
         if not headers or len(headers)>256:raise ValueError('CSV header алга / хэт олон баганатай.')
-        geometry_settings=self.params('CSV геометр — vendor өнцгийг автоматаар хөрвүүлэхгүй',{'Geometry':['World-axis uniform parents','Explicit rotated / sub-block grid'],'Metadata rows after header':0})
+        geometry_settings=self.params('CSV геометр — эргэлтийн эх тодорхойлолт',{'Geometry':['World-axis uniform parents','Explicit rotated / sub-block grid'],'Metadata rows after header':0})
         if not geometry_settings:return
         skip_rows=int(geometry_settings['Metadata rows after header'])
         geometry=None
         if geometry_settings['Geometry']=='Explicit rotated / sub-block grid':
-            config=self.params('RAINYMINE ENU: azimuth хойноос CW; dip дээш эерэг; roll local X',{'Origin X':0,'Origin Y':0,'Origin Z':0,'Parent X':10,'Parent Y':10,'Parent Z':10,'Azimuth':90,'Dip':0,'Roll':0})
+            config=self.params('RAINYMINE ENU: azimuth хойноос CW; dip дээш эерэг; roll local X',{'Origin X':0,'Origin Y':0,'Origin Z':0,'Parent X':10,'Parent Y':10,'Parent Z':10,'Azimuth':90,'Dip':0,'Roll':0,'Orientation source':['RAINYMINE ENU','Explicit source axes / matrix JSON']})
             if not config:return
             geometry={'origin':[float(config['Origin '+a]) for a in 'XYZ'],'parent_size':[float(config['Parent '+a]) for a in 'XYZ'],'angles':[float(config[k]) for k in ('Azimuth','Dip','Roll')]}
+            if config.get('Orientation source','RAINYMINE ENU')=='Explicit source axes / matrix JSON':
+                converted=self.orientation_convert()
+                if converted is None:return
+                geometry['angles']=converted['angles'];geometry['source_orientation']=converted
         defaults={key:([key]+[h for h in headers if h!=key] if key in headers else headers) for key in KEYS}
         settings=self.params('Блокийн төв XYZ, хэмжээ DX/DY/DZ, агуулгын багана',defaults)
         if not settings:return
@@ -403,7 +407,7 @@ class ProTools(FoundationTools):
         from .mine_design import stope_boxes
         model=deepcopy(self.project.workspace.get('block_model'))
         if not model:raise ValueError('Блок загвар алга.')
-        settings=self.params('Regular box stope MILP — MSO wall-angle/dilution биш',{'Cells X':2,'Cells Y':2,'Cells Z':2,'Density':2.7,'Value / grade-unit / tonne':100,'Mining cost / tonne':10,'Seconds':20})
+        settings=self.params('Floating box MILP — pillar/wall-angle хяналт хийгдээгүй',{'Cells X':2,'Cells Y':2,'Cells Z':2,'Density':2.7,'Value / grade-unit / tonne':100,'Mining cost / tonne':10,'Seconds':20,'Additional shapes (e.g. 3,2,2;4,2,2)':'','Internal dilution cutoff':0,'Maximum internal dilution 0–1':1,'Minimum mean grade':0})
         if settings:
             def apply(report):
                 p=deepcopy(self.project);p.workspace['stope_box_optimization']=report
@@ -411,7 +415,8 @@ class ProTools(FoundationTools):
                     from .optimization import pit_mesh
                     mesh=pit_mesh(model,sorted({i for stope in report['selected'] for i in stope['block_indices']}));mesh['name']='Stope box selection';mesh['role']='stope';p.workspace.setdefault('meshes',[]).append(mesh)
                 self.commit(p);self.show_rows('Stope selection',report['selected'])
-            self.launch_task('Stope candidate MILP…',lambda cancel:stope_boxes(model,[int(settings['Cells '+a]) for a in 'XYZ'],*[float(settings[k]) for k in ('Density','Value / grade-unit / tonne','Mining cost / tonne','Seconds')]),apply)
+            shapes=[[int(v.strip()) for v in shape.split(',')] for shape in settings['Additional shapes (e.g. 3,2,2;4,2,2)'].split(';') if shape.strip()]
+            self.launch_task('Stope candidate MILP…',lambda cancel:stope_boxes(model,[int(settings['Cells '+a]) for a in 'XYZ'],*[float(settings[k]) for k in ('Density','Value / grade-unit / tonne','Mining cost / tonne','Seconds')],shapes=shapes,cutoff=float(settings['Internal dilution cutoff']),maximum_internal_dilution=float(settings['Maximum internal dilution 0–1']),minimum_mean_grade=float(settings['Minimum mean grade']),cancel=cancel),apply)
 
     def joint_schedule(self):
         from .advanced_estimation import blend_schedule
@@ -469,7 +474,7 @@ class ProTools(FoundationTools):
         if path:
             from .block_store import block_metadata
             metadata=block_metadata(path);bounds=metadata['model'].get('bounds')
-            defaults={'Maximum displayed blocks':250000,'Cutoff (blank=none)':''}
+            defaults={'Maximum displayed blocks':250000,'Preview RAM budget MiB':512,'Cutoff (blank=none)':''}
             if bounds:defaults.update({p+' '+a:bounds[i+j*3] for j,p in enumerate(('Min','Max')) for i,a in enumerate('XYZ')})
             settings=self.params('External Parquet GPU preview',defaults)
             if settings:
@@ -477,7 +482,7 @@ class ProTools(FoundationTools):
                 def apply(payload):
                     if self.check_source_crs(payload['crs']):LargePreviewFactory.show(self,payload,'Parquet GPU blocks')
                 cutoff=float(settings['Cutoff (blank=none)']) if settings['Cutoff (blank=none)'].strip() else None
-                self.launch_task('Parquet batches…',lambda cancel:parquet_preview(path,int(settings['Maximum displayed blocks']),bounds=region,cutoff=cutoff,cancel=cancel),apply)
+                self.launch_task('Parquet batches…',lambda cancel:parquet_preview(path,int(settings['Maximum displayed blocks']),bounds=region,cutoff=cutoff,cancel=cancel,memory_budget_mib=float(settings['Preview RAM budget MiB'])),apply)
 
     def closeEvent(self,event):
         if any(task.worker.isRunning() for task in self._engineering_tasks):

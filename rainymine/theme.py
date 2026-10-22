@@ -191,3 +191,32 @@ def apply_light_palette(app):
                  QPalette.ColorRole.ButtonText):
         palette.setColor(QPalette.ColorGroup.Disabled, role, QColor('#657789'))
     app.setPalette(palette)
+
+# Workspace polish: restrained surfaces and separate inspector/help tabs.
+THEME += """
+QMainWindow {background:#e9eef2;}
+QToolBar#masthead,QWidget#mastheadPanel {background:#ffffff;border-bottom:1px solid #dce4e9;}
+QMenuBar {background:#f2f5f7;color:#35495a;}
+QMenuBar::item {padding:4px 9px;}
+QTabBar::tab {background:#f1f5f7;color:#506477;padding:7px 10px;}
+QTabBar::tab:selected {background:#ffffff;color:#007f83;border-bottom:2px solid #009e9c;}
+QWidget#ribbonPage {background:#ffffff;}
+QGroupBox#ribbonGroup {border-right:1px solid #e2e8ec;}
+QGroupBox#ribbonGroup::title {color:#6a7d8b;font-size:11px;}
+QToolButton#ribbonCommand {color:#243d50;}
+QDockWidget::title {background:#f5f8fa;color:#344e61;padding:8px 10px;}
+QTreeWidget,QTableView,QTableWidget {background:#ffffff;alternate-background-color:#f6f9fa;border:0;gridline-color:#e8eef2;}
+QHeaderView::section {background:#f2f6f8;color:#506779;border-right:0;border-bottom:1px solid #dce5eb;padding:7px;}
+QWidget#viewportToolbar {background:#ffffff;border-radius:6px;}
+QTabWidget#dataTabs::pane {border:1px solid #dbe5ec;background:white;border-radius:4px;}
+QGroupBox#blockInspector {background:white;border:0;margin:0;}
+QGroupBox#blockInspector::title {left:14px;top:10px;font-size:13px;color:#24475a;}
+QGroupBox#blockInspector QLabel {font-size:12px;min-height:20px;}
+QLabel#selectionInfo,QLabel#pickedInfo {background:#f4f9fa;border:1px solid #dce9ec;padding:9px;color:#3f5e70;}
+QStatusBar {background:#f6f9fa;color:#5e7283;border-top:1px solid #d9e4ea;}
+QScrollBar:horizontal {height:12px;background:#f1f5f7;}
+QScrollBar:vertical {width:10px;background:#f1f5f7;}
+QScrollBar::handle {background:#c7d3dc;}
+"""
+
+THEME += "QTabWidget#projectPages QTabBar::tab {padding:7px 7px;}"

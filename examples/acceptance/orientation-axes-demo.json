@@ -1,0 +1,15 @@
+{
+  "source_software": "Analytic ENU axes fixture",
+  "source_version": "1",
+  "representation": "axes_azimuth_plunge",
+  "axes": [
+    [
+      90,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ]
+}

@@ -15,6 +15,8 @@ from .icons import brand_icon, semantic_icon
 from .presentation import CommandPalette
 from .i18n import tr, language, set_language, UiLocalizer
 from .ribbon import RibbonButton
+from .ebmz_ui import EbmzTools
+from .v2_ui import V2Tools
 
 
 class BlockTableModel(QAbstractTableModel):
@@ -86,7 +88,7 @@ from .srs_ui import SrsTools
 from .pro_tools import ProTools
 
 
-class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
+class WorkspaceWorkbench(EbmzTools, V2Tools, ProTools, SrsTools, AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
         self.labels_visible = False
@@ -109,8 +111,8 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
             scene.configure_presentation()
         self._workspace_ready = True
         self.support.show()
-        self.resizeDocks([self.layer_dock, self.support], [235, 285], Qt.Orientation.Horizontal)
-        self.workspace_split.setSizes([570, 190])
+        self.resizeDocks([self.layer_dock, self.support], [270, 300], Qt.Orientation.Horizontal)
+        self.workspace_split.setSizes([590, 170])
         self.refresh_workspace()
         root = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[1]))
         self.title_label.setProperty('userText', True)
@@ -144,10 +146,15 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.build_ribbon()
         self.build_srs_menu()
         self.build_pro_menu()
+        self.build_v2_menu()
+        report_menu = self.menuBar().addMenu('ЭБМЗ тайлан')
+        self.action(report_menu, 'ЭБМЗ багц гаргах', self.ebmz_export)
+        self.action(report_menu, 'Тайлангийн тохиргоо…', lambda:self.guard(self.ebmz_settings))
         # Reuse every existing layer/section control instead of replacing behavior.
         original = [dock for dock in self.findChildren(QDockWidget) if dock not in (self.layer_dock, self.support)]
         project_dock, section_dock, table_dock = original[:3]
         self.project_pages = QTabWidget()
+        self.project_pages.setObjectName('projectPages')
         layer_panel = self.layer_dock.widget()
         layer_panel.setParent(None)
         self.project_pages.addTab(layer_panel, 'Давхаргууд')
@@ -160,14 +167,16 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
             self.project_pages.addTab(panel, title)
         self.layer_dock.setWidget(self.project_pages)
         self.layer_dock.setWindowTitle('Төслийн өгөгдөл')
-        self.layer_dock.setMinimumWidth(215)
+        self.layer_dock.setMinimumWidth(230)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.layer_dock)
-        self.layer_list.setHeaderLabels(['Давхарга', 'Элемент'])
+        self.layer_list.setHeaderLabels(['Давхарга', 'Тоо'])
+        self.layer_list.setIndentation(14)
         self.layer_list.header().setStretchLastSection(False)
-        self.layer_list.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Interactive)
-        self.layer_list.setColumnWidth(0, 220)
+        self.layer_list.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.layer_list.setColumnWidth(0, 180)
         self.layer_list.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        self.layer_list.header().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self.layer_list.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        self.layer_list.setColumnWidth(1,52)
         # The bottom data grid belongs under the viewport, between the two sidebars.
         self.table.setParent(None)
         table_dock.setWidget(QWidget())
@@ -183,11 +192,12 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
                     widget = item.layout().itemAt(i).widget()
                     if widget is not None:
                         widget.hide()
-        layout.setContentsMargins(5, 4, 5, 4)
-        layout.setSpacing(4)
+        layout.setContentsMargins(8, 6, 8, 6)
+        layout.setSpacing(6)
         viewbar = QWidget()
+        viewbar.setObjectName('viewportToolbar')
         row = QHBoxLayout(viewbar)
-        row.setContentsMargins(3, 0, 3, 2)
+        row.setContentsMargins(6, 2, 6, 2)
         row.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
         self.view_group = QButtonGroup(self)
         self.view_group.setExclusive(True)
@@ -211,11 +221,12 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         view_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         view_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         view_scroll.setWidget(viewbar)
-        view_scroll.setFixedHeight(54)
+        view_scroll.setFixedHeight(44)
         layout.addWidget(view_scroll)
         self.workspace_split = QSplitter(Qt.Orientation.Vertical)
         self.workspace_split.addWidget(self.split)
         self.data_tabs = QTabWidget()
+        self.data_tabs.setObjectName('dataTabs')
         self.block_table = QTableView()
         self.block_model = BlockTableModel(self.block_table)
         self.block_table.setModel(self.block_model)
@@ -226,9 +237,11 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.block_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         self.block_table.horizontalHeader().setMinimumSectionSize(105)
         self.block_table.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        for index, width in enumerate((85, 145, 145, 135, 130, 135, 160)):
+        for index, width in enumerate((105, 130, 145, 115, 125, 125, 135)):
             self.block_table.setColumnWidth(index, width)
         self.block_table.verticalHeader().hide()
+        self.block_table.verticalHeader().setDefaultSectionSize(29)
+        self.block_table.setShowGrid(False)
         self.block_table.clicked.connect(self.block_row_selected)
         self.data_tabs.addTab(self.block_table, 'Блок загвар')
         self.data_tabs.addTab(self.table, 'Цооногийн өгөгдөл')
@@ -253,8 +266,8 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.project_summary.setMargin(15)
         self.assistant_tabs.addTab(self.project_summary, 'Төсөл')
         self.support.setWidget(self.assistant_tabs)
-        self.support.setWindowTitle('Локал туслах')
-        self.support.setMinimumWidth(270)
+        self.support.setWindowTitle('Шинж ба туслах')
+        self.support.setMinimumWidth(285)
         self.support.setMaximumWidth(420)
         note = help_panel.layout().itemAt(0).widget()
         note.setToolTip(note.text())
@@ -277,6 +290,16 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.build_view_tools()
 
     def build_ribbon(self):
+        report_group = QGroupBox('ЭБМЗ тайлан')
+        report_layout = QHBoxLayout(report_group)
+        for title, callback in [('ЭБМЗ багц гаргах', self.ebmz_export),
+                                ('Тайлангийн тохиргоо…', lambda:self.guard(self.ebmz_settings))]:
+            command = RibbonButton()
+            command.setText(title)
+            command.setIcon(icon('file'))
+            command.clicked.connect(callback)
+            report_layout.addWidget(command)
+        self.ribbon.widget(3).layout().addWidget(report_group)
         # Integrate advanced tools into the six categories shown in the reference.
         advanced = self.ribbon.widget(7)
         extra_groups = {}
@@ -352,13 +375,13 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
                 group = QGroupBox(title)
                 group.setObjectName('ribbonGroup')
                 grid = QGridLayout(group)
-                grid.setContentsMargins(6, 4, 6, 24)
-                grid.setHorizontalSpacing(3)
-                grid.setVerticalSpacing(3)
+                grid.setContentsMargins(5, 2, 5, 18)
+                grid.setHorizontalSpacing(2)
+                grid.setVerticalSpacing(2)
                 for number, button in enumerate(buttons):
                     grid.addWidget(button, number % 2, number // 2)
                     button.fit_caption()
-                row.addWidget(group)
+                row.addWidget(group, 0, Qt.AlignmentFlag.AlignTop)
             row.addStretch()
             content.setObjectName('ribbonPage')
             content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
@@ -369,7 +392,7 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
             scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             scroll.setWidget(content)
-            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+            scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
             scroll.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
             self.ribbon.insertTab(index, scroll, label)
             previous.deleteLater()
@@ -377,9 +400,10 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         for index, kind in enumerate(('folder', 'holes', 'layers', 'cube', 'pit', 'surface')):
             self.ribbon.setTabIcon(index, icon(kind))
         self.ribbon.setCurrentIndex(0)
+        self.ribbon.currentChanged.connect(lambda _: self.fit_ribbon_height())
         self.ribbon.tabBar().setUsesScrollButtons(True)
         self.ribbon.tabBar().setExpanding(False)
-        self.ribbon.setFixedHeight(196)
+        self.fit_ribbon_height()
 
     def focus_search(self):
         self.layer_dock.show()
@@ -442,7 +466,8 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
             name = 'Цооногууд' if key in ('holes', 'collars') else 'Блок загвар' if key == 'blocks' else 'Төслийн өгөгдөл' if key == 'surface' else 'Геометр / Уурхай'
             source = self.scene.sources.get(key)
             display_name = tr(self.layer_name(key)) if key in ('holes','collars','surface','blocks') else self.layer_name(key)
-            item = QTreeWidgetItem([display_name, str(source.GetNumberOfCells() if source else 0)])
+            count=(len(self.project.workspace.get('block_model',{}).get('blocks',[])) if key=='blocks' else len(self.project.collars) if key in ('holes','collars') else source.GetNumberOfCells() if source else 0)
+            item = QTreeWidgetItem([display_name, str(count)])
             item.setToolTip(0, display_name)
             item.setData(0, Qt.ItemDataRole.UserRole, key)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
@@ -465,6 +490,9 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self._table_sync = True
         self.block_model.set_blocks(blocks, self.project.grade_unit, self.scene.grade_max)
         self._table_sync = False
+        if hasattr(self,'inspector_values'):
+            for value in self.inspector_values.values():value.setText('—')
+            self.selection_hint.show()
         self.workspace_title.setText(tr(f'{len(blocks):,} блок'))
         self.brand_project.setText(self.project.name)
         self.brand_project.setToolTip(self.project.name)
@@ -628,9 +656,21 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         if self._workspace_ready:
             self.update_labels()
 
+    def fit_ribbon_height(self):
+        if self.ribbon_collapsed:
+            self.ribbon.setFixedHeight(self.ribbon.tabBar().sizeHint().height()+2)
+            return
+        page = self.ribbon.currentWidget()
+        if page is None:
+            return
+        content = page.widget().minimumSizeHint().height()
+        overflow = page.widget().minimumSizeHint().width() > page.viewport().width()
+        scrollbar = page.horizontalScrollBar().sizeHint().height() if overflow else 0
+        self.ribbon.setFixedHeight(content+self.ribbon.tabBar().sizeHint().height()+scrollbar+6)
+
     def collapse_ribbon(self):
         self.ribbon_collapsed = not self.ribbon_collapsed
-        self.ribbon.setFixedHeight(self.ribbon.tabBar().sizeHint().height()+2 if self.ribbon_collapsed else 196)
+        self.fit_ribbon_height()
 
     def focus_workspace(self):
         items = (self.layer_dock, self.support, self.data_tabs, self.ribbon)
@@ -667,19 +707,16 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
 
     def build_inspector(self):
         # The assistant remains live; the inspector uses the same selected block as the grid.
-        panel = QWidget()
-        layout = QVBoxLayout(panel);layout.setContentsMargins(0,0,0,0)
-        layout.addWidget(self.assistant_tabs, 3)
         group = QGroupBox('Сонгосон блокийн шинж')
         group.setObjectName('blockInspector')
         self.inspector_form = QFormLayout(group)
-        self.inspector_form.setContentsMargins(10,22,10,8)
+        self.inspector_form.setContentsMargins(14,30,14,14)
         self.inspector_form.setVerticalSpacing(3)
         self.inspector_form.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         self.inspector_values = {}
         for key, title in (('index','Дугаар'),('x','Зүүн (м)'),('y','Хойд (м)'),
                            ('z','Өндөр (м)'),('grade','Агуулга'),('density','Нягт (т/м³)'),
-                           ('domain','Домэйн'),('dimensions','Тор')):
+                           ('domain','Домэйн'),('dimensions','Тор'),('volume','Эзлэхүүн (м³)'),('status','Төлөв')):
             value = QLabel('—');value.setTextFormat(Qt.TextFormat.PlainText)
             value.setWordWrap(True)
             value.setMinimumWidth(0)
@@ -690,8 +727,9 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         self.inspector_scroll.setWidgetResizable(True)
         self.inspector_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.inspector_scroll.setWidget(group)
-        layout.addWidget(self.inspector_scroll)
-        self.support.setWidget(panel)
+        self.assistant_tabs.insertTab(0,self.inspector_scroll,'Шинж')
+        self.assistant_tabs.setCurrentIndex(0)
+        self.support.setWidget(self.assistant_tabs)
         # Empty properties should not consume most of a laptop's assistant panel.
         group.setCheckable(True)
         group.setChecked(True)
@@ -702,17 +740,21 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
                 if widget is not None:
                     widget.setVisible(expanded)
             group.setMaximumHeight(16777215 if expanded else 38)
-            self.inspector_scroll.setFixedHeight(
-                min(240, max(140, self.support.height()//2)) if expanded else 40)
+            self.inspector_scroll.setMinimumHeight(0)
         group.toggled.connect(expand_properties)
-        group.setChecked(False)
+        group.setChecked(True)
+        self.selection_hint=QLabel('3D эсвэл хүснэгтээс блок сонгоно уу.');self.selection_hint.setWordWrap(True)
+        self.inspector_form.addRow(self.selection_hint)
 
     def show_block_properties(self, row):
         if not 0 <= row < self.block_model.rowCount():
             return
         block = self.block_model.blocks[row]
         self.block_inspector.setChecked(True)
-        fields = dict(block, index=row+1,
+        self.selection_hint.hide()
+        self.assistant_tabs.setCurrentWidget(self.inspector_scroll)
+        from .navigation import block_status_text
+        fields = dict(block, index=row+1,volume=block.get('dx',0)*block.get('dy',0)*block.get('dz',0),status=block_status_text(block.get('status','')),
                       dimensions=' × '.join(f'{block.get(k, 0):g}' for k in ('dx','dy','dz'))+' m')
         for key, label in self.inspector_values.items():
             value = fields.get(key)
@@ -798,8 +840,9 @@ class WorkspaceWorkbench(ProTools, SrsTools, AdvancedWorkbench):
         for index,topic in enumerate(TOPICS,1):self.support.manual.setItemText(index,localize(topic,code)['title'])
         self.support.manual.setItemText(0,tr('Зааврыг шууд үзэх — модель шаардахгүй'))
         self.language_combo.setCurrentIndex(self.language_combo.findData(code))
+        self.fit_ribbon_height()
         self.block_model.headerDataChanged.emit(Qt.Orientation.Horizontal,0,6)
-        for index,title in enumerate(('Давхарга','Элемент')):
+        for index,title in enumerate(('Давхарга','Тоо')):
             self.layer_list.headerItem().setText(index,tr(title))
         # Representation is index-based, so translating these labels cannot change a style key.
         for index,title in enumerate(('Бүтэн гадарга','Торон дүрслэл','Цэг')):

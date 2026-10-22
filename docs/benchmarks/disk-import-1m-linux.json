@@ -1,0 +1,48 @@
+{
+  "kind": "synthetic_streaming_leaf_import",
+  "rows": 1000000,
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "processor": "x86_64",
+  "steps_seconds": {
+    "generate_csv": 0.912496,
+    "stream_import": 6.039037,
+    "aggregate": 0.334841,
+    "edit_one_block": 0.002225,
+    "undo": 0.001417,
+    "redo": 0.001593,
+    "preview_sample": 0.217004,
+    "vtk_buffers": 0.458442,
+    "stream_export": 3.301621
+  },
+  "real_deposit_validation": false,
+  "physical_windows_validation": false,
+  "gpu_fps_measured": false,
+  "import": {
+    "path": "/tmp/tmp_owkfnvh/blocks.rmdb",
+    "blocks": 1000000,
+    "unestimated_blocks": 10,
+    "source_sha256": "a3d4c98d62c1c30863ff609b10bb9e7e64e179c5baaa3841d0d009f446e7eebe",
+    "maximum_batch_rows": 32768,
+    "regular_grid_verified": false,
+    "geometry_overlap_verified": false
+  },
+  "preview_points": 50000,
+  "totals": {
+    "blocks": 1000000,
+    "unestimated_blocks": 10,
+    "volume_m3": 1000000000.0,
+    "tonnes": 2700000000.0,
+    "estimated_tonnes": 2699973000.0,
+    "contained_metal_tonnes": 53999460.0,
+    "grade_unit": "%",
+    "cutoff": null,
+    "metal_scope": "estimated blocks only",
+    "classification": "UNCLASSIFIED"
+  },
+  "database_bytes": 37343232,
+  "source_bytes": 41000019,
+  "export_bytes": 57888903,
+  "process_peak_rss_mib": 259.75390625,
+  "analytic_checks_passed": true
+}

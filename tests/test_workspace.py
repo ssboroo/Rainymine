@@ -85,13 +85,13 @@ class WorkspaceLayoutTests(unittest.TestCase):
         window.layer_selected(window.layer_list.topLevelItem(0))
         window.block_row_selected(window.block_model.index(0, 0))
         self.assertEqual(window.active_layer, 'blocks')
-        self.assertIn('Блок #0', window.picked_info.text())
+        self.assertIn('Блок #1', window.picked_info.text())
         window.focus_search()
         self.assertEqual(window.project_pages.currentIndex(), 1)
 
     def test_brand_controls_preserve_panel_visibility(self):
         window = self.make_window()
-        self.assertEqual(window.assistant_tabs.count(), 3)
+        self.assertEqual(window.assistant_tabs.count(), 4)
         self.assertEqual(window.brand_project.text(), window.project.name)
         self.assertFalse(window.windowIcon().isNull())
         window.support.hide()
