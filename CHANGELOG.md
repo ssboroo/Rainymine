@@ -216,6 +216,14 @@
 - Offline manual help when model unavailable; scope, invalid output, asset integrity and process-boundary tests.
 # Unreleased — ЭБМЗ хяналтын багц
 
+- Том CSV-ээс 20 сая хүртэл axis-aligned leaf блокийг `.rmdb` рүү багцаар импортлох, variable-size/NULL preview, эх SHA-256.
+- 1 сая болон 10 сая блокийн Linux synthetic импорт/агрегат/Undo/Redo/preview/export хэмжилт; 10 сая импорт 65.04 сек, оргил RSS 260.1 MiB (GPU FPS хэмжээгүй).
+- CP-д зориулсан trajectory, geometry/NULL/grade, X/Y/Z swath, grade–tonnage, provenance болон хүний хяналтын багц.
+- Intrusion/vein/stratigraphy/erosion дарааллын block-centre ownership, local-neighbor RBF, explicit fault restoration; watertight solids гэж батлаагүй.
+- Explicit matrix/exported axes/Euler → ENU хөрвүүлэгч, гарал болон эх тодорхойлолтыг хадгалсан CSV импорт.
+- Олон хэмжээтэй floating stope candidate, per-block density, internal dilution/mean-grade constraints.
+- Production EXE + installer build/sign нэг команд; code-signing EKU, validity, trust, timestamp шалгалт.
+
 - Нэг удаагийн тохиргооны дараа нэг товчоор хүснэгт, A4 тайлан, A3 блокийн XZ/YZ зүсэлт, хяналтын жагсаалт, SHA-256 manifest гаргана.
 - Масштаб, нягтын эх үүсвэр, дутуу өгөгдөл, CRS болон баталгаажуулалтын төлөвийг ил тод тэмдэглэнэ. Ангилал, нягтыг зохиож бөглөхгүй.
 - Эргүүлээгүй, санах ой дахь 200,000 хүртэл блок дэмжинэ. Албан маягтын бүрэн нийцэл болон Windows хэвлэлийн баталгаа хийгдээгүй.

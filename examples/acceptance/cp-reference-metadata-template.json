@@ -1,0 +1,20 @@
+{
+  "crs": "EPSG:32648",
+  "grade_unit": "%",
+  "source_software": "FILL IN",
+  "source_version": "FILL IN",
+  "export_date": "FILL IN",
+  "reference_sha256": "REPLACE WITH BLOCK CSV SHA256",
+  "trajectory_sha256": "REPLACE WITH TRAJECTORY CSV SHA256",
+  "authorized_for_validation": false,
+  "authorization_evidence": "FILL IN",
+  "grid_angles": [
+    90,
+    0,
+    0
+  ],
+  "estimation_parameters": {},
+  "reviewer_name": "",
+  "reviewer_membership": "",
+  "review_scope": ""
+}

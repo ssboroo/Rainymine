@@ -32,13 +32,15 @@ def compare_reference(model,path,coordinate_tolerance=.01,grade_absolute=.001,gr
         for row in reader:
             if None in row or any(v is None for v in row.values()):raise ValueError('Reference CSV баганын тоо зөрсөн.')
             values=[float(row[k]) for k in ('x','y','z')];finite(*values)
-            grade=float(row['grade']) if row['grade'].strip() else None
+            grade=None if row['grade'].strip().upper() in ('','NULL','NONE') else float(row['grade'])
             if grade is not None:
                 finite(grade)
                 if grade<0 or (grade_unit=='%' and grade>100):raise ValueError('Resolve invalid/censored grade before comparison')
             parsed={**row,**dict(zip(('x','y','z'),values)),'grade':grade}
             for key in ('dx','dy','dz','density'):
                 if key in row:
+                    if key=='density' and row[key].strip().upper() in ('','NULL','NONE'):
+                        parsed[key]=None;continue
                     parsed[key]=float(row[key]);finite(parsed[key])
                     if parsed[key]<=0:raise ValueError(key+' must be positive')
             if any(k in row for k in ('dx','dy','dz')) and not all(k in row for k in ('dx','dy','dz')):raise ValueError('All dx/dy/dz required')
@@ -57,6 +59,8 @@ def compare_reference(model,path,coordinate_tolerance=.01,grade_absolute=.001,gr
         checks={}
         for key in ('dx','dy','dz','density'):
             if key in r:
+                if key=='density' and r[key] is None:
+                    checks[key]=block.get(key) is None;continue
                 actual=block.get(key)
                 if actual is None and key=='density':actual=density
                 checks[key]=actual is not None and math.isfinite(actual) and abs(actual-r[key])<=geometry_relative*abs(r[key])+1e-9

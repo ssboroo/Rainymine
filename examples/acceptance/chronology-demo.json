@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "name": "Суурь",
+      "kind": "intrusion",
+      "field": {
+        "kind": "plane",
+        "point": [
+          0,
+          0,
+          -1000
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "Давхарга",
+      "kind": "stratigraphy",
+      "lower": {
+        "kind": "plane",
+        "point": [
+          0,
+          0,
+          0
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ]
+      },
+      "upper": {
+        "kind": "plane",
+        "point": [
+          0,
+          0,
+          100
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "Судал",
+      "kind": "vein",
+      "lower": {
+        "kind": "plane",
+        "point": [
+          10,
+          0,
+          0
+        ],
+        "normal": [
+          1,
+          0,
+          0
+        ]
+      },
+      "upper": {
+        "kind": "plane",
+        "point": [
+          20,
+          0,
+          0
+        ],
+        "normal": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Залуу түрэлт",
+      "kind": "intrusion",
+      "field": {
+        "kind": "plane",
+        "point": [
+          50,
+          0,
+          0
+        ],
+        "normal": [
+          1,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "Элэгдэл",
+      "kind": "erosion",
+      "field": {
+        "kind": "plane",
+        "point": [
+          0,
+          0,
+          80
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ]
+      }
+    }
+  ]
+}

@@ -22,6 +22,7 @@ def optimize_disk_pit(path,output,price,recovery,mining_cost,processing_cost,den
     if output.suffix.lower()!='.csv':raise ValueError('Pit output must use .csv extension')
     if output.resolve()==Path(path).resolve():raise ValueError('Output must not overwrite the block database')
     with DiskModel(path) as store:
+        if store.meta.get('grid_kind')=='unstructured_axis_aligned':raise ValueError('Disk pseudoflow requires a verified complete regular grid; imported leaf geometry is not a regular grid')
         store.db.execute('BEGIN')
         store.meta=json.loads(store.db.execute('SELECT value FROM metadata WHERE key="model"').fetchone()[0])
         counts=store.meta['counts'];size=np.asarray(store.meta['size'],dtype=float);origin=np.asarray(store.meta['origin'],dtype=float)

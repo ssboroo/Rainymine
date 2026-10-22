@@ -165,12 +165,12 @@ class DiskModel:
     def preview(self,maximum=100000):
         if type(maximum)!=int or not 1<=maximum<=250000:raise ValueError('Invalid preview size')
         count=self.count();stride=max(1,math.ceil(count/maximum))
-        rows=self.db.execute('SELECT id,x,y,z,grade FROM blocks WHERE id % ?=0 ORDER BY id',(stride,)).fetchall()
+        rows=self.db.execute('SELECT id,x,y,z,grade,dx,dy,dz FROM blocks WHERE id % ?=0 ORDER BY id',(stride,)).fetchall()
         xyz=np.array([row[1:4] for row in rows],dtype=np.float64)
-        payload={'kind':'points','xyz':xyz,'source_index':np.array([r[0] for r in rows],dtype=np.int64),'source_points':count,'matched_before_sampling':count,'stride':stride,'crs':self.meta['crs']}
-        if any(r[4] is not None for r in rows):
-            keep=np.array([r[4] is not None for r in rows]);payload.update(kind='blocks',xyz=xyz[keep],source_index=payload['source_index'][keep],grade=np.array([r[4] for r in rows if r[4] is not None]),sizes=np.tile(self.meta['size'],(int(keep.sum()),1)))
-            payload['matched_before_sampling']=self.db.execute('SELECT count(*) FROM blocks WHERE grade IS NOT NULL').fetchone()[0]
+        payload={'kind':'points','xyz':xyz,'source_index':np.array([r[0] for r in rows],dtype=np.int64),'source_points':count,'matched_before_sampling':count,'stride':stride,'crs':self.meta['crs'],'grade_unit':self.meta['grade_unit']}
+        if rows:
+            payload.update(kind='blocks',grade=np.array([r[4] if r[4] is not None else np.nan for r in rows]),sizes=np.array([r[5:8] for r in rows],dtype=float))
+            payload['unestimated_source_blocks']=self.db.execute('SELECT count(*) FROM blocks WHERE grade IS NULL').fetchone()[0]
         return payload
 
     def export_csv(self,path,cancel=None):

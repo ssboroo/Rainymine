@@ -16,6 +16,7 @@ from .presentation import CommandPalette
 from .i18n import tr, language, set_language, UiLocalizer
 from .ribbon import RibbonButton
 from .ebmz_ui import EbmzTools
+from .v2_ui import V2Tools
 
 
 class BlockTableModel(QAbstractTableModel):
@@ -87,7 +88,7 @@ from .srs_ui import SrsTools
 from .pro_tools import ProTools
 
 
-class WorkspaceWorkbench(EbmzTools, ProTools, SrsTools, AdvancedWorkbench):
+class WorkspaceWorkbench(EbmzTools, V2Tools, ProTools, SrsTools, AdvancedWorkbench):
     def __init__(self):
         self._workspace_ready = False
         self.labels_visible = False
@@ -145,6 +146,7 @@ class WorkspaceWorkbench(EbmzTools, ProTools, SrsTools, AdvancedWorkbench):
         self.build_ribbon()
         self.build_srs_menu()
         self.build_pro_menu()
+        self.build_v2_menu()
         report_menu = self.menuBar().addMenu('ЭБМЗ тайлан')
         self.action(report_menu, 'ЭБМЗ багц гаргах', self.ebmz_export)
         self.action(report_menu, 'Тайлангийн тохиргоо…', lambda:self.guard(self.ebmz_settings))

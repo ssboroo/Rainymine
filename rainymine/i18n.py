@@ -352,6 +352,12 @@ CATALOG.update({'Шинж':'Properties','Шинж ба туслах':'Properties
 CATALOG.update({'Тоо':'Count','Эзлэхүүн (м³)':'Volume (m³)','Төлөв':'Status'})
 
 CATALOG.update({
+    'Мэргэжлийн баталгаажуулалт':'Professional validation',
+    'Геологийн материал':'Geological material',
+    'CP харьцуулалтын багц…':'CP comparison pack…',
+    'Том CSV → дискэн блок сан…':'Large CSV → disk block store…',
+    'Геологийн үеийн дараалал JSON…':'Geological chronology JSON…',
+    'Эх программын эргэлт хөрвүүлэх…':'Convert source orientation…',
     'ЭБМЗ тайлан':'EBMZ reports', 'ЭБМЗ багц гаргах':'Export EBMZ pack',
     'Тайлангийн тохиргоо…':'Report settings…',
     'ЭБМЗ багцын тохиргоо — хянах төсөл':'EBMZ pack settings — review draft',
