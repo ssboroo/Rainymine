@@ -117,9 +117,12 @@ class BlockCsvTests(unittest.TestCase):
         from rainymine.spatial import model_basis
         from rainymine.core import demo
         model,_=self.rotated_csv([([2.5,5,5],[5,10,10],1),([7.5,5,5],[5,10,10],2)])
-        p=demo();p.workspace['block_model']=model;p.workspace['block_display']='blocks'
+        p=Project();p.workspace['block_model']=model;p.workspace['block_display']='blocks'
         scene=Scene(NoRenderWindow());scene.load(p);poly=scene.sources['blocks']
         self.assertEqual(poly.GetNumberOfCells(),12)
+        self.assertEqual(scene.grade_max,2)
+        self.assertEqual(scene.actors['blocks'].GetMapper().GetScalarRange(),(0,2))
+        self.assertLess(max(abs(x) for x in poly.GetBounds()),20)
         ids=poly.GetCellData().GetArray('block_index')
         self.assertEqual({int(ids.GetValue(i)) for i in range(ids.GetNumberOfTuples())},{0,1})
         pivot=np.array(model['grid_origin']);local=[]
