@@ -1,3 +1,10 @@
+# Workspace layout polish - 2026-10-22
+
+- Fit compact ribbon height to measured captions and keep MN/EN names accessible.
+- Separate the block inspector from assistant tabs; clear stale properties after data refresh.
+- Widen layer navigation, show logical hole/block counts, align one-based block identifiers and localize status text.
+- Give the viewport more vertical space and simplify table/surface styling without changing scientific data.
+
 # Native mining / geology kernels — 2026-10-22
 
 - Bundle pinned MIT MineFlow pseudoflow through Rust/PyO3; use implicit regular-grid precedences and audited value quantization. Add streamed disk pit selection CSV with SHA256 and economics reports.

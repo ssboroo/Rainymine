@@ -346,3 +346,7 @@ def set_language(code, root=None, persist=True):
 CATALOG.update({'Төслийн багц':'Project bundle','Төслийн бүрэн багц хадгалах…':'Save complete project bundle…','Төслийн багц сэргээх…':'Restore project bundle…'})
 
 CATALOG.update({'Муруй хагарлын сүлжээ JSON…':'Curved fault network JSON…','Дискэн Pseudoflow pit…':'Disk pseudoflow pit…','Pit RF хувилбар / үе шат…':'Pit RF scenarios / phases…'})
+
+CATALOG.update({'Шинж':'Properties','Шинж ба туслах':'Properties and help','3D эсвэл хүснэгтээс блок сонгоно уу.':'Select a block in 3D or the table.'})
+
+CATALOG.update({'Тоо':'Count','Эзлэхүүн (м³)':'Volume (m³)','Төлөв':'Status'})

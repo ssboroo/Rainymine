@@ -21,23 +21,23 @@ class RibbonButton(QToolButton):
         return ' '.join(self.text().split())
 
     def caption_rect(self):
-        return QRect(42, 6, self.width()-50, self.height()-12)
+        return QRect(38, 6, self.width()-46, self.height()-12)
 
     def caption_bounds(self, width=None):
         return self.fontMetrics().boundingRect(
-            QRect(0, 0, (width or self.width())-50, 1000),
+            QRect(0, 0, (width or self.width())-46, 1000),
             Qt.TextFlag.TextWordWrap, self.caption())
 
     def fit_caption(self):
         if not self.text():
             return
-        width = 176
+        width = 152
         longest = max(self.fontMetrics().horizontalAdvance(word)
                       for word in self.caption().split())
-        width = max(width, longest+54)
+        width = max(width, longest+50)
         while self.caption_bounds(width).height() > self.fontMetrics().lineSpacing()*2:
             width += 12
-        height = max(54, self.fontMetrics().lineSpacing()*2+16)
+        height = max(46, self.fontMetrics().lineSpacing()*2+14)
         self.setFixedSize(width, height)
         self.setAccessibleName(self.caption())
         self.setToolTip(self.caption())
@@ -62,7 +62,7 @@ class RibbonButton(QToolButton):
         self.style().drawComplexControl(QStyle.ComplexControl.CC_ToolButton,
                                        option, painter, self)
         mode = QIcon.Mode.Normal if self.isEnabled() else QIcon.Mode.Disabled
-        self.icon().paint(painter, QRect(10, (self.height()-24)//2, 24, 24),
+        self.icon().paint(painter, QRect(9, (self.height()-22)//2, 22, 22),
                           Qt.AlignmentFlag.AlignCenter, mode)
         group = QPalette.ColorGroup.Active if self.isEnabled() else QPalette.ColorGroup.Disabled
         painter.setPen(self.palette().color(group, QPalette.ColorRole.ButtonText))
