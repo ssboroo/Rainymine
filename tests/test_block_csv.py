@@ -126,3 +126,10 @@ class BlockCsvTests(unittest.TestCase):
         for i in range(poly.GetNumberOfPoints()):local.append((np.array(poly.GetPoint(i))+scene.origin-pivot)@model_basis(model))
         np.testing.assert_allclose(np.min(local,axis=0),[0,0,0],atol=1e-7)
         np.testing.assert_allclose(np.max(local,axis=0),[10,10,10],atol=1e-7)
+
+    def test_skipped_ragged_metadata_is_serializable(self):
+        self.path.write_text('x,y,z,dx,dy,dz,grade\nN,N,N,N,N,N,N,uninterpreted\n5,5,5,10,10,10,2\n')
+        model,report=read_block_csv(self.path,self.mapping,'EPSG:32648','ppm',skip_rows=1)
+        self.assertEqual(report['metadata_rows_uninterpreted'][0]['extra'],['uninterpreted'])
+        import json
+        json.dumps(model,sort_keys=True,allow_nan=False)

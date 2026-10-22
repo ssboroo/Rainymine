@@ -32,7 +32,9 @@ def read_block_csv(path, mapping, crs, grade_unit, maximum=50000, cancel=None, g
         raise ValueError('Багана давхардсан / mapping дутуу байна.')
     metadata_rows = []
     for _ in range(skip_rows):
-        try: metadata_rows.append(next(reader))
+        try:
+            metadata=next(reader)
+            metadata_rows.append({'columns':[metadata.get(h) for h in headers],'extra':metadata.get(None,[])})
         except StopIteration as exc: raise ValueError('Metadata мөр дутуу.') from exc
     # Explicit geometry uses RAINYMINE ENU basis, never guessed vendor Euler angles.
     grid = _grid_parameters(geometry) if geometry is not None else None
