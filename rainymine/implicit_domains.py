@@ -24,9 +24,11 @@ def contact_surface(constraints,bounds,resolution=25,kernel='thin_plate_spline',
     faults=list(faults);validate_faults(faults);origin=np.asarray(bounds[:3]);basis=search_basis(*angles)
     xyz=np.array([[r[k] for k in ('x','y','z')] for r in constraints],dtype=float);values=np.array([r['value'] for r in constraints],dtype=float)
     if not np.isfinite(xyz).all() or not np.isfinite(values).all() or len(np.unique(xyz,axis=0))!=len(xyz):raise ValueError('Contact finite бус / координат давхардсан.')
-    zones=[fault_zone(p,faults) for p in xyz];unique=sorted(set(zones));axes=[np.linspace(bounds[i],bounds[i+3],resolution) for i in range(3)]
+    from .fault_network import FaultNetwork
+    network=FaultNetwork(faults)
+    zones=network.classify(xyz,cancel).tolist();unique=sorted(set(zones));axes=[np.linspace(bounds[i],bounds[i+3],resolution) for i in range(3)]
     zz,yy,xx=np.meshgrid(axes[2],axes[1],axes[0],indexing='ij');targets=np.column_stack((xx.ravel(),yy.ravel(),zz.ravel()))
-    target_zones=[fault_zone(p,faults) for p in targets];vertices=[];faces=[];counts=[]
+    target_zones=network.classify(targets,cancel).tolist();vertices=[];faces=[];counts=[]
     for zone in unique:
         if cancel and cancel():raise RuntimeError('Contact modelling cancelled.')
         select=np.array([z==zone for z in zones]);valid=np.array([z==zone for z in target_zones]);v=values[select]

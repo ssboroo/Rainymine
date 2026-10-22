@@ -1,3 +1,19 @@
+# Native mining / geology kernels — 2026-10-22
+
+- Bundle pinned MIT MineFlow pseudoflow through Rust/PyO3; use implicit regular-grid precedences and audited value quantization. Add streamed disk pit selection CSV with SHA256 and economics reports.
+- Add signed RBF/plane fault DAG, explicit scope/translation restoration and zone-isolated interpolation; invalidate grades on network edits.
+- Add Rayon ordinary spherical point kriging, Python numerical parity tests, checked Windows native builds and frozen EXE kernel smoke checks.
+- Record synthetic one-million-block pseudoflow and full kriging pipeline measurements; retain explicit RAM and geological validation limits.
+
+# Responsiveness and RF scenarios — 2026-10-22
+
+- Remove menu-wide wait cursors and read-only project snapshots; preserve nested undo and rollback.
+- Run estimation, validation, variograms, implicit surfaces, pit/MILP and SQL work in owned workers; add cooperative progress/cancellation.
+- Use lazy report tables and readable block status values.
+- Add bounded RF pit sensitivity, base-price comparisons, shell membership auditing and native scenario meshes.
+- Pin NumPy buffers for shallow VTK preview transfer.
+- Document implementation scope and measurable architecture acceptance gates in docs/ROADMAP_IMPLEMENTATION.mn.md.
+
 # 1.0.0-rc.1 — 2026-10-22
 
 - Integrate block CSV/rotated leaves, lazy result tables, schedule audits and production foundations without losing either reference comparison workflow.

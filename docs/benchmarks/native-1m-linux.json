@@ -1,0 +1,39 @@
+{
+  "synthetic": true,
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "processor": "x86_64",
+  "logical_cpus": 9,
+  "python": "3.12.14",
+  "engine": "0.1.0",
+  "mineflow_commit": "6f5dd7091070b1bd85457b3ce9fd95c4e345c983",
+  "blocks": 1000000,
+  "timings_seconds": {
+    "pseudoflow_implicit_grid": 5.461226,
+    "python_kriging_full_pipeline": 0.991533,
+    "rust_kriging_full_pipeline": 0.81996
+  },
+  "independent_deposit_validation": false,
+  "pit": {
+    "algorithm": "MineFlow pseudoflow / native C++ via Rust PyO3",
+    "engine_version": "0.1.0",
+    "mineflow_commit": "6f5dd7091070b1bd85457b3ce9fd95c4e345c983",
+    "selected_blocks": 817687,
+    "net_value": 1484745.0,
+    "integer_optimum": true,
+    "value_scale": 1000000.0,
+    "objective_loss_bound": 1.0,
+    "rounding": "nearest integer; loss bound relative to unrounded optimum",
+    "engineering_review": false,
+    "discounted": false,
+    "slope_degrees": 45,
+    "stencil_half_width_cells": [
+      1,
+      1
+    ],
+    "boundary": "hard model extent; external stripping excluded"
+  },
+  "kriging_targets": 1000,
+  "maximum_reference_absolute_error": 5.329070518200751e-15,
+  "peak_memory_mib": 354.684,
+  "kriging_support": "ordinary / spherical / point; full neighborhood assembly included"
+}

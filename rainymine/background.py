@@ -5,22 +5,26 @@ from PySide6.QtWidgets import QProgressDialog,QMessageBox
 
 
 class Worker(QThread):
-    result=Signal(object);failed=Signal(str)
-    def __init__(self,operation,cancel,parent):super().__init__(parent);self.operation=operation;self.cancel=cancel
+    result=Signal(object);failed=Signal(str);progress=Signal(int,int)
+    def __init__(self,operation,cancel,parent,with_progress=False):super().__init__(parent);self.operation=operation;self.cancel=cancel;self.with_progress=with_progress
     def run(self):
         try:
-            result=self.operation(self.cancel.is_set)
+            result=self.operation(self.cancel.is_set,self.progress.emit) if self.with_progress else self.operation(self.cancel.is_set)
             if not self.cancel.is_set():self.result.emit(result)
         except Exception as error:
             if not self.cancel.is_set():self.failed.emit(type(error).__name__+': '+str(error))
 
 
 class Task(QObject):
-    def __init__(self,window,title,operation,apply):
+    def __init__(self,window,title,operation,apply,with_progress=False):
         super().__init__(window);self.window=window;self.source=window.project;self.apply=apply;self.cancel=threading.Event()
         self.progress=QProgressDialog(title,'Цуцлах',0,0,window);self.progress.setWindowModality(Qt.WindowModality.NonModal);self.progress.setMinimumDuration(0);self.progress.canceled.connect(self.cancel.set)
-        self.worker=Worker(operation,self.cancel,self);self.worker.result.connect(self.done);self.worker.failed.connect(self.failed);self.worker.finished.connect(self.finished)
+        self.worker=Worker(operation,self.cancel,self,with_progress);self.worker.result.connect(self.done);self.worker.failed.connect(self.failed);self.worker.progress.connect(self.update_progress);self.worker.finished.connect(self.finished)
         window._engineering_tasks.append(self);self.progress.show();self.worker.start()
+    @Slot(int,int)
+    def update_progress(self,value,total):
+        if self.cancel.is_set():return
+        self.progress.setRange(0,max(1,total));self.progress.setValue(value)
     @Slot(object)
     def done(self,result):
         self.progress.hide()

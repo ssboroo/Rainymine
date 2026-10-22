@@ -3,7 +3,7 @@ from copy import deepcopy
 from tempfile import TemporaryDirectory
 from pathlib import Path
 from PySide6.QtCore import Qt,QSize
-from PySide6.QtWidgets import QWidget,QHBoxLayout,QToolButton,QFileDialog,QMessageBox,QApplication
+from PySide6.QtWidgets import QWidget,QHBoxLayout,QToolButton,QFileDialog,QMessageBox
 from .navigation import NavigationWorkbench
 from .workbench import icon
 from .estimation import sample_support
@@ -27,11 +27,6 @@ class AdvancedWorkbench(NavigationWorkbench):
             b.clicked.connect(lambda checked=False,cb=callback:cb());row.addWidget(b)
         row.addStretch();self.ribbon.addTab(page,'Загвар / оновчлол')
 
-    def busy(self,callback):
-        self.computing=True;QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        try:return callback()
-        finally:QApplication.restoreOverrideCursor();self.computing=False
-
     def implicit_dialog(self):
         def run():
             model=self.project.workspace.get('block_model')
@@ -40,13 +35,16 @@ class AdvancedWorkbench(NavigationWorkbench):
             defaults.update({p+' '+a:model['bounds'][j+i*3] for i,p in enumerate(('Min','Max')) for j,a in enumerate('XYZ')})
             settings=self.params('RBF агуулгын гадарга — structural/fault constraint байхгүй',defaults)
             if not settings:return
-            samples=sample_support(self.project,float(settings['Composite metres']))
+            project=deepcopy(self.project)
             bounds=[float(settings[p+' '+a]) for p in ('Min','Max') for a in 'XYZ']
-            mesh,metadata=self.busy(lambda:implicit_surface(samples,bounds,float(settings['Cutoff']),
-                        int(settings['Resolution']),float(settings['Smoothing']),int(settings['Neighbors'])))
-            p=deepcopy(self.project);mesh['modelling']=metadata;p.workspace.setdefault('meshes',[]).append(mesh);self.commit(p)
-            report=metadata['mesh_report']
-            QMessageBox.information(self,'RBF гадарга',f"{len(mesh['faces'])} гурвалжин.\nBounds дотор extrapolation хийгдсэн; геологийн хяналт шаардлагатай.\nBoundary edges: {report.get('open_edges')}\nХаалттай, баталгаажсан хүдрийн solid гэж үзэхгүй.")
+            def work(cancel):
+                samples=sample_support(project,float(settings['Composite metres']))
+                return implicit_surface(samples,bounds,float(settings['Cutoff']),int(settings['Resolution']),float(settings['Smoothing']),int(settings['Neighbors']),cancel=cancel)
+            def apply(result):
+                mesh,metadata=result;p=deepcopy(self.project);mesh['modelling']=metadata;p.workspace.setdefault('meshes',[]).append(mesh);self.commit(p)
+                report=metadata['mesh_report']
+                QMessageBox.information(self,'RBF гадарга',f"{len(mesh['faces'])} гурвалжин.\nBounds дотор extrapolation хийгдсэн; геологийн хяналт шаардлагатай.\nBoundary edges: {report.get('open_edges')}\nХаалттай, баталгаажсан хүдрийн solid гэж үзэхгүй.")
+            self.launch_task('RBF гадарга…',work,apply)
         self.guard(run)
 
     def optimize_dialog(self):
@@ -57,12 +55,16 @@ class AdvancedWorkbench(NavigationWorkbench):
                 'Density t/m3':2.7,'Price / grade-unit / tonne':100,'Recovery 0–1':.9,
                 'Mining cost / tonne':3,'Processing cost / tonne':12,'Slope degrees':45})
             if not settings:return
-            result=self.busy(lambda:economic_pit(model,*[float(settings[k]) for k in (
-                'Density t/m3','Price / grade-unit / tonne','Recovery 0–1','Mining cost / tonne','Processing cost / tonne','Slope degrees')]))
-            p=deepcopy(self.project);p.workspace['pit_optimization']=result
-            if result['selected_indices']:p.workspace.setdefault('meshes',[]).append(pit_mesh(model,result['selected_indices']))
-            self.commit(p)
-            self.show_rows('Pit scenario — инженерийн хяналт хийгдээгүй',[{k:v for k,v in result.items() if k!='selected_indices'}])
+            model=deepcopy(model)
+            def work(cancel):
+                result=economic_pit(model,*[float(settings[k]) for k in ('Density t/m3','Price / grade-unit / tonne','Recovery 0–1','Mining cost / tonne','Processing cost / tonne','Slope degrees')])
+                if cancel():return None
+                return result,pit_mesh(model,result['selected_indices']) if result['selected_indices'] else None
+            def apply(output):
+                result,mesh=output;p=deepcopy(self.project);p.workspace['pit_optimization']=result
+                if mesh:p.workspace.setdefault('meshes',[]).append(mesh)
+                self.commit(p);self.show_rows('Pit scenario — инженерийн хяналт хийгдээгүй',[{k:v for k,v in result.items() if k!='selected_indices'}])
+            self.launch_task('Pit оновчлол…',work,apply)
         self.guard(run)
 
     def excel_dialog(self):
@@ -94,7 +96,8 @@ class AdvancedWorkbench(NavigationWorkbench):
             if not settings:return
             if QMessageBox.question(self,'Анхдагч сан солих',
                 'Collar, survey, assay, lithology дөрвөн санг snapshot-оор солино. Блок модель цэвэрлэгдэнэ.\nSELECT-only account ба SNAPSHOT тохируулсан DSN шаардлагатай. Үргэлжлүүлэх үү?')!=QMessageBox.StandardButton.Yes:return
-            candidate=self.busy(lambda:database_snapshot(self.project,settings['Windows ODBC DSN'],settings['SQL schema']))
-            self.commit(candidate)
-            QMessageBox.information(self,'SQL snapshot','Дөрвөн хүснэгт уншиж шалгалаа. Холболтын нууц мэдээллийг төсөлд хадгалаагүй.')
+            project=deepcopy(self.project)
+            def apply(candidate):
+                self.commit(candidate);QMessageBox.information(self,'SQL snapshot','Дөрвөн хүснэгт уншиж шалгалаа. Холболтын нууц мэдээллийг төсөлд хадгалаагүй.')
+            self.launch_task('SQL snapshot…',lambda cancel:database_snapshot(project,settings['Windows ODBC DSN'],settings['SQL schema']),apply)
         self.guard(run)

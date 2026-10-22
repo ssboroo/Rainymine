@@ -6,7 +6,7 @@ from .core import finite
 from .geometry import validate_mesh_data, mesh_report
 
 
-def implicit_surface(samples, bounds, cutoff, resolution=31, smoothing=0., neighbors=32):
+def implicit_surface(samples, bounds, cutoff, resolution=31, smoothing=0., neighbors=32,cancel=None):
     import vtk
     from vtk.util.numpy_support import numpy_to_vtk
     finite(*bounds, cutoff, smoothing)
@@ -30,6 +30,7 @@ def implicit_surface(samples, bounds, cutoff, resolution=31, smoothing=0., neigh
     targets=np.column_stack((xx.ravel(),yy.ravel(),zz.ravel()))
     field=np.empty(len(targets))
     for start in range(0,len(targets),4096):
+        if cancel and cancel():raise RuntimeError('RBF тооцоо цуцлагдлаа.')
         field[start:start+4096]=rbf((targets[start:start+4096]-origin)/scale)
     if not np.isfinite(field).all():raise ValueError('RBF finite бус үр дүн гаргалаа.')
     image=vtk.vtkImageData();image.SetDimensions(resolution,resolution,resolution)
@@ -48,6 +49,7 @@ def implicit_surface(samples, bounds, cutoff, resolution=31, smoothing=0., neigh
     vertices=[(np.asarray(poly.GetPoint(i))+origin).tolist() for i in range(poly.GetNumberOfPoints())]
     faces=[]
     for i in range(poly.GetNumberOfCells()):
+        if i%1024==0 and cancel and cancel():raise RuntimeError('RBF тооцоо цуцлагдлаа.')
         face=[int(poly.GetCell(i).GetPointId(j)) for j in range(3)]
         if len(set(face))!=3:continue
         a,b,c=[np.asarray(vertices[j]) for j in face]

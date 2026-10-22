@@ -1,4 +1,5 @@
 """Read-only result views without one Qt item allocation per data cell."""
+import reprlib
 from PySide6.QtCore import Qt,QAbstractTableModel,QModelIndex
 from PySide6.QtWidgets import QDialog,QVBoxLayout,QTableView,QDialogButtonBox,QHeaderView,QAbstractItemView
 
@@ -17,7 +18,9 @@ class ResultTableModel(QAbstractTableModel):
         if not index.isValid() or not 0<=index.row()<len(self.rows) or not 0<=index.column()<len(self.columns):return None
         if role in (Qt.ItemDataRole.DisplayRole,Qt.ItemDataRole.ToolTipRole):
             value=self.rows[index.row()].get(self.columns[index.column()])
-            return '' if value is None else str(value)
+            text='' if value is None else reprlib.repr(value) if isinstance(value,(list,dict,tuple,set)) else str(value)
+            maximum=4096 if role==Qt.ItemDataRole.ToolTipRole else 512
+            return text if len(text)<=maximum else text[:maximum]+'…'
         return None
 
     def headerData(self,section,orientation,role=Qt.ItemDataRole.DisplayRole):

@@ -115,10 +115,15 @@ class NavigationWorkbench(Workbench):
                             if item.text(0)==info['hole_id']:self.tree.setCurrentItem(item);break
                         self.picked_info.setText('Сонгосон цооног: '+info['hole_id'])
                     elif 'block_index' in info:
-                        self.picked_info.setText(f"Блок #{info['block_index']}\nX {info['x']:,.2f}  Y {info['y']:,.2f}\nZ {info['z']:,.2f}\nАгуулга: {info.get('grade')} {self.project.grade_unit}\nVariance: {info.get('variance')}\n{info.get('status','')}")
+                        self.picked_info.setText(self.block_selection_text(info['block_index'],info))
                     else:self.picked_info.setText(self.layer_name(info['layer'])+'\nCell: '+str(info['cell_id']))
                     self.active_layer=info['layer'];self.refresh_layers()
         super().on_click(obj,event)
+
+    def block_selection_text(self,index,block):
+        grade='—' if block.get('grade') is None else f"{block['grade']:,.3f}"
+        variance='—' if block.get('variance') is None else f"{block['variance']:.6g}"
+        return f"Блок #{index}\nX {block['x']:,.2f}  Y {block['y']:,.2f}\nZ {block['z']:,.2f}\nАгуулга: {grade} {self.project.grade_unit}\nVariance: {variance}\n{block.get('status','')}"
 
     def closeEvent(self,event):
         if hasattr(self,'support') and self.support.busy():

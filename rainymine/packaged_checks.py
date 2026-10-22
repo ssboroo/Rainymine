@@ -40,6 +40,7 @@ def verify_licensing():
 
 def verify(project):
     verify_licensing()
+    verify_native_kernels()
     verify_foundations()
     from .cad import boolean_mesh
     from .mine_design import spiral_ramp,drill_ring
@@ -227,3 +228,18 @@ def verify_professional_ui(window):
         assert abs(mesh_actor.GetUserTransform().GetPosition()[0]-3)<1e-7
         controls.close();QApplication.processEvents();assert window._gizmo is None
     window.active_layer=previous
+
+
+def verify_native_kernels():
+    import numpy as np
+    from .native_engine import pseudoflow,rust_predictions
+    from .fault_network import FaultNetwork
+    selected,report=pseudoflow([5.,-2.],[(0,1)])
+    assert selected.tolist()==[True,True] and report['net_value']==3.
+    samples=[{'xyz':[float(i),0.,0.],'grade':2.,'hole_id':str(i)} for i in range(4)]
+    estimator=Estimator(samples,{'method':'kriging','minimum':2,'neighbors':4})
+    actual=rust_predictions(estimator,[[1.5,1.,0.]])[0]
+    reference=estimator.predict([1.5,1.,0.])
+    assert abs(actual['grade']-reference['grade'])<1e-9
+    assert abs(actual['variance']-reference['variance'])<1e-9
+    assert FaultNetwork([{'name':'Smoke','point':[0,0,0],'normal':[1,0,0]}]).classify([[-1,0,0],[1,0,0]]).tolist()==[0,1]

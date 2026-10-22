@@ -31,16 +31,18 @@ def preview_polydata(payload):
     xyz=np.asarray(payload['xyz'],dtype=float);ids=np.asarray(payload['source_index'],dtype=np.int64)
     if xyz.ndim!=2 or xyz.shape[1]!=3 or len(xyz)!=len(ids) or not len(xyz) or not np.isfinite(xyz).all():raise ValueError('Preview-д finite цэг алга.')
     origin=(xyz.min(axis=0)+xyz.max(axis=0))/2;local=np.asarray(xyz-origin,dtype=np.float32)
-    points=vtk.vtkPoints();points.SetData(numpy_to_vtk(local,deep=True));poly=vtk.vtkPolyData();poly.SetPoints(points)
-    identifier=numpy_to_vtkIdTypeArray(ids,deep=True);identifier.SetName('source_index');poly.GetPointData().AddArray(identifier)
+    points=vtk.vtkPoints();points.SetData(numpy_to_vtk(local,deep=False));poly=vtk.vtkPolyData();poly.SetPoints(points)
+    identifier=numpy_to_vtkIdTypeArray(ids,deep=False);identifier.SetName('source_index');poly.GetPointData().AddArray(identifier)
     if payload.get('kind')=='blocks':
         sizes=np.asarray(payload['sizes'],dtype=np.float32)
         if sizes.shape!=xyz.shape or not np.isfinite(sizes).all() or np.any(sizes<=0):raise ValueError('Preview block хэмжээ буруу.')
-        scales=numpy_to_vtk(sizes,deep=True);scales.SetName('size');poly.GetPointData().AddArray(scales)
+        scales=numpy_to_vtk(sizes,deep=False);scales.SetName('size');poly.GetPointData().AddArray(scales)
         values=np.asarray(payload['grade'],dtype=np.float32)
     else:values=np.asarray(payload.get('intensity',xyz[:,2]),dtype=np.float32)
     if values.shape!=(len(xyz),) or not np.isfinite(values).all():raise ValueError('Preview scalar буруу.')
-    scalar=numpy_to_vtk(values,deep=True);scalar.SetName('value');poly.GetPointData().SetScalars(scalar)
+    scalar=numpy_to_vtk(values,deep=False);scalar.SetName('value');poly.GetPointData().SetScalars(scalar)
+    # Keep every backing array alive for the full native VTK dataset lifetime.
+    poly._numpy_buffers=(local,ids,values)+((sizes,) if payload.get('kind')=='blocks' else ())
     return poly,origin
 
 
@@ -89,7 +91,7 @@ class LargePreviewFactory:
                 # VTK accepts per-instance quaternion orientations, scalar first.
                 from scipy.spatial.transform import Rotation
                 from vtk.util.numpy_support import numpy_to_vtk
-                q=Rotation.from_matrix(basis).as_quat();quaternions=np.tile([q[3],q[0],q[1],q[2]],(poly.GetNumberOfPoints(),1));array=numpy_to_vtk(quaternions,deep=True);array.SetName('orientation');poly.GetPointData().AddArray(array)
+                q=Rotation.from_matrix(basis).as_quat();quaternions=np.tile([q[3],q[0],q[1],q[2]],(poly.GetNumberOfPoints(),1));array=numpy_to_vtk(quaternions,deep=False);array.SetName('orientation');poly.GetPointData().AddArray(array)
                 mapper.SetOrientationArray('orientation');mapper.SetOrientationModeToQuaternion();mapper.OrientOn()
         else:
             mapper=vtk.vtkPointGaussianMapper();mapper.SetInputData(poly);mapper.SetScaleFactor(0);mapper.EmissiveOff()

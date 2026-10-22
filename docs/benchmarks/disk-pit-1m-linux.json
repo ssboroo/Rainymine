@@ -1,0 +1,60 @@
+{
+  "synthetic": true,
+  "fixture": "constant grade 2; all profitable; analytically all selected; easy graph",
+  "platform": "Linux-6.18.55-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "blocks": 1000000,
+  "timings_seconds": {
+    "create_grid": 1.534767,
+    "read_validate_pseudoflow_export": 3.272722
+  },
+  "peak_memory_mib": 247.246,
+  "expected_net_value": 445500000000,
+  "source_unchanged": true,
+  "export_rows": 1000000,
+  "report": {
+    "algorithm": "MineFlow pseudoflow / native C++ via Rust PyO3",
+    "engine_version": "0.1.0",
+    "mineflow_commit": "6f5dd7091070b1bd85457b3ce9fd95c4e345c983",
+    "selected_blocks": 1000000,
+    "net_value": 445500000000.0,
+    "integer_optimum": true,
+    "value_scale": 1000000.0,
+    "objective_loss_bound": 1.0,
+    "total_rounding_absolute_error": 0.0,
+    "rounding": "nearest integer; loss bound relative to unrounded optimum",
+    "engineering_review": false,
+    "discounted": false,
+    "slope_degrees": 45,
+    "stencil_half_width_cells": [
+      1,
+      1
+    ],
+    "boundary": "hard model extent; external stripping excluded",
+    "input_sha256": "6d7d7b23eac9774b102bed8c1fba916562b67fe4391f9776118b5fa43bfd0378",
+    "counts": [
+      100,
+      100,
+      100
+    ],
+    "size": [
+      10.0,
+      10.0,
+      10.0
+    ],
+    "crs": "EPSG:32648",
+    "grade_unit": "%",
+    "density_fallback": 2.7,
+    "price_per_grade_tonne": 100,
+    "recovery": 0.9,
+    "mining_cost_per_tonne": 3,
+    "processing_cost_per_tonne": 12,
+    "mined_tonnes": 2700000000.0,
+    "processed_tonnes": 2700000000.0,
+    "memory_admission_estimate_mib": 976.5625,
+    "source": "/tmp/tmpm1yjquot/model.rmdb",
+    "output": "/tmp/tmpm1yjquot/pit.csv",
+    "output_sha256": "1a8c1168829f0738a77f98b9ca5009406f8f82735be007c0d434d446a20b3e7a"
+  },
+  "independent_deposit_validation": false
+}

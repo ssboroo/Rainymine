@@ -344,3 +344,5 @@ def set_language(code, root=None, persist=True):
                 root.localizer.apply(widget)
 
 CATALOG.update({'Төслийн багц':'Project bundle','Төслийн бүрэн багц хадгалах…':'Save complete project bundle…','Төслийн багц сэргээх…':'Restore project bundle…'})
+
+CATALOG.update({'Муруй хагарлын сүлжээ JSON…':'Curved fault network JSON…','Дискэн Pseudoflow pit…':'Disk pseudoflow pit…','Pit RF хувилбар / үе шат…':'Pit RF scenarios / phases…'})
