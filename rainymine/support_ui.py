@@ -26,7 +26,7 @@ class SupportDock(QDockWidget):
         self.settings=QSettings();engine,model=default_paths()
         self.engine_path=self.settings.value('local_ai/engine',str(engine));self.model_path=self.settings.value('local_ai/model',str(model))
         panel=QWidget();layout=QVBoxLayout(panel);self.setWidget(panel);self.setMinimumWidth(340)
-        note=QLabel('Rainymine ашиглах, тохируулах болон төслийн өгөгдлийг зөвхөн уншиж шинжлэх туслах.\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.');note.setWordWrap(True);layout.addWidget(note)
+        note=QLabel('Rainymine ашиглах, тохируулах болон төслийн өгөгдлийг зөвхөн уншиж шинжлэх туслах.\\nТөслийн өгөгдөл болон чатын түүх үүлэн үйлчилгээ рүү илгээхгүй.');note.setWordWrap(True);layout.addWidget(note)
         row=QHBoxLayout();self.setup_button=QPushButton('AI бэлтгэх');self.setup_button.setToolTip('Анх тохируулах · 1.28 GB');self.setup_button.clicked.connect(self.setup)
         self.files_button=QPushButton('Файл сонгох');self.files_button.clicked.connect(self.choose_files);row.addWidget(self.setup_button);row.addWidget(self.files_button);layout.addLayout(row)
         self.status=QLabel('Локал загвар бэлэн бол асуултаа бичнэ. Анх татахад интернэт хэрэгтэй.');self.status.setWordWrap(True);layout.addWidget(self.status)
@@ -45,21 +45,23 @@ class SupportDock(QDockWidget):
         self._conversation_started=True
         self.chat.append('')
         cursor=self.chat.textCursor();cursor.movePosition(cursor.MoveOperation.End)
-        cursor.insertText(who+'\n'+text+'\n');self.chat.setTextCursor(cursor)
+        cursor.insertText(who+'\\n'+text+'\\n');self.chat.setTextCursor(cursor)
     def clear(self):self.chat.clear();self.previous=None;self._conversation_started=False
     def busy(self):return self._agent_task is not None or (self.worker is not None and self.worker.isRunning())
-    def start_worker(self,callback,on_result):
+    def start_worker(self,callback,on_result,on_failure=None,on_finished=None):
         if self.busy():return
         self.setup_button.setEnabled(False);self.files_button.setEnabled(False);self.ask_button.setEnabled(False)
         worker=SupportWorker(callback,self);self.worker=worker
         worker.progress.connect(self.status.setText);worker.result.connect(on_result);worker.failure.connect(self.failed)
+        if on_failure is not None:worker.failure.connect(on_failure)
+        if on_finished is not None:worker.finished.connect(on_finished)
         worker.finished.connect(self.finished);worker.start()
     def finished(self):
         self.setup_button.setEnabled(True);self.files_button.setEnabled(True);self.ask_button.setEnabled(self._agent_task is None)
         worker=self.worker;self.worker=None
         if worker:worker.deleteLater()
     def failed(self,message):
-        self.status.setText('Local AI: '+message);self.append('Тусламж',message+'\nДоорх жагсаалтаас зааврыг шууд үзэж болно.')
+        self.status.setText('Local AI: '+message);self.append('Тусламж',message+'\\nДоорх жагсаалтаас зааврыг шууд үзэж болно.')
     def setup(self):
         def run(worker):
             def progress(done,total):worker.progress.emit(f'AI файл татаж байна: {done/1e6:.0f} / {total/1e6:.0f} MB')
