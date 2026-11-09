@@ -19,12 +19,12 @@ def run_question(window,question,dock):
             from .local_engine import LocalEngine
             if dock.engine is None:dock.engine=LocalEngine(dock.engine_path,dock.model_path)
             dock.engine.start(worker.cancelled.is_set)
-            system=('Return JSON only, version 1 steps (max 6), each {"tool":...,"params":...}. '
-                    'Allowed: validate_project {}, composite {"length":5,"minimum_coverage":1}, '
-                    'estimate_blocks {"method":"nearest|idw|kriging|simple_kriging"}, qaqc_summary {}, classification_proposal {}. '
+            system=('Return JSON only, version 1 steps (max 6), each {\"tool\":...,\"params\":...}. '
+                    'Allowed: validate_project {}, composite {\"length\":5,\"minimum_coverage\":1}, '
+                    'estimate_blocks {\"method\":\"nearest|idw|kriging|simple_kriging\"}, qaqc_summary {}, classification_proposal {}. '
                     'Use existing application geometry/search/variogram/rules only. Never invent configuration. '
                     'Never approve, delete, import, export, save files, run Python/SQL/shell, change licensing, or use network tools. '
-                    'For unsupported/ambiguous requests return {"unsupported":true}. No project data is included in this prompt.')
+                    'For unsupported/ambiguous requests return {\"unsupported\":true}. No project data is included in this prompt.')
             plan=validate_plan(json.loads(dock.engine.complete([{'role':'system','content':system},{'role':'user','content':question}],max_tokens=512)))
         if worker.cancelled.is_set():raise RuntimeError('AI plan cancelled')
         return plan
@@ -56,9 +56,9 @@ def run_question(window,question,dock):
         if dock.worker and dock.worker.cancelled.is_set():return
         worker_holder['planned']=True
         if window.guard(lambda:planned(plan)) is False:journal.append(command_id,'planning_failed',error='Plan could not start')
-    dock.start_worker(work,audited_plan)
-    worker=dock.worker
-    worker.failure.connect(lambda message:journal.append(command_id,'planning_failed',error=message))
+    def planning_failed(message):
+        journal.append(command_id,'planning_failed',error=message)
     def finished_plan():
-        if worker.cancelled.is_set() and not worker_holder.get('planned'):journal.append(command_id,'cancelled',phase='planning')
-    worker.finished.connect(finished_plan)
+        if dock.worker and dock.worker.cancelled.is_set() and not worker_holder.get('planned'):
+            journal.append(command_id,'cancelled',phase='planning')
+    dock.start_worker(work,audited_plan,on_failure=planning_failed,on_finished=finished_plan)

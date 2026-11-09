@@ -48,11 +48,13 @@ class SupportDock(QDockWidget):
         cursor.insertText(who+'\n'+text+'\n');self.chat.setTextCursor(cursor)
     def clear(self):self.chat.clear();self.previous=None;self._conversation_started=False
     def busy(self):return self._agent_task is not None or (self.worker is not None and self.worker.isRunning())
-    def start_worker(self,callback,on_result):
+    def start_worker(self,callback,on_result,on_failure=None,on_finished=None):
         if self.busy():return
         self.setup_button.setEnabled(False);self.files_button.setEnabled(False);self.ask_button.setEnabled(False)
         worker=SupportWorker(callback,self);self.worker=worker
         worker.progress.connect(self.status.setText);worker.result.connect(on_result);worker.failure.connect(self.failed)
+        if on_failure is not None:worker.failure.connect(on_failure)
+        if on_finished is not None:worker.finished.connect(on_finished)
         worker.finished.connect(self.finished);worker.start()
     def finished(self):
         self.setup_button.setEnabled(True);self.files_button.setEnabled(True);self.ask_button.setEnabled(self._agent_task is None)

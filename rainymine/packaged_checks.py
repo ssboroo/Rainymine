@@ -212,7 +212,7 @@ def verify_professional_ui(window):
              'source_index':np.array([100,200],dtype=np.int64),'source_points':2,'matched_before_sampling':2,
              'stride':1,'grid_angles':[35.,-10.,15.]}
     dialog=LargePreviewFactory.show(window,payload,'Smoke native GPU instancing')
-    QApplication.processEvents();poly,origin,renderer,mapper,actor,widget,data=dialog.pipeline
+    QApplication.processEvents();poly,origin,renderer,mapper,actor,widget,*_=dialog.pipeline
     assert isinstance(mapper,vtk.vtkGlyph3DMapper) and mapper.GetUseSelectionIds()
     widget.GetRenderWindow().Render()
     capture=vtk.vtkWindowToImageFilter();capture.SetInput(widget.GetRenderWindow());capture.ReadFrontBufferOff();capture.Update()

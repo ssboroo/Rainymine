@@ -53,6 +53,20 @@ class DataTests(unittest.TestCase):
             f=Path(d)/'a.rmine';save_project(f,self.project());before=f.read_bytes()
             with self.assertRaises(ValueError):save_project(f,Project(collars=[Collar('A',float('nan'),0,0,1)]))
             self.assertEqual(f.read_bytes(),before)
+    def test_csv_rejects_duplicate_headers_instead_of_silently_overwriting_columns(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'duplicate.csv'
+            path.write_text('hole_id,x,x,z,depth,azimuth,dip\nA,1,2,3,10,0,-90\n',encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'давхардсан'):
+                read_collars(path)
+
+    def test_csv_rejects_extra_unmapped_cells_instead_of_dropping_them(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=Path(directory)/'extra.csv'
+            path.write_text('hole_id,x,y,z,depth,azimuth,dip\nA,1,2,3,10,0,-90,UNMAPPED\n',encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'илүү'):
+                read_collars(path)
+
     def test_bad_csv(self):
         with tempfile.TemporaryDirectory() as d:
             f=Path(d)/'a.csv';f.write_text('hole_id,x\nA,0',encoding='utf-8')
@@ -81,3 +95,4 @@ class DataTests(unittest.TestCase):
             with self.assertRaises(ValueError):composite_assays(self.project(),length)
 
 if __name__=='__main__':unittest.main()
+

@@ -280,10 +280,19 @@ def read_rows(path,columns):
     if Path(path).stat().st_size>MAX_FILE:raise ValueError('CSV 32 MB-аас их байна.')
     with open(path,encoding='utf-8-sig',newline='') as f:
         reader=csv.DictReader(f)
-        if not set(columns).issubset(reader.fieldnames or []):raise ValueError('Шаардлагатай баганууд: '+', '.join(columns))
+        headers=reader.fieldnames or []
+        if any(not isinstance(name,str) or not name.strip() for name in headers):
+            raise ValueError('CSV баганын нэр хоосон байна.')
+        headers=[name.strip() for name in headers]
+        if len(headers)!=len(set(headers)):
+            raise ValueError('CSV баганын нэр давхардсан байна. Импортын mapping-ийг шалгана уу.')
+        reader.fieldnames=headers
+        if not set(columns).issubset(headers):raise ValueError('Шаардлагатай баганууд: '+', '.join(columns))
         rows=[]
         for i,row in enumerate(reader,2):
             if i>MAX_ROWS+1:raise ValueError('CSV мөрийн хязгаар хэтэрсэн.')
+            if None in row:
+                raise ValueError(f'CSV {i}-р мөр: баганын тооноос илүү утга байна.')
             try:
                 parsed={k:str(row[k]).strip() if k=='hole_id' else float(row[k]) for k in columns}
                 finite(*[v for k,v in parsed.items() if k!='hole_id']);rows.append(parsed)
