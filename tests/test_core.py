@@ -56,14 +56,14 @@ class DataTests(unittest.TestCase):
     def test_csv_rejects_duplicate_headers_instead_of_silently_overwriting_columns(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'duplicate.csv'
-            path.write_text('hole_id,x,x,z,depth,azimuth,dip\\nA,1,2,3,10,0,-90\\n',encoding='utf-8')
+            path.write_text('hole_id,x,x,z,depth,azimuth,dip\nA,1,2,3,10,0,-90\n',encoding='utf-8')
             with self.assertRaisesRegex(ValueError,'давхардсан'):
                 read_collars(path)
 
     def test_csv_rejects_extra_unmapped_cells_instead_of_dropping_them(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'extra.csv'
-            path.write_text('hole_id,x,y,z,depth,azimuth,dip\\nA,1,2,3,10,0,-90,UNMAPPED\\n',encoding='utf-8')
+            path.write_text('hole_id,x,y,z,depth,azimuth,dip\nA,1,2,3,10,0,-90,UNMAPPED\n',encoding='utf-8')
             with self.assertRaisesRegex(ValueError,'илүү'):
                 read_collars(path)
 
