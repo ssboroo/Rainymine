@@ -1,0 +1,12 @@
+{
+  "production_ready": false,
+  "blockers": [
+    "Owner Ed25519 public keys are not configured",
+    "code_signing: not_configured",
+    "owner_distribution_license: pending_owner_decision",
+    "independent_deposit_validation: pending",
+    "physical_windows_device_validation: pending",
+    "license_signing_key: pending_owner_configuration"
+  ],
+  "scope": "Configuration preflight only; certificate trust, reviewer evidence and hardware reports require separate verification"
+}

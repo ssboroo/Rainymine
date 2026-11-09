@@ -25,7 +25,7 @@ class Scene:
     def __init__(self,window):
         self.window=window;self.renderer=vtk.vtkRenderer();window.AddRenderer(self.renderer)
         self.renderer.SetBackground(.035,.055,.09);self.renderer.SetBackground2(.10,.15,.22);self.renderer.GradientBackgroundOn()
-        self.selected_hole=None;self.cell_holes=[];self.mode='assay';self.project=None;self.origin=(0,0,0);self.sources={};self.actors={};self.labels=[]
+        self.block_highlight=None;self.selected_hole=None;self.cell_holes=[];self.mode='assay';self.project=None;self.origin=(0,0,0);self.sources={};self.actors={};self.labels=[]
         self.base_properties={};self.selection_pipeline=[];self.section=None;self.pipeline=[];self.paths={};self.grade_max=1
         light=vtk.vtkLight();light.SetLightTypeToHeadlight();self.renderer.AddLight(light)
         self.renderer.GetActiveCamera().ParallelProjectionOn()
@@ -56,7 +56,9 @@ class Scene:
             lines.InsertNextCell(2);lines.InsertCellPoint(a);lines.InsertCellPoint(b);scalars.InsertNextValue(value);self.cell_holes.append(trajectory.collar.hole_id)
 
     def load(self,project):
-        project.validate();self.project=project;self.cell_holes=[];self.selected_hole=None
+        project.validate();self.project=project;self.cell_holes=[]
+        if self.block_highlight:self.renderer.RemoveActor(self.block_highlight);self.block_highlight=None
+        self.selected_hole=None
         for actor in self.actors.values():self.renderer.RemoveActor(actor)
         for actor in self.labels:self.renderer.RemoveActor(actor)
         self.actors={};self.sources={};self.labels=[];self.paths={}
@@ -123,7 +125,7 @@ class Scene:
             axes=vtk.vtkAxesActor();self.marker=vtk.vtkOrientationMarkerWidget();self.marker.SetOrientationMarker(axes)
             self.marker.SetInteractor(self.window.GetInteractor());self.marker.SetViewport(0,0,.18,.18);self.marker.EnabledOn();self.marker.InteractiveOff()
         self.base_properties={key:{'color':list(actor.GetProperty().GetColor()),'opacity':actor.GetProperty().GetOpacity()} for key,actor in self.actors.items()}
-        self.set_section(None,render=False);self.apply_styles();self.update_presentation();self.reset()
+        self.set_section(None,render=False);self.apply_styles();self.update_presentation();self.reset();self.apply_render_controls()
 
     def add_workspace(self,workspace):
         for index,s in enumerate(workspace.get('strings',[])):
@@ -149,7 +151,7 @@ class Scene:
                 from .engineering import exposed_block_faces
                 exposed=exposed_block_faces(model['blocks'])
             for block_index,b in enumerate(model['blocks']):
-                if b.get('grade') is None or (exposed is not None and not exposed[block_index]):continue
+                if (b.get('grade') is None and not workspace.get('render_options',{}).get('show_null_blocks',False)) or (exposed is not None and not exposed[block_index]):continue
                 world=np.array([b['x'],b['y'],b['z']]);grid_center=pivot+(world-pivot)@basis
                 center=self.local(world);dims=[b['dx'],b['dy'],b['dz']]
                 if workspace.get('block_display','slices')=='slices':
@@ -161,7 +163,7 @@ class Scene:
                             p=list(grid_center);p[axis]=planes[axis];p[axes[0]]+=u*dims[axes[0]]/2;p[axes[1]]+=v*dims[axes[1]]/2;pts.InsertNextPoint(*self.local(pivot+(np.asarray(p)-pivot)@basis.T))
                         faces.InsertNextCell(4)
                         for i in range(4):faces.InsertCellPoint(start+i)
-                        values.InsertNextValue(b['grade']);block_ids.InsertNextValue(block_index)
+                        values.InsertNextValue(float('nan') if b['grade'] is None else b['grade']);block_ids.InsertNextValue(block_index)
                 else:
                     start=pts.GetNumberOfPoints()
                     for x,y,z in ((-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)):
@@ -171,10 +173,34 @@ class Scene:
                         if exposed is not None and face_index not in exposed[block_index]:continue
                         faces.InsertNextCell(4)
                         for i in face:faces.InsertCellPoint(start+i)
-                        values.InsertNextValue(b['grade']);block_ids.InsertNextValue(block_index)
+                        values.InsertNextValue(float('nan') if b['grade'] is None else b['grade']);block_ids.InsertNextValue(block_index)
             poly=vtk.vtkPolyData();poly.SetPoints(pts);poly.SetPolys(faces);poly.GetCellData().SetScalars(values);poly.GetCellData().AddArray(block_ids)
             self.add_poly('blocks',poly,(.4,.8,.7),opacity=1.,scalar=True)
             self.actors['blocks'].SetVisibility(self.mode!='lithology')
+
+    def highlight_blocks(self,indices,maximum=2000):
+        if self.block_highlight:self.renderer.RemoveActor(self.block_highlight);self.block_highlight=None
+        blocks=self.project.workspace.get('block_model',{}).get('blocks',[])
+        if type(maximum) is not int or maximum<1:raise ValueError('Positive highlight budget required')
+        selected=list(dict.fromkeys(indices))[:maximum]
+        if not selected:self.window.Render();return 0
+        if any(type(i) is not int or not 0<=i<len(blocks) for i in selected):raise ValueError('Invalid selection source index')
+        basis=model_basis(self.project.workspace['block_model']);points=vtk.vtkPoints();points.SetDataTypeToDouble();lines=vtk.vtkCellArray()
+        signs=[(-1,-1,-1),(1,-1,-1),(1,1,-1),(-1,1,-1),(-1,-1,1),(1,-1,1),(1,1,1),(-1,1,1)]
+        for index in selected:
+            b=blocks[index];offset=points.GetNumberOfPoints();size=np.array([b[k] for k in ('dx','dy','dz')]);centre=np.array(self.local([b[k] for k in 'xyz']))
+            for sign in signs:points.InsertNextPoint(*(centre+(np.array(sign)*size/2)@basis.T))
+            for a,c in ((0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),(0,4),(1,5),(2,6),(3,7)):
+                lines.InsertNextCell(2);lines.InsertCellPoint(offset+a);lines.InsertCellPoint(offset+c)
+        poly=vtk.vtkPolyData();poly.SetPoints(points);poly.SetLines(lines);mapper=vtk.vtkPolyDataMapper();mapper.SetInputData(poly)
+        if self.section:mapper.SetInputConnection(self.clip_poly(poly,self.section,selection=True).GetOutputPort())
+        actor=vtk.vtkActor();actor.SetMapper(mapper);actor.PickableOff();actor.GetProperty().SetColor(.95,.1,.45);actor.GetProperty().SetLineWidth(3)
+        from .render_controls import clip_actor
+        clip_actor(self,actor);self.renderer.AddActor(actor);self.block_highlight=actor;self.window.Render();return len(selected)
+
+    def apply_render_controls(self):
+        from .render_controls import apply_render_options
+        apply_render_options(self)
 
     def add_poly(self,key,poly,color,opacity=1.,line=False,scalar=False):
         mapper=vtk.vtkPolyDataMapper();mapper.SetInputData(poly)
@@ -204,6 +230,7 @@ class Scene:
             if section is None:mapper.SetInputData(poly);continue
             mapper.SetInputConnection(self.clip_poly(poly,section).GetOutputPort())
         self.apply_cutaway()
+        self.apply_render_controls()
         self.select(self.selected_hole,render=False)
         if render:self.window.Render()
 
@@ -230,6 +257,9 @@ class Scene:
             a=vtk.vtkActor();a.SetMapper(mapper);a.GetProperty().SetColor(.95,.12,.45);a.GetProperty().SetLineWidth(7)
             # Selection uses the same slab and layer visibility as its source.
             a.PickableOff();a.SetVisibility(self.actors['holes'].GetVisibility());self.renderer.AddActor(a);self.actors['selected']=a
+        if 'selected' in self.actors:
+            from .render_controls import clip_actor
+            clip_actor(self,self.actors['selected'])
         if render:self.window.Render()
 
     def clip_poly(self,poly,section,selection=False):
@@ -350,6 +380,7 @@ class Scene:
         hud.PickableOff()
         self.coordinate_text = hud
         self.renderer.AddActor2D(hud)
+        self.apply_render_controls()
 
     def fit_geometry(self):
         if not self.presentation_enabled:

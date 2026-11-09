@@ -391,3 +391,5 @@ CATALOG.update({
 CATALOG.update({'Программд ажил гүйцэтгэх':'Execute application commands','AI команд ажиллуулах':'Run AI commands','AI үйлдлийн бүртгэл':'AI action history'})
 
 CATALOG['AI композитын хүснэгт']='AI composite table'
+
+CATALOG.update({'Дүрслэлийн хяналт':'Render controls','Render тохиргоо':'Render settings','Камер хадгалах':'Save camera','Камер сэргээх':'Restore camera','3D clipping box':'3D clipping box','Render хэмжилт':'Measure rendering'})

@@ -96,7 +96,7 @@ class DiskImportTests(unittest.TestCase):
             def cancel():calls.append(1);return len(calls)>1
             with self.assertRaises(RuntimeError):import_disk_csv(source,dest,mapping,'EPSG:32648','%',batch_size=1,cancel=cancel)
             self.assertFalse(dest.exists());self.assertFalse(list(Path(folder).glob('.rainymine-import-*')))
-            source.write_text(source.read_text().replace('2,2,ore','Infinity,2,ore'))
+            source.write_text(source.read_text(encoding='utf-8').replace('2,2,ore','Infinity,2,ore'))
             with self.assertRaises(ValueError):import_disk_csv(source,dest,mapping,'EPSG:32648','%')
             self.assertFalse(dest.exists())
             with self.assertRaises(ValueError):import_disk_csv(source,dest,mapping,'EPSG:4326','%')
@@ -131,9 +131,9 @@ class ValidationTests(unittest.TestCase):
             p,b,t,m=self.fixture(folder);dest=Path(folder)/'pack'
             result=create_validation_pack(p,b,t,m,dest,{'cutoffs':[0,2,4]})
             self.assertTrue(all(result['gates'].values()));self.assertFalse(result['independent_review_verified'])
-            data=json.loads((dest/'validation.json').read_text());self.assertEqual(data['trajectory']['reviewed_holes'],1)
+            data=json.loads((dest/'validation.json').read_text(encoding='utf-8'));self.assertEqual(data['trajectory']['reviewed_holes'],1)
             self.assertEqual(data['block_comparison']['total_differences']['contained_metal_tonnes'],0)
-            self.assertIn('<svg',(dest/'review.html').read_text());self.assertTrue((dest/'review-checklist.csv').exists())
+            self.assertIn('<svg',(dest/'review.html').read_text(encoding='utf-8'));self.assertTrue((dest/'review-checklist.csv').exists())
 
     def test_changed_grade_provenance_and_null_mismatches_fail(self):
         with tempfile.TemporaryDirectory() as folder:

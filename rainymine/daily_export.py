@@ -25,8 +25,8 @@ def export_diglines(rows,destination,crs):
                 rings=[list(poly.exterior.coords)]+[list(r.coords) for r in poly.interiors]
                 writer.polyz([[[x,y,row['elevation']] for x,y in ring] for ring in rings]);writer.record(row['kind'],row['area_m2'],row['elevation'])
                 for ring in rings:msp.add_lwpolyline(ring,close=True,dxfattribs={'layer':row['kind'],'elevation':row['elevation']})
-        doc.saveas(stage/'diglines.dxf');(stage/'diglines.prj').write_text(reference.to_wkt(version='WKT1_ESRI'));(stage/'diglines.cpg').write_text('UTF-8')
+        doc.saveas(stage/'diglines.dxf');(stage/'diglines.prj').write_text(reference.to_wkt(version='WKT1_ESRI'),encoding='utf-8');(stage/'diglines.cpg').write_text('UTF-8',encoding='utf-8')
         metadata={'crs':reference.to_string(),'units':'metres','polygons':len(rows),'unknown_is_separate':True,'holes_preserved':True,'scope':'block-based material boundaries for professional review; not excavator guidance certification'}
-        (stage/'metadata.json').write_text(json.dumps(metadata,indent=2));stage.rename(destination)
+        (stage/'metadata.json').write_text(json.dumps(metadata,indent=2),encoding='utf-8');stage.rename(destination)
         return {'path':str(destination),**metadata}
     except BaseException:shutil.rmtree(stage,ignore_errors=True);raise

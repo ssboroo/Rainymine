@@ -13,7 +13,9 @@ from .i18n import language,tr
 from .icons import semantic_icon
 
 
-class ProductTools:
+from .render_controls import RenderTools
+
+class ProductTools(RenderTools):
     def build_product_ribbon(self):
         groups=[('Геостатистик',[
             ('Агуулгын шинжилгээ',[('Top-cut шинжилгээ',self.cap_tool),('Өндөр агуулгын зай',self.high_grade_tool),('Cell declustering',self.decluster_tool)]),

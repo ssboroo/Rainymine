@@ -5,6 +5,8 @@ from .core import finite
 DEFAULT_STYLE={'visible':True,'opacity':1.,'representation':'surface','color':None}
 
 def validate_viewing(workspace):
+    from .render_controls import validate_workspace
+    validate_workspace(workspace)
     styles=workspace.get('layer_styles',{})
     if not isinstance(styles,dict):raise ValueError('Давхаргын тохиргооны бүтэц буруу.')
     for key,style in styles.items():

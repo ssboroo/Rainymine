@@ -74,6 +74,10 @@ DWG хөрвүүлэлт нь тусдаа суулгасан ODA хэрэгсл
 
 **Автоматжуулалт → AI команд ажиллуулах**: төслийг шалгах, композит хадгалах, тохируулсан блок grid дээр NN/IDW/OK/SK бодох, QA/QC дүгнэх, хадгалсан дүрмээр ангиллын санал гаргах. Нэг Undo/Redo, background progress/cancel, тусдаа локал audit бүртгэлтэй. AI эх өгөгдөл устгах, нөөц батлах, дурын код ажиллуулах эрхгүй. [Ашиглах заавар ба бодит хүрээ](docs/AI_COMMANDS.mn.md).
 
+## Render ба 3D удирдлага
+
+Харагдац tab-д render profile, fixed grade legend, NULL block display, world-coordinate clipping box, named camera, render timing нэмэв. Ctrl/Shift олон блокийн сонголт 3D хүрээтэй; хөдөлгөөнгүй hover мэдээлэлтэй. Том GPU preview нь хөдөлгөөнд ≤25,000 LOD зурж, зогсоход бүтэн preview сэргээнэ. [Заавар, хэмжилт ба нээлттэй production шалгуур](docs/RENDER_ACCEPTANCE.mn.md).
+
 ## Хадгалалт, хэмжээ ба баталгаажуулалт
 
 - Үндсэн төсөл `.rmine` format v3; хуучин v1/v2 уншина. Форматын дээд хэмжээ 32 MB. DH эх файлууд шахсан архивтайгаа төсөлд багтана.
